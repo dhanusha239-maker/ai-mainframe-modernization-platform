@@ -1,0 +1,18 @@
+CARDSTAT CSECT ,                   Administrative Block Reviewer
+         BAKR  14,0                Save registers on linkage stack
+         BASR  12,0
+         USING *,12
+*
+         LM    2,3,0(1)            R2 = Addr of CURRTX, R3 = Addr of ERRCODE
+         CLI   32(2),C'A'          Is Status indicator character equal to 'A'?
+         BE    STAT_OK             If equal, card is verified active
+*
+         MVC   0(4,3),=C'E002'     Set Tracking Error: Card Inactive/Suspended
+         LA    15,4                Set error condition code return
+         PR
+*
+STAT_OK  DS    0H
+         XR    15,15               Set success
+         PR
+         LTORG ,
+         END   CARDSTAT

@@ -1,0 +1,29 @@
+TXREAD   CSECT ,                   VSAM Sequential Input Processor
+         BAKR  14,0                Save registers on stack
+         BASR  12,0
+         USING *,12
+*
+         LM    2,3,0(1)            R2 = Addr of INRPL, R3 = Addr of CURRTX
+*
+*        Execute Native VSAM GET Call
+         GET   RPL=(2)             Retrieve record into CURRTX buffer
+         LTR   15,15               Check low-level subsystem health code
+         JZ    GET_SUCCESS         If 0, line extracted cleanly
+*
+*        Determine if error is an End-of-File marker
+         L     4,4(,2)             Access the RPL feedback control field
+         CLM   4,B'0001',=X'04'    Is the specific feedback code End of File?
+         BE    GET_EOF             Yes, branch to exit framework code
+*
+         LA    15,8                Return structural tracking error code
+         PR
+*
+GET_EOF  DS    0H
+         LA    15,4                Signal EOF condition to driver loop (RC=4)
+         PR
+*
+GET_SUCCESS DS 0H
+         XR    15,15               Signal continuous loop state (RC=0)
+         PR
+         LTORG ,
+         END   TXREAD

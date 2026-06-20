@@ -1,0 +1,134 @@
+MAINDRV  CSECT ,                   Main VSAM Orchestration Driver
+         STM   14,12,12(13)        Save caller's registers
+         BASR  12,0                Establish base register
+         USING *,12
+         ST    13,SAVEAREA+4       Forward link save area
+         LA    11,SAVEAREA
+         ST    11,8(,13)           Backward link save area
+         LR    13,11               Point to current save area
+*
+*---------------------------------------------------------------------*
+* ENTRY HOUSEKEEPING: OPEN VSAM FILES                                 *
+*---------------------------------------------------------------------*
+         OPEN  (INACB,INPUT,OUTACB,OUTPUT) Open dynamic datasets
+         LTR   15,15               Verify file allocation initialization
+         BNZ   OPEN_ERR            If file error, abort execution loop
+*
+*---------------------------------------------------------------------*
+* TRANSACTION READ LOOP (VSAM Sequential Processing Loop)             *
+*---------------------------------------------------------------------*
+TXLOOP   DS    0H
+         LA    1,READPARM          Pass parameters to VSAM Reader module
+         L     15,=V(TXREAD)       V-CON invocation target
+         BALR  14,15               Branch and Link
+         LTR   15,15               Check return code
+         C     15,=F'4'            Did we hit End-of-File (EOF)?
+         BE    CLOSE_EXIT          Yes, exit loop safely
+         BNZ   IO_ERROR            Any other error, trigger termination code
+*
+*        Execution Loop Steps 1-5 (Validation Framework Callers)
+         LA    1,BUSPARM           Customer Identity Scan
+         L     15,=V(CUSTVAL)
+         BALR  14,15
+         LTR   15,15
+         BNZ   REJECT_PATH
+*
+         LA    1,BUSPARM           Card Token Check
+         L     15,=V(CARDSTAT)
+         BALR  14,15
+         LTR   15,15
+         BNZ   REJECT_PATH
+*
+         LA    1,BUSPARM           Packed Limit Margin Assessment
+         L     15,=V(LIMITCHK)
+         BALR  14,15
+         LTR   15,15
+         BNZ   REJECT_PATH
+*
+         LA    1,BUSPARM           Fraud Risk Verification
+         L     15,=V(FRDCHK)
+         BALR  14,15
+         LTR   15,15
+         BNZ   REJECT_PATH
+*
+         LA    1,BUSPARM           Financial Cost Pipeline Execution
+         L     15,=V(FEECALC)
+         BALR  14,15
+*
+*        Step 6: Formulate Final Authorization Decision
+         LA    1,DECPARM
+         L     15,=V(AUTHDEC)
+         BALR  14,15
+         B     WRITE_AUDIT
+*
+REJECT_PATH DS 0H
+         LA    1,DECPARM           Process rejection trace logic
+         L     15,=V(AUTHDEC)
+         BALR  14,15
+*
+WRITE_AUDIT DS 0H
+*        Step 7: Route outputs into Audit Writer Module
+         LA    1,AUDPARM
+         L     15,=V(AUDWRITE)
+         BALR  14,15
+         B     TXLOOP              Loop back for subsequent records
+*
+*---------------------------------------------------------------------*
+* EXIT HOUSEKEEPING                                                   *
+*---------------------------------------------------------------------*
+CLOSE_EXIT DS  0H
+         CLOSE (INACB,,OUTACB)     Safely terminate VSAM connections
+         XR    15,15               Set Return Code = 0
+         B     FINAL_RETURN
+*
+OPEN_ERR LA    15,12               Set standard operational error RC=12
+         B     FINAL_RETURN
+IO_ERROR LA    15,16               Set severe I/O corruption RC=16
+*
+FINAL_RETURN DS 0H
+         L     13,SAVEAREA+4       Restore system backplanes
+         LM    14,12,12(13)
+         BR    14                  Return execution control back to z/OS
+*
+*---------------------------------------------------------------------*
+* DATA CONTROL BLOCKS AND PARAMETER POINTERS                         *
+*---------------------------------------------------------------------*
+SAVEAREA DS    18F
+*
+* Parameter blocks passing file management objects across modules
+READPARM DC    A(INRPL)            Addr of input VSAM Request Parameter List
+         DC    A(CURRTX)           Addr of data target work matrix
+*
+BUSPARM  DC    A(CURRTX),A(ERRCODE)
+DECPARM  DC    A(CURRTX),A(ERRCODE),A(AUTHSTAT)
+*
+AUDPARM  DC    A(OUTRPL)           Addr of output VSAM Request Parameter List
+         DC    A(CURRTX)           Addr of transaction line
+         DC    A(AUTHSTAT)         Addr of authorization calculation
+*
+* Transaction workspace structures
+CURRTX   DS    0CL64
+TXCARD   DS    CL16
+TXCUST   DS    CL10
+TXAMT    DS    PL4
+TXTYPE   DS    CL2
+TXSTAT   DS    CL1
+TXLIMIT  DS    PL4
+TXFEE    DS    PL4
+         DS    CL23
+*
+ERRCODE  DC    CL4'0000'
+AUTHSTAT DC    CL5'     '
+*
+*---------------------------------------------------------------------*
+* VSAM CONTROL BLOCKS (ACB AND RPL STRUCTURE ALLOCATIONS)             *
+*---------------------------------------------------------------------*
+         DS    0D                  Enforce strict doubleword boundaries
+INACB    ACB   AM=VSAM,DDNAME=INVSAM,MACRF=(KEY,SEQ,IN) Input Cluster
+OUTACB   ACB   AM=VSAM,DDNAME=OUTVSAM,MACRF=(ADR,SEQ,OUT) Output Trace
+*
+INRPL    RPL   AM=VSAM,ACB=INACB,AREA=CURRTX,AREALEN=64,OPTCD=(KEY,SEQ,NUP)
+OUTRPL   RPL   AM=VSAM,ACB=OUTACB,OPTCD=(ADR,SEQ) Record Storage Request
+*
+         LTORG ,
+         END   MAINDRV

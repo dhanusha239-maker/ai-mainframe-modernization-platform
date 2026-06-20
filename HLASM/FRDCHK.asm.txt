@@ -1,0 +1,21 @@
+FRDCHK   CSECT ,                   Fraud Risk Analytical Engine
+         BAKR  14,0                Save execution context
+         BASR  12,0
+         USING ,12
+
+         LM    2,3,0(1)            R2 = Addr of CURRTX, R3 = Addr of ERRCODE
+         CP    26(4,2),=P'50000'   Is payment processing amount over $500.00
+         BNH   FRD_OK              If not higher, skip risk flag checks
+
+         CLC   30(2,2),=C'RE'      Is the point-of-sale type Remote Electronic
+         BNE   FRD_OK              If not, process standard validation
+
+         MVC   0(4,3),=C'E004'     Set Tracking Error Elevated Fraud Vector
+         LA    15,4                Reject execution pass
+         PR
+
+FRD_OK   DS    0H
+         XR    15,15               Return safe clearance code
+         PR
+         LTORG ,
+         END   FRDCHK

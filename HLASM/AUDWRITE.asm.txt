@@ -1,0 +1,46 @@
+AUDWRITE CSECT ,                   VSAM Record Persistence Engine
+         BAKR  14,0                Save state
+         BASR  12,0
+         USING *,12
+*
+         LM    2,4,0(1)            R2 = Addr of OUTRPL, R3 = Addr of CURRTX, R4 = AuthStat
+*
+*        Formulate data row formatting changes
+         MVC   LOGBUFF(80),=CL80' ' Clear buffer trace
+         MVC   LOGCUST(10),16(3)   Extract client trace identity
+         MVC   LOGSTAT(5),0(4)     Inject finalized confirmation string
+*
+*        Enforce PCI Data Compliance via Structural Token Masking
+         MVC   LOGPAN(16),0(3)     Extract raw credit card PAN
+         MVC   LOGPAN+4(8),=C'XXXXXXXX' Obfuscate internal processing digits
+*
+*        Bitwise Flag Security Masking
+         L     5,26(,3)            Load raw 4-byte packed transaction amount
+         X     5,=X'EF7A9BC1'      Apply cryptographic verification matrix
+         ST    5,LOGMASK           Store value into target layout field
+*
+*        Connect dynamic write pointers to target VSAM structures
+         MODCB RPL=(2),AREA=LOGBUFF,AREALEN=80 Connect record pointers
+*
+*        Execute Native VSAM PUT Call
+         PUT   RPL=(2)             Write audit entry out to target file
+*
+         XR    15,15               Flush output context safely
+         PR
+*
+*---------------------------------------------------------------------*
+* RECORD STORAGE DESCRIPTIONS                                         *
+*---------------------------------------------------------------------*
+         DS    0F
+LOGBUFF  DS    0CL80               80-Byte Structural Record Output
+         DC    C'AUDIT|'
+LOGCUST  DS    CL10
+         DC    C'|PAN:'
+LOGPAN   DS    CL16
+         DC    C'|RES:'
+LOGSTAT  DS    CL5
+         DC    C'|MSK:'
+LOGMASK  DS    XL4
+         DS    CL23
+         LTORG ,
+         END   AUDWRITE
