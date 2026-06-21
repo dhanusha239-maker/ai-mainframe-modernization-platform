@@ -1,0 +1,625 @@
+{
+  "symbols": {
+    "LOGBUFF": {
+      "module": "AUDWRITE",
+      "opcode": "DS",
+      "datatype": "0CL80",
+      "line": "LOGBUFF  DS    0CL80               80-Byte Structural Record Output"
+    },
+    "LOGCUST": {
+      "module": "AUDWRITE",
+      "opcode": "DS",
+      "datatype": "CL10",
+      "line": "LOGCUST  DS    CL10"
+    },
+    "LOGPAN": {
+      "module": "AUDWRITE",
+      "opcode": "DS",
+      "datatype": "CL16",
+      "line": "LOGPAN   DS    CL16"
+    },
+    "LOGSTAT": {
+      "module": "AUDWRITE",
+      "opcode": "DS",
+      "datatype": "CL5",
+      "line": "LOGSTAT  DS    CL5"
+    },
+    "LOGMASK": {
+      "module": "AUDWRITE",
+      "opcode": "DS",
+      "datatype": "XL4",
+      "line": "LOGMASK  DS    XL4"
+    },
+    "FEEWORK": {
+      "module": "FEECALC",
+      "opcode": "DS",
+      "datatype": "PL8",
+      "line": "FEEWORK  DS    PL8                 Required math buffer boundary register space"
+    },
+    "READPARM": {
+      "module": "MAINDRV",
+      "opcode": "DC",
+      "datatype": "A(INRPL)",
+      "line": "READPARM DC    A(INRPL)            Addr of input VSAM Request Parameter List"
+    },
+    "BUSPARM": {
+      "module": "MAINDRV",
+      "opcode": "DC",
+      "datatype": "A(CURRTX),A(ERRCODE)",
+      "line": "BUSPARM  DC    A(CURRTX),A(ERRCODE)"
+    },
+    "DECPARM": {
+      "module": "MAINDRV",
+      "opcode": "DC",
+      "datatype": "A(CURRTX),A(ERRCODE),A(AUTHSTAT)",
+      "line": "DECPARM  DC    A(CURRTX),A(ERRCODE),A(AUTHSTAT)"
+    },
+    "AUDPARM": {
+      "module": "MAINDRV",
+      "opcode": "DC",
+      "datatype": "A(OUTRPL)",
+      "line": "AUDPARM  DC    A(OUTRPL)           Addr of output VSAM Request Parameter List"
+    },
+    "CURRTX": {
+      "module": "MAINDRV",
+      "opcode": "DS",
+      "datatype": "0CL64",
+      "line": "CURRTX   DS    0CL64"
+    },
+    "TXCARD": {
+      "module": "MAINDRV",
+      "opcode": "DS",
+      "datatype": "CL16",
+      "line": "TXCARD   DS    CL16"
+    },
+    "TXCUST": {
+      "module": "MAINDRV",
+      "opcode": "DS",
+      "datatype": "CL10",
+      "line": "TXCUST   DS    CL10"
+    },
+    "TXAMT": {
+      "module": "MAINDRV",
+      "opcode": "DS",
+      "datatype": "PL4",
+      "line": "TXAMT    DS    PL4"
+    },
+    "TXTYPE": {
+      "module": "MAINDRV",
+      "opcode": "DS",
+      "datatype": "CL2",
+      "line": "TXTYPE   DS    CL2"
+    },
+    "TXSTAT": {
+      "module": "MAINDRV",
+      "opcode": "DS",
+      "datatype": "CL1",
+      "line": "TXSTAT   DS    CL1"
+    },
+    "TXLIMIT": {
+      "module": "MAINDRV",
+      "opcode": "DS",
+      "datatype": "PL4",
+      "line": "TXLIMIT  DS    PL4"
+    },
+    "TXFEE": {
+      "module": "MAINDRV",
+      "opcode": "DS",
+      "datatype": "PL4",
+      "line": "TXFEE    DS    PL4"
+    },
+    "ERRCODE": {
+      "module": "MAINDRV",
+      "opcode": "DC",
+      "datatype": "CL4'0000'",
+      "line": "ERRCODE  DC    CL4'0000'"
+    },
+    "AUTHSTAT": {
+      "module": "MAINDRV",
+      "opcode": "DC",
+      "datatype": "CL5'",
+      "line": "AUTHSTAT DC    CL5'     '"
+    }
+  },
+  "parameter_blocks": {
+    "READPARM": [
+      "INRPL"
+    ],
+    "BUSPARM": [
+      "CURRTX",
+      "ERRCODE"
+    ],
+    "DECPARM": [
+      "CURRTX",
+      "ERRCODE",
+      "AUTHSTAT"
+    ],
+    "AUDPARM": [
+      "OUTRPL"
+    ]
+  },
+  "ddnames": {
+    "INACB": {
+      "module": "MAINDRV",
+      "ddname": "INVSAM",
+      "line": "INACB    ACB   AM=VSAM,DDNAME=INVSAM,MACRF=(KEY,SEQ,IN) Input Cluster"
+    },
+    "OUTACB": {
+      "module": "MAINDRV",
+      "ddname": "OUTVSAM",
+      "line": "OUTACB   ACB   AM=VSAM,DDNAME=OUTVSAM,MACRF=(ADR,SEQ,OUT) Output Trace"
+    }
+  },
+  "module_parameter_context": {
+    "TXREAD": "READPARM",
+    "CUSTVAL": "BUSPARM",
+    "CARDSTAT": "BUSPARM",
+    "LIMITCHK": "BUSPARM",
+    "FRDCHK": "BUSPARM",
+    "FEECALC": "BUSPARM",
+    "AUTHDEC": "DECPARM",
+    "AUDWRITE": "AUDPARM"
+  },
+  "register_map": {
+    "AUDWRITE": {
+      "R2": "OUTRPL"
+    },
+    "AUTHDEC": {},
+    "CARDSTAT": {
+      "R2": "CURRTX",
+      "R3": "ERRCODE"
+    },
+    "CUSTVAL": {
+      "R2": "CURRTX",
+      "R3": "ERRCODE"
+    },
+    "FEECALC": {
+      "R2": "CURRTX",
+      "R3": "ERRCODE"
+    },
+    "FRDCHK": {
+      "R2": "CURRTX",
+      "R3": "ERRCODE"
+    },
+    "LIMITCHK": {
+      "R2": "CURRTX",
+      "R3": "ERRCODE"
+    },
+    "TXREAD": {
+      "R2": "INRPL"
+    }
+  },
+  "reads": {
+    "CARDSTAT": [
+      "CURRTX"
+    ],
+    "CUSTVAL": [
+      "CURRTX"
+    ],
+    "FEECALC": [
+      "CURRTX",
+      "FEEWORK"
+    ],
+    "FRDCHK": [
+      "CURRTX"
+    ],
+    "LIMITCHK": [
+      "CURRTX"
+    ],
+    "AUDWRITE": []
+  },
+  "writes": {
+    "AUDWRITE": [
+      "LOGBUFF",
+      "LOGCUST",
+      "LOGSTAT",
+      "LOGPAN"
+    ],
+    "CARDSTAT": [
+      "ERRCODE"
+    ],
+    "CUSTVAL": [
+      "ERRCODE"
+    ],
+    "FEECALC": [
+      "FEEWORK",
+      "CURRTX"
+    ],
+    "FRDCHK": [
+      "ERRCODE"
+    ],
+    "LIMITCHK": [
+      "ERRCODE"
+    ]
+  },
+  "symbol_readers": {
+    "CURRTX": [
+      "CARDSTAT",
+      "CUSTVAL",
+      "FEECALC",
+      "FRDCHK",
+      "LIMITCHK"
+    ],
+    "FEEWORK": [
+      "FEECALC"
+    ]
+  },
+  "symbol_writers": {
+    "LOGBUFF": [
+      "AUDWRITE"
+    ],
+    "LOGCUST": [
+      "AUDWRITE"
+    ],
+    "LOGSTAT": [
+      "AUDWRITE"
+    ],
+    "LOGPAN": [
+      "AUDWRITE"
+    ],
+    "ERRCODE": [
+      "CARDSTAT",
+      "CUSTVAL",
+      "FRDCHK",
+      "LIMITCHK"
+    ],
+    "FEEWORK": [
+      "FEECALC"
+    ],
+    "CURRTX": [
+      "FEECALC"
+    ]
+  },
+  "return_codes": {
+    "AUDWRITE": [
+      "0"
+    ],
+    "AUTHDEC": [
+      "0"
+    ],
+    "CARDSTAT": [
+      "4",
+      "0"
+    ],
+    "CUSTVAL": [
+      "4",
+      "0"
+    ],
+    "FEECALC": [
+      "0"
+    ],
+    "FRDCHK": [
+      "4",
+      "0"
+    ],
+    "LIMITCHK": [
+      "4",
+      "0"
+    ],
+    "MAINDRV": [
+      "0",
+      "12",
+      "16"
+    ],
+    "TXREAD": [
+      "8",
+      "4",
+      "0"
+    ]
+  },
+  "conditions": {
+    "AUTHDEC": [
+      {
+        "instruction": "CLC",
+        "operands": [
+          "0(4,3)",
+          "=C'0000'     Is the accumulated system thread error clean?"
+        ],
+        "line": "CLC   0(4,3),=C'0000'     Is the accumulated system thread error clean?"
+      }
+    ],
+    "CARDSTAT": [
+      {
+        "instruction": "CLI",
+        "operands": [
+          "CURRTX",
+          "C'A'          Is Status indicator character equal to 'A'?"
+        ],
+        "line": "CLI   32(2),C'A'          Is Status indicator character equal to 'A'?"
+      }
+    ],
+    "CUSTVAL": [
+      {
+        "instruction": "CLC",
+        "operands": [
+          "CURRTX",
+          "=C'CUST'    Does Customer ID begin with 'CUST'?"
+        ],
+        "line": "CLC   16(4,2),=C'CUST'    Does Customer ID begin with 'CUST'?"
+      }
+    ],
+    "FRDCHK": [
+      {
+        "instruction": "CP",
+        "operands": [
+          "CURRTX",
+          "=P'50000'   Is payment processing amount over $500.00"
+        ],
+        "line": "CP    26(4,2),=P'50000'   Is payment processing amount over $500.00"
+      },
+      {
+        "instruction": "CLC",
+        "operands": [
+          "CURRTX",
+          "=C'RE'      Is the point-of-sale type Remote Electronic"
+        ],
+        "line": "CLC   30(2,2),=C'RE'      Is the point-of-sale type Remote Electronic"
+      }
+    ],
+    "LIMITCHK": [
+      {
+        "instruction": "CP",
+        "operands": [
+          "CURRTX",
+          "CURRTX"
+        ],
+        "line": "CP    26(4,2),33(4,2)     Compare Transaction Amount to Credit Limit"
+      }
+    ],
+    "MAINDRV": [
+      {
+        "instruction": "LTR",
+        "operands": [
+          "15",
+          "15               Verify file allocation initialization"
+        ],
+        "line": "LTR   15,15               Verify file allocation initialization"
+      },
+      {
+        "instruction": "LTR",
+        "operands": [
+          "15",
+          "15               Check return code"
+        ],
+        "line": "LTR   15,15               Check return code"
+      },
+      {
+        "instruction": "C",
+        "operands": [
+          "15",
+          "=F'4'            Did we hit End-of-File (EOF)?"
+        ],
+        "line": "C     15,=F'4'            Did we hit End-of-File (EOF)?"
+      },
+      {
+        "instruction": "LTR",
+        "operands": [
+          "15",
+          "15"
+        ],
+        "line": "LTR   15,15"
+      }
+    ],
+    "TXREAD": [
+      {
+        "instruction": "LTR",
+        "operands": [
+          "15",
+          "15               Check low-level subsystem health code"
+        ],
+        "line": "LTR   15,15               Check low-level subsystem health code"
+      }
+    ]
+  },
+  "condition_branches": {
+    "AUTHDEC": [
+      {
+        "condition": {
+          "instruction": "CLC",
+          "operands": [
+            "0(4,3)",
+            "=C'0000'     Is the accumulated system thread error clean?"
+          ],
+          "line": "CLC   0(4,3),=C'0000'     Is the accumulated system thread error clean?"
+        },
+        "branch": {
+          "branch_op": "BNE",
+          "target": "SET_REJECT",
+          "line": "BNE   SET_REJECT          If not equal, branch to reject state mapping"
+        }
+      }
+    ],
+    "CARDSTAT": [
+      {
+        "condition": {
+          "instruction": "CLI",
+          "operands": [
+            "CURRTX",
+            "C'A'          Is Status indicator character equal to 'A'?"
+          ],
+          "line": "CLI   32(2),C'A'          Is Status indicator character equal to 'A'?"
+        },
+        "branch": {
+          "branch_op": "BE",
+          "target": "STAT_OK",
+          "line": "BE    STAT_OK             If equal, card is verified active"
+        }
+      }
+    ],
+    "CUSTVAL": [
+      {
+        "condition": {
+          "instruction": "CLC",
+          "operands": [
+            "CURRTX",
+            "=C'CUST'    Does Customer ID begin with 'CUST'?"
+          ],
+          "line": "CLC   16(4,2),=C'CUST'    Does Customer ID begin with 'CUST'?"
+        },
+        "branch": {
+          "branch_op": "BE",
+          "target": "VAL_OK",
+          "line": "BE    VAL_OK              If true, configuration is correct"
+        }
+      }
+    ],
+    "FRDCHK": [
+      {
+        "condition": {
+          "instruction": "CP",
+          "operands": [
+            "CURRTX",
+            "=P'50000'   Is payment processing amount over $500.00"
+          ],
+          "line": "CP    26(4,2),=P'50000'   Is payment processing amount over $500.00"
+        },
+        "branch": {
+          "branch_op": "BNH",
+          "target": "FRD_OK",
+          "line": "BNH   FRD_OK              If not higher, skip risk flag checks"
+        }
+      },
+      {
+        "condition": {
+          "instruction": "CLC",
+          "operands": [
+            "CURRTX",
+            "=C'RE'      Is the point-of-sale type Remote Electronic"
+          ],
+          "line": "CLC   30(2,2),=C'RE'      Is the point-of-sale type Remote Electronic"
+        },
+        "branch": {
+          "branch_op": "BNE",
+          "target": "FRD_OK",
+          "line": "BNE   FRD_OK              If not, process standard validation"
+        }
+      }
+    ],
+    "LIMITCHK": [
+      {
+        "condition": {
+          "instruction": "CP",
+          "operands": [
+            "CURRTX",
+            "CURRTX"
+          ],
+          "line": "CP    26(4,2),33(4,2)     Compare Transaction Amount to Credit Limit"
+        },
+        "branch": {
+          "branch_op": "BNH",
+          "target": "LIMIT_OK",
+          "line": "BNH   LIMIT_OK            If Amount is Not Higher, proceed cleanly"
+        }
+      }
+    ],
+    "MAINDRV": [
+      {
+        "condition": {
+          "instruction": "LTR",
+          "operands": [
+            "15",
+            "15               Verify file allocation initialization"
+          ],
+          "line": "LTR   15,15               Verify file allocation initialization"
+        },
+        "branch": {
+          "branch_op": "BNZ",
+          "target": "OPEN_ERR",
+          "line": "BNZ   OPEN_ERR            If file error, abort execution loop"
+        }
+      },
+      {
+        "condition": {
+          "instruction": "C",
+          "operands": [
+            "15",
+            "=F'4'            Did we hit End-of-File (EOF)?"
+          ],
+          "line": "C     15,=F'4'            Did we hit End-of-File (EOF)?"
+        },
+        "branch": {
+          "branch_op": "BE",
+          "target": "CLOSE_EXIT",
+          "line": "BE    CLOSE_EXIT          Yes, exit loop safely"
+        }
+      },
+      {
+        "condition": {
+          "instruction": "LTR",
+          "operands": [
+            "15",
+            "15"
+          ],
+          "line": "LTR   15,15"
+        },
+        "branch": {
+          "branch_op": "BNZ",
+          "target": "REJECT_PATH",
+          "line": "BNZ   REJECT_PATH"
+        }
+      },
+      {
+        "condition": {
+          "instruction": "LTR",
+          "operands": [
+            "15",
+            "15"
+          ],
+          "line": "LTR   15,15"
+        },
+        "branch": {
+          "branch_op": "BNZ",
+          "target": "REJECT_PATH",
+          "line": "BNZ   REJECT_PATH"
+        }
+      },
+      {
+        "condition": {
+          "instruction": "LTR",
+          "operands": [
+            "15",
+            "15"
+          ],
+          "line": "LTR   15,15"
+        },
+        "branch": {
+          "branch_op": "BNZ",
+          "target": "REJECT_PATH",
+          "line": "BNZ   REJECT_PATH"
+        }
+      },
+      {
+        "condition": {
+          "instruction": "LTR",
+          "operands": [
+            "15",
+            "15"
+          ],
+          "line": "LTR   15,15"
+        },
+        "branch": {
+          "branch_op": "BNZ",
+          "target": "REJECT_PATH",
+          "line": "BNZ   REJECT_PATH"
+        }
+      }
+    ],
+    "TXREAD": [
+      {
+        "condition": {
+          "instruction": "LTR",
+          "operands": [
+            "15",
+            "15               Check low-level subsystem health code"
+          ],
+          "line": "LTR   15,15               Check low-level subsystem health code"
+        },
+        "branch": {
+          "branch_op": "JZ",
+          "target": "GET_SUCCESS",
+          "line": "JZ    GET_SUCCESS         If 0, line extracted cleanly"
+        }
+      }
+    ]
+  }
+}
