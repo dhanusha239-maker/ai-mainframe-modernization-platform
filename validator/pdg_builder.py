@@ -12,12 +12,13 @@ class PDGBuilder:
     - Data symbols from DS/DC
     - Parameter blocks
     - VSAM DDNAMEs
-    - Module parameter passing through R1
+    - R1 parameter passing
     - Register mappings from LM x,y,0(1)
+    - Field offsets inside layouts like CURRTX
     - Reads/writes
-    - Return codes in R15
-    - Condition checks
-    - JSON report output
+    - Return codes
+    - Conditions
+    - JSON export
     """
 
     def __init__(self, asm_folder="HLASM"):
@@ -32,7 +33,6 @@ class PDGBuilder:
 
         self.reads = defaultdict(list)
         self.writes = defaultdict(list)
-
         self.symbol_readers = defaultdict(list)
         self.symbol_writers = defaultdict(list)
 
@@ -40,9 +40,10 @@ class PDGBuilder:
         self.return_code_checks = defaultdict(list)
         self.conditions = defaultdict(list)
 
+        self.field_offsets = defaultdict(dict)
+
         self.data_definition_ops = {"DS", "DC"}
         self.control_block_ops = {"ACB", "RPL", "DCB"}
-
         self.ignore_symbol_prefixes = {"SAVE", "SAVEAREA"}
 
     def _add_unique(self, items, value):
@@ -59,14 +60,50 @@ class PDGBuilder:
         for filepath in files:
             self._pass1_discovery(filepath)
 
+        self._build_field_offsets()
+
         for filepath in files:
             self._pass2_call_context(filepath)
 
         for filepath in files:
             self._pass3_usage(filepath)
 
+    def _remove_comment(self, clean):
+        """
+        Keep full HLASM statement.
+
+        Do NOT split on multiple spaces because assembler uses spacing
+        between label, opcode, operands, and comments.
+
+        Operand cleanup happens in _clean_operand().
+        """
+        return clean.strip()
+
+    def _clean_operand(self, operand):
+        """
+        Remove trailing human comments from operands without breaking
+        literals or address expressions.
+        """
+
+        operand = operand.strip()
+
+        if not operand:
+            return operand
+
+        # Keep literal constants only:
+        # =C'0000' comment  -> =C'0000'
+        # =P'50000' comment -> =P'50000'
+        literal_match = re.match(r"(=[A-Z]?'.*?')", operand, re.IGNORECASE)
+        if literal_match:
+            return literal_match.group(1)
+
+        # Otherwise keep first token.
+        # Example:
+        # "33(4,2) Compare Transaction Amount" -> "33(4,2)"
+        return operand.split()[0] if operand.split() else operand
+
     # ------------------------------------------------------------
-    # PASS 1: Discover symbols, parameter blocks, files
+    # PASS 1
     # ------------------------------------------------------------
     def _pass1_discovery(self, filepath):
         current_module = None
@@ -79,7 +116,7 @@ class PDGBuilder:
                     continue
 
                 has_label = not raw.startswith(" ")
-                clean = raw.strip()
+                clean = self._remove_comment(raw.strip())
                 parts = clean.split()
 
                 if not parts:
@@ -125,11 +162,9 @@ class PDGBuilder:
         if opcode not in self.data_definition_ops:
             return
 
-        # DS 0H is a code label, not a data field.
         if opcode == "DS" and datatype == "0H":
             return
 
-        # Save areas are infrastructure, not business data.
         if any(symbol.startswith(prefix) for prefix in self.ignore_symbol_prefixes):
             return
 
@@ -156,7 +191,57 @@ class PDGBuilder:
             self.parameter_blocks[symbol] = [t.upper() for t in targets]
 
     # ------------------------------------------------------------
-    # PASS 2: Caller context
+    # FIELD OFFSET MAP
+    # ------------------------------------------------------------
+    def _build_field_offsets(self):
+        current_base = None
+        current_offset = 0
+
+        for symbol, info in self.symbols.items():
+            datatype = info["datatype"]
+
+            if datatype.startswith("0"):
+                current_base = symbol
+                current_offset = 0
+                continue
+
+            if current_base is None:
+                continue
+
+            size = self._datatype_size(datatype)
+
+            if size is None:
+                continue
+
+            self.field_offsets[current_base][current_offset] = symbol
+            current_offset += size
+
+    def _datatype_size(self, datatype):
+        datatype = datatype.upper()
+
+        m = re.match(r"CL(\d+)", datatype)
+        if m:
+            return int(m.group(1))
+
+        m = re.match(r"XL(\d+)", datatype)
+        if m:
+            return int(m.group(1))
+
+        m = re.match(r"PL(\d+)", datatype)
+        if m:
+            return int(m.group(1))
+
+        if datatype == "F":
+            return 4
+
+        m = re.match(r"(\d+)F", datatype)
+        if m:
+            return int(m.group(1)) * 4
+
+        return None
+
+    # ------------------------------------------------------------
+    # PASS 2
     # ------------------------------------------------------------
     def _pass2_call_context(self, filepath):
         current_module = None
@@ -171,7 +256,7 @@ class PDGBuilder:
                     continue
 
                 has_label = not raw.startswith(" ")
-                clean = raw.strip()
+                clean = self._remove_comment(raw.strip())
                 parts = clean.split()
 
                 if not parts:
@@ -184,7 +269,6 @@ class PDGBuilder:
                 if current_module is None:
                     continue
 
-                # LA 1,BUSPARM
                 la_match = re.search(
                     r"\bLA\s+1\s*,\s*([A-Z0-9_#$@]+)",
                     clean,
@@ -195,7 +279,6 @@ class PDGBuilder:
                     if block in self.parameter_blocks:
                         current_param_block = block
 
-                # L 15,=V(CUSTVAL)
                 vcon_match = re.search(
                     r"=V\(([A-Z0-9_#$@]+)\)",
                     clean,
@@ -204,7 +287,6 @@ class PDGBuilder:
                 if vcon_match:
                     pending_target_module = vcon_match.group(1).upper()
 
-                # BALR/BASR transfers to target loaded in register.
                 if re.search(r"\b(BALR|BASR)\b", clean, re.IGNORECASE):
                     if pending_target_module and current_param_block:
                         self.module_param_block[pending_target_module] = current_param_block
@@ -213,7 +295,7 @@ class PDGBuilder:
                     current_param_block = None
 
     # ------------------------------------------------------------
-    # PASS 3: Usage, RC, conditions
+    # PASS 3
     # ------------------------------------------------------------
     def _pass3_usage(self, filepath):
         current_module = None
@@ -227,7 +309,7 @@ class PDGBuilder:
                     continue
 
                 has_label = not raw.startswith(" ")
-                clean = raw.strip()
+                clean = self._remove_comment(raw.strip())
                 parts = clean.split()
 
                 if not parts:
@@ -248,7 +330,7 @@ class PDGBuilder:
                 condition = self._extract_condition(current_module, clean)
                 if condition:
                     last_condition = condition
-                    self._add_unique(self.conditions[current_module], condition)
+                    self.conditions[current_module].append(condition)
 
                 branch = self._extract_branch(clean)
                 if branch and last_condition:
@@ -259,7 +341,6 @@ class PDGBuilder:
                     last_condition = None
 
     def _track_register_mapping(self, module, clean):
-        # LM 2,3,0(1)
         match = re.search(
             r"\bLM\s+(\d+)\s*,\s*(\d+)\s*,\s*0\(1\)",
             clean,
@@ -287,12 +368,10 @@ class PDGBuilder:
             idx += 1
 
     def _track_return_code_set(self, module, clean):
-        # XR 15,15 => RC=0
         if re.search(r"\bXR\s+15\s*,\s*15\b", clean, re.IGNORECASE):
             self._add_unique(self.return_codes[module], "0")
             return
 
-        # LA 15,4 / LA 15,8 / LA 15,12 / LA 15,16
         match = re.search(r"\bLA\s+15\s*,\s*([0-9]+)", clean, re.IGNORECASE)
         if match:
             self._add_unique(self.return_codes[module], match.group(1))
@@ -349,6 +428,7 @@ class PDGBuilder:
 
         if opcode in {"CLC", "CLI", "CP", "C", "LTR"}:
             resolved = []
+
             for op in operands:
                 symbol = self._normalize_operand(module, op)
                 resolved.append(symbol if symbol else op)
@@ -377,7 +457,7 @@ class PDGBuilder:
         }
 
     # ------------------------------------------------------------
-    # Operand handling
+    # OPERANDS
     # ------------------------------------------------------------
     def _get_operands(self, clean):
         parts = clean.split(None, 1)
@@ -386,7 +466,6 @@ class PDGBuilder:
             return []
 
         text = parts[1]
-
         operands = []
         current = ""
         paren_depth = 0
@@ -402,13 +481,13 @@ class PDGBuilder:
                 paren_depth -= 1
 
             if ch == "," and paren_depth == 0 and not in_quote:
-                operands.append(current.strip())
+                operands.append(self._clean_operand(current))
                 current = ""
             else:
                 current += ch
 
         if current.strip():
-            operands.append(current.strip())
+            operands.append(self._clean_operand(current))
 
         return operands
 
@@ -418,16 +497,23 @@ class PDGBuilder:
         if operand.startswith("="):
             return None
 
-        # Direct symbol: TXAMT, TXFEE, AUTHSTAT
         base = re.split(r"[+(]", operand)[0]
         if base in self.symbols:
             return base
 
-        # Register-offset: 0(4,3), 16(3), 37(4,2)
-        reg_match = re.search(r"\((?:\d+,)?(\d+)\)", operand)
+        reg_match = re.search(r"^(\d+)?(?:\(\d+,(\d+)\)|\((\d+)\))", operand)
         if reg_match:
-            reg_num = int(reg_match.group(1))
-            return self.register_map[module].get(reg_num)
+            offset_text = reg_match.group(1)
+            reg_text = reg_match.group(2) or reg_match.group(3)
+
+            offset = int(offset_text) if offset_text else 0
+            reg_num = int(reg_text)
+
+            base_symbol = self.register_map[module].get(reg_num)
+
+            if base_symbol:
+                field_symbol = self.field_offsets.get(base_symbol, {}).get(offset)
+                return field_symbol if field_symbol else base_symbol
 
         return None
 
@@ -448,11 +534,15 @@ class PDGBuilder:
         self._add_unique(self.symbol_writers[symbol], module)
 
     # ------------------------------------------------------------
-    # Report
+    # REPORTING
     # ------------------------------------------------------------
     def to_dict(self):
         return {
             "symbols": self.symbols,
+            "field_offsets": {
+                base: {str(offset): field for offset, field in offsets.items()}
+                for base, offsets in self.field_offsets.items()
+            },
             "parameter_blocks": self.parameter_blocks,
             "ddnames": self.ddnames,
             "module_parameter_context": self.module_param_block,
@@ -477,6 +567,13 @@ class PDGBuilder:
         print("\nPDG REPORT")
         print("=" * 70)
 
+        print("\nFIELD OFFSET MAP")
+        print("-" * 70)
+        for base, offsets in self.field_offsets.items():
+            print(f"{base}:")
+            for offset, field in offsets.items():
+                print(f"  +{offset:<3} -> {field}")
+
         print("\nPARAMETER BLOCKS")
         print("-" * 70)
         for name, targets in self.parameter_blocks.items():
@@ -488,7 +585,10 @@ class PDGBuilder:
             print("None")
         else:
             for module, block in self.module_param_block.items():
-                print(f"{module:<12} receives {block} -> {', '.join(self.parameter_blocks.get(block, []))}")
+                print(
+                    f"{module:<12} receives {block} -> "
+                    f"{', '.join(self.parameter_blocks.get(block, []))}"
+                )
 
         print("\nREGISTER MAP")
         print("-" * 70)

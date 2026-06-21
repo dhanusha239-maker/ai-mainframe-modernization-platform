@@ -121,6 +121,26 @@
       "line": "AUTHSTAT DC    CL5'     '"
     }
   },
+  "field_offsets": {
+    "LOGBUFF": {
+      "0": "LOGCUST",
+      "10": "LOGPAN",
+      "26": "LOGSTAT",
+      "31": "LOGMASK",
+      "35": "FEEWORK"
+    },
+    "CURRTX": {
+      "0": "TXCARD",
+      "16": "TXCUST",
+      "26": "TXAMT",
+      "30": "TXTYPE",
+      "32": "TXSTAT",
+      "33": "TXLIMIT",
+      "37": "TXFEE",
+      "41": "ERRCODE",
+      "45": "AUTHSTAT"
+    }
+  },
   "parameter_blocks": {
     "READPARM": [
       "INRPL"
@@ -191,20 +211,22 @@
   },
   "reads": {
     "CARDSTAT": [
-      "CURRTX"
+      "TXSTAT"
     ],
     "CUSTVAL": [
-      "CURRTX"
+      "TXCUST"
     ],
     "FEECALC": [
-      "CURRTX",
+      "TXAMT",
       "FEEWORK"
     ],
     "FRDCHK": [
-      "CURRTX"
+      "TXAMT",
+      "TXTYPE"
     ],
     "LIMITCHK": [
-      "CURRTX"
+      "TXAMT",
+      "TXLIMIT"
     ],
     "AUDWRITE": []
   },
@@ -213,7 +235,8 @@
       "LOGBUFF",
       "LOGCUST",
       "LOGSTAT",
-      "LOGPAN"
+      "LOGPAN",
+      "LOGMASK"
     ],
     "CARDSTAT": [
       "ERRCODE"
@@ -223,7 +246,7 @@
     ],
     "FEECALC": [
       "FEEWORK",
-      "CURRTX"
+      "TXFEE"
     ],
     "FRDCHK": [
       "ERRCODE"
@@ -233,15 +256,25 @@
     ]
   },
   "symbol_readers": {
-    "CURRTX": [
-      "CARDSTAT",
-      "CUSTVAL",
+    "TXSTAT": [
+      "CARDSTAT"
+    ],
+    "TXCUST": [
+      "CUSTVAL"
+    ],
+    "TXAMT": [
       "FEECALC",
       "FRDCHK",
       "LIMITCHK"
     ],
     "FEEWORK": [
       "FEECALC"
+    ],
+    "TXTYPE": [
+      "FRDCHK"
+    ],
+    "TXLIMIT": [
+      "LIMITCHK"
     ]
   },
   "symbol_writers": {
@@ -257,6 +290,9 @@
     "LOGPAN": [
       "AUDWRITE"
     ],
+    "LOGMASK": [
+      "AUDWRITE"
+    ],
     "ERRCODE": [
       "CARDSTAT",
       "CUSTVAL",
@@ -266,7 +302,7 @@
     "FEEWORK": [
       "FEECALC"
     ],
-    "CURRTX": [
+    "TXFEE": [
       "FEECALC"
     ]
   },
@@ -313,7 +349,7 @@
         "instruction": "CLC",
         "operands": [
           "0(4,3)",
-          "=C'0000'     Is the accumulated system thread error clean?"
+          "=C'0000'"
         ],
         "line": "CLC   0(4,3),=C'0000'     Is the accumulated system thread error clean?"
       }
@@ -322,8 +358,8 @@
       {
         "instruction": "CLI",
         "operands": [
-          "CURRTX",
-          "C'A'          Is Status indicator character equal to 'A'?"
+          "TXSTAT",
+          "C'A'"
         ],
         "line": "CLI   32(2),C'A'          Is Status indicator character equal to 'A'?"
       }
@@ -332,8 +368,8 @@
       {
         "instruction": "CLC",
         "operands": [
-          "CURRTX",
-          "=C'CUST'    Does Customer ID begin with 'CUST'?"
+          "TXCUST",
+          "=C'CUST'"
         ],
         "line": "CLC   16(4,2),=C'CUST'    Does Customer ID begin with 'CUST'?"
       }
@@ -342,16 +378,16 @@
       {
         "instruction": "CP",
         "operands": [
-          "CURRTX",
-          "=P'50000'   Is payment processing amount over $500.00"
+          "TXAMT",
+          "=P'50000'"
         ],
         "line": "CP    26(4,2),=P'50000'   Is payment processing amount over $500.00"
       },
       {
         "instruction": "CLC",
         "operands": [
-          "CURRTX",
-          "=C'RE'      Is the point-of-sale type Remote Electronic"
+          "TXTYPE",
+          "=C'RE'"
         ],
         "line": "CLC   30(2,2),=C'RE'      Is the point-of-sale type Remote Electronic"
       }
@@ -360,8 +396,8 @@
       {
         "instruction": "CP",
         "operands": [
-          "CURRTX",
-          "CURRTX"
+          "TXAMT",
+          "TXLIMIT"
         ],
         "line": "CP    26(4,2),33(4,2)     Compare Transaction Amount to Credit Limit"
       }
@@ -371,7 +407,7 @@
         "instruction": "LTR",
         "operands": [
           "15",
-          "15               Verify file allocation initialization"
+          "15"
         ],
         "line": "LTR   15,15               Verify file allocation initialization"
       },
@@ -379,7 +415,7 @@
         "instruction": "LTR",
         "operands": [
           "15",
-          "15               Check return code"
+          "15"
         ],
         "line": "LTR   15,15               Check return code"
       },
@@ -387,9 +423,33 @@
         "instruction": "C",
         "operands": [
           "15",
-          "=F'4'            Did we hit End-of-File (EOF)?"
+          "=F'4'"
         ],
         "line": "C     15,=F'4'            Did we hit End-of-File (EOF)?"
+      },
+      {
+        "instruction": "LTR",
+        "operands": [
+          "15",
+          "15"
+        ],
+        "line": "LTR   15,15"
+      },
+      {
+        "instruction": "LTR",
+        "operands": [
+          "15",
+          "15"
+        ],
+        "line": "LTR   15,15"
+      },
+      {
+        "instruction": "LTR",
+        "operands": [
+          "15",
+          "15"
+        ],
+        "line": "LTR   15,15"
       },
       {
         "instruction": "LTR",
@@ -405,7 +465,7 @@
         "instruction": "LTR",
         "operands": [
           "15",
-          "15               Check low-level subsystem health code"
+          "15"
         ],
         "line": "LTR   15,15               Check low-level subsystem health code"
       }
@@ -418,7 +478,7 @@
           "instruction": "CLC",
           "operands": [
             "0(4,3)",
-            "=C'0000'     Is the accumulated system thread error clean?"
+            "=C'0000'"
           ],
           "line": "CLC   0(4,3),=C'0000'     Is the accumulated system thread error clean?"
         },
@@ -434,8 +494,8 @@
         "condition": {
           "instruction": "CLI",
           "operands": [
-            "CURRTX",
-            "C'A'          Is Status indicator character equal to 'A'?"
+            "TXSTAT",
+            "C'A'"
           ],
           "line": "CLI   32(2),C'A'          Is Status indicator character equal to 'A'?"
         },
@@ -451,8 +511,8 @@
         "condition": {
           "instruction": "CLC",
           "operands": [
-            "CURRTX",
-            "=C'CUST'    Does Customer ID begin with 'CUST'?"
+            "TXCUST",
+            "=C'CUST'"
           ],
           "line": "CLC   16(4,2),=C'CUST'    Does Customer ID begin with 'CUST'?"
         },
@@ -468,8 +528,8 @@
         "condition": {
           "instruction": "CP",
           "operands": [
-            "CURRTX",
-            "=P'50000'   Is payment processing amount over $500.00"
+            "TXAMT",
+            "=P'50000'"
           ],
           "line": "CP    26(4,2),=P'50000'   Is payment processing amount over $500.00"
         },
@@ -483,8 +543,8 @@
         "condition": {
           "instruction": "CLC",
           "operands": [
-            "CURRTX",
-            "=C'RE'      Is the point-of-sale type Remote Electronic"
+            "TXTYPE",
+            "=C'RE'"
           ],
           "line": "CLC   30(2,2),=C'RE'      Is the point-of-sale type Remote Electronic"
         },
@@ -500,8 +560,8 @@
         "condition": {
           "instruction": "CP",
           "operands": [
-            "CURRTX",
-            "CURRTX"
+            "TXAMT",
+            "TXLIMIT"
           ],
           "line": "CP    26(4,2),33(4,2)     Compare Transaction Amount to Credit Limit"
         },
@@ -518,7 +578,7 @@
           "instruction": "LTR",
           "operands": [
             "15",
-            "15               Verify file allocation initialization"
+            "15"
           ],
           "line": "LTR   15,15               Verify file allocation initialization"
         },
@@ -533,7 +593,7 @@
           "instruction": "C",
           "operands": [
             "15",
-            "=F'4'            Did we hit End-of-File (EOF)?"
+            "=F'4'"
           ],
           "line": "C     15,=F'4'            Did we hit End-of-File (EOF)?"
         },
@@ -610,7 +670,7 @@
           "instruction": "LTR",
           "operands": [
             "15",
-            "15               Check low-level subsystem health code"
+            "15"
           ],
           "line": "LTR   15,15               Check low-level subsystem health code"
         },
