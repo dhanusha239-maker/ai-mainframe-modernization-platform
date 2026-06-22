@@ -33,6 +33,7 @@ Generated from `analysis_report.json`.
 - `AUTHSTAT`
 - `TXCARD`
 - `TXAMT`
+- `LOGBUFF`
 
 **Output fields written by instructions:**
 
@@ -309,7 +310,7 @@ Generated from `analysis_report.json`.
 
 **Output fields written by instructions:**
 
-- None detected
+- `CURRTX`
 
 **Condition checks:**
 

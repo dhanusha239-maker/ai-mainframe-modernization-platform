@@ -1,6 +1,6 @@
 # Legacy Program Intelligence + Verification Report
 
-Generated on: `2026-06-22 10:41:18`
+Generated on: `2026-06-22 12:04:53`
 
 ## 1. Project Purpose
 
@@ -66,7 +66,7 @@ This report summarizes analysis results from the HLASM codebase. The system scan
 
 ### `AUDWRITE`
 
-- Business Fields Read: `TXCUST`, `AUTHSTAT`, `TXCARD`, `TXAMT`
+- Business Fields Read: `TXCUST`, `AUTHSTAT`, `TXCARD`, `TXAMT`, `LOGBUFF`
 - Business Fields Written: `LOGBUFF`, `LOGCUST`, `LOGSTAT`, `LOGPAN`, `LOGMASK`
 
 ### `AUTHDEC`
@@ -102,7 +102,7 @@ This report summarizes analysis results from the HLASM codebase. The system scan
 ### `TXREAD`
 
 - Business Fields Read: `INRPL`
-- Business Fields Written: None
+- Business Fields Written: `CURRTX`
 
 ## 6. Return Code Summary
 
@@ -158,7 +158,7 @@ This report summarizes analysis results from the HLASM codebase. The system scan
 ### `LOGBUFF`
 
 - Written by: `AUDWRITE`
-- Read by: None
+- Read by: `AUDWRITE`
 - Impacted modules: `AUDWRITE`
 
 ### `LOGCUST`
@@ -190,6 +190,12 @@ This report summarizes analysis results from the HLASM codebase. The system scan
 - Written by: `FEECALC`
 - Read by: `FEECALC`
 - Impacted modules: `FEECALC`
+
+### `CURRTX`
+
+- Written by: `TXREAD`
+- Read by: None
+- Impacted modules: `TXREAD`
 
 ### `TXCARD`
 

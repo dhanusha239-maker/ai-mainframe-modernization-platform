@@ -12,6 +12,8 @@ class PDGBuilder:
     - Data symbols from DS/DC
     - Multi-line parameter blocks: PARM DC A(X) / DC A(Y)
     - VSAM DDNAMEs from ACB/DCB
+    - RPL AREA mappings
+    - GET/PUT/MODCB VSAM buffer effects
     - R1 parameter passing
     - LM/L register mapping from parameter blocks
     - Field offsets inside record layouts like CURRTX DS 0CL64
@@ -32,6 +34,7 @@ class PDGBuilder:
         self.current_parameter_block = None
 
         self.ddnames = {}
+        self.rpl_areas = {}
 
         self.module_param_block = {}
         self.register_map = defaultdict(dict)
@@ -47,6 +50,12 @@ class PDGBuilder:
         self.condition_branches = defaultdict(list)
 
         self.field_offsets = defaultdict(dict)
+
+        # VSAM/RPL semantic effects
+        self.record_buffer_reads = defaultdict(list)
+        self.record_buffer_writes = defaultdict(list)
+        self.active_rpl_area = defaultdict(dict)
+
         self.warnings = []
 
         self.data_definition_ops = {"DS", "DC"}
@@ -167,7 +176,7 @@ class PDGBuilder:
         return first, split[1] if len(split) > 1 else ""
 
     # ------------------------------------------------------------
-    # PASS 1: Discover symbols, parameter blocks, files
+    # PASS 1: Discover symbols, parameter blocks, files, RPL areas
     # ------------------------------------------------------------
     def _pass1_discovery(self, filepath):
         current_module = None
@@ -196,6 +205,7 @@ class PDGBuilder:
                     continue
 
                 self._capture_ddname(current_module, has_label, parts, clean)
+                self._capture_rpl_area(current_module, has_label, parts, clean)
                 self._discover_parameter_block(has_label, parts, clean)
                 self._discover_symbol(current_module, has_label, parts, clean)
 
@@ -217,9 +227,33 @@ class PDGBuilder:
                 "line": clean,
             }
 
+    def _capture_rpl_area(self, module, has_label, parts, clean):
+        """
+        Captures:
+          INRPL RPL AM=VSAM,ACB=INACB,AREA=CURRTX,...
+        """
+
+        if not has_label or len(parts) < 2:
+            return
+
+        symbol = parts[0].upper()
+        opcode = parts[1].upper()
+
+        if opcode != "RPL":
+            return
+
+        area_match = re.search(r"AREA=([A-Z0-9_#$@]+)", clean, re.IGNORECASE)
+
+        if area_match:
+            self.rpl_areas[symbol] = {
+                "module": module,
+                "area": area_match.group(1).upper(),
+                "line": clean,
+            }
+
     def _discover_parameter_block(self, has_label, parts, clean):
         """
-        Supports both:
+        Supports:
           AUDPARM DC A(OUTRPL)
                   DC A(CURRTX)
                   DC A(AUTHSTAT)
@@ -228,13 +262,12 @@ class PDGBuilder:
           BUSPARM DC A(CURRTX),A(ERRCODE)
         """
 
-        # Labeled DC starts a new parameter block
+        # Labeled DC starts a parameter block
         if has_label and len(parts) >= 3:
             symbol = parts[0].upper()
             opcode = parts[1].upper()
 
             if opcode != "DC":
-                # Any new labeled non-DC line ends parameter block continuation.
                 self.current_parameter_block = None
                 return
 
@@ -248,7 +281,7 @@ class PDGBuilder:
 
             return
 
-        # Unlabeled DC continuation line
+        # Unlabeled continuation DC
         if not has_label and self.current_parameter_block:
             opcode = parts[0].upper()
 
@@ -406,6 +439,7 @@ class PDGBuilder:
                 if current_module is None:
                     continue
 
+                # LA 1,PARMBLOCK
                 la_match = re.search(
                     r"\bLA\s+1\s*,\s*([A-Z0-9_#$@]+)",
                     clean,
@@ -416,6 +450,7 @@ class PDGBuilder:
                     if block in self.parameter_blocks:
                         current_param_block = block
 
+                # L 15,=V(MODULE)
                 vcon_match = re.search(
                     r"=V\(([A-Z0-9_#$@]+)\)",
                     clean,
@@ -424,6 +459,7 @@ class PDGBuilder:
                 if vcon_match:
                     pending_target_module = vcon_match.group(1).upper()
 
+                # BALR/BASR calls target in register
                 if re.search(r"\b(BALR|BASR)\b", clean, re.IGNORECASE):
                     if pending_target_module and current_param_block:
                         self.module_param_block[pending_target_module] = current_param_block
@@ -432,7 +468,7 @@ class PDGBuilder:
                     current_param_block = None
 
     # ------------------------------------------------------------
-    # PASS 3: Usage, return codes, conditions
+    # PASS 3: Usage, VSAM, return codes, conditions
     # ------------------------------------------------------------
     def _pass3_usage(self, filepath):
         current_module = None
@@ -461,6 +497,7 @@ class PDGBuilder:
                     continue
 
                 self._track_register_mapping(current_module, clean)
+                self._track_vsam_io(current_module, clean)
                 self._track_return_code_set(current_module, clean)
                 self._track_usage(current_module, clean)
 
@@ -484,8 +521,7 @@ class PDGBuilder:
 
         params = self.parameter_blocks.get(block_name, [])
 
-        # Actual HLASM semantics:
-        # LM 2,3,4(1) starts at parameter block + 4.
+        # LM 2,3,0(1) or LM 2,3,4(1)
         lm_match = re.search(
             r"\bLM\s+(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\(1\)",
             clean,
@@ -520,6 +556,79 @@ class PDGBuilder:
 
             if param_index < len(params):
                 self.register_map[module][reg] = params[param_index]
+
+    def _track_vsam_io(self, module, clean):
+        """
+        Captures generic VSAM/RPL semantic effects.
+
+        GET RPL=(2)
+          If R2 -> INRPL and INRPL AREA=CURRTX,
+          then module writes/populates CURRTX.
+
+        MODCB RPL=(2),AREA=LOGBUFF
+          dynamically changes OUTRPL active area to LOGBUFF.
+
+        PUT RPL=(2)
+          If R2 -> OUTRPL and active area is LOGBUFF,
+          then module reads/writes out LOGBUFF.
+        """
+
+        opcode, _ = self._split_opcode_operands(clean)
+
+        if opcode not in {"GET", "PUT", "MODCB"}:
+            return
+
+        # MODCB RPL=(2),AREA=LOGBUFF
+        modcb_match = re.search(
+            r"MODCB\s+RPL=\((\d+)\).*AREA=([A-Z0-9_#$@]+)",
+            clean,
+            re.IGNORECASE,
+        )
+
+        if modcb_match:
+            reg = int(modcb_match.group(1))
+            area = modcb_match.group(2).upper()
+
+            rpl_symbol = self.register_map[module].get(reg)
+
+            if rpl_symbol:
+                self.active_rpl_area[module][rpl_symbol] = area
+
+            return
+
+        rpl_symbol = None
+
+        # GET RPL=(2) / PUT RPL=(2)
+        rpl_reg_match = re.search(r"RPL=\((\d+)\)", clean, re.IGNORECASE)
+        if rpl_reg_match:
+            reg = int(rpl_reg_match.group(1))
+            rpl_symbol = self.register_map[module].get(reg)
+
+        # GET RPL=INRPL / PUT RPL=OUTRPL
+        direct_match = re.search(r"RPL=([A-Z0-9_#$@]+)", clean, re.IGNORECASE)
+        if direct_match and not rpl_symbol:
+            rpl_symbol = direct_match.group(1).upper()
+
+        if not rpl_symbol:
+            return
+
+        area = self.active_rpl_area[module].get(rpl_symbol)
+
+        if not area:
+            area_info = self.rpl_areas.get(rpl_symbol)
+            if area_info:
+                area = area_info.get("area")
+
+        if not area:
+            return
+
+        if opcode == "GET":
+            self._add_unique(self.record_buffer_writes[module], area)
+            self._mark_write(module, area)
+
+        elif opcode == "PUT":
+            self._add_unique(self.record_buffer_reads[module], area)
+            self._mark_read(module, area)
 
     def _track_return_code_set(self, module, clean):
         if re.search(r"\bXR\s+15\s*,\s*15\b", clean, re.IGNORECASE):
@@ -699,11 +808,14 @@ class PDGBuilder:
             },
             "parameter_blocks": self.parameter_blocks,
             "ddnames": self.ddnames,
+            "rpl_areas": self.rpl_areas,
             "module_parameter_context": self.module_param_block,
             "register_map": {
                 module: {f"R{reg}": sym for reg, sym in regs.items()}
                 for module, regs in self.register_map.items()
             },
+            "record_buffer_reads": dict(self.record_buffer_reads),
+            "record_buffer_writes": dict(self.record_buffer_writes),
             "reads": dict(self.reads),
             "writes": dict(self.writes),
             "symbol_readers": dict(self.symbol_readers),
@@ -734,6 +846,14 @@ class PDGBuilder:
         for name, targets in self.parameter_blocks.items():
             print(f"{name:<12} -> {', '.join(targets)}")
 
+        print("\nRPL AREA MAP")
+        print("-" * 70)
+        if not self.rpl_areas:
+            print("None")
+        else:
+            for rpl, info in self.rpl_areas.items():
+                print(f"{rpl:<12} AREA={info['area']} module={info['module']}")
+
         print("\nMODULE PARAMETER CONTEXT")
         print("-" * 70)
         if not self.module_param_block:
@@ -758,6 +878,22 @@ class PDGBuilder:
         print("-" * 70)
         for acb, info in self.ddnames.items():
             print(f"{acb:<12} DDNAME={info['ddname']} module={info['module']}")
+
+        print("\nRECORD BUFFER EFFECTS")
+        print("-" * 70)
+        modules = sorted(
+            set(self.record_buffer_reads.keys()) |
+            set(self.record_buffer_writes.keys())
+        )
+        if not modules:
+            print("None")
+        else:
+            for module in modules:
+                print(f"\n{module}:")
+                if self.record_buffer_reads[module]:
+                    print(f"  RECORD BUFFERS READ    -> {', '.join(self.record_buffer_reads[module])}")
+                if self.record_buffer_writes[module]:
+                    print(f"  RECORD BUFFERS WRITTEN -> {', '.join(self.record_buffer_writes[module])}")
 
         print("\nMODULE READ/WRITE SUMMARY")
         print("-" * 70)

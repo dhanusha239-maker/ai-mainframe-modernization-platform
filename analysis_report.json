@@ -148,6 +148,13 @@
       "line": "OUTACB   ACB   AM=VSAM,DDNAME=OUTVSAM,MACRF=(ADR,SEQ,OUT) Output Trace"
     }
   },
+  "rpl_areas": {
+    "INRPL": {
+      "module": "MAINDRV",
+      "area": "CURRTX",
+      "line": "INRPL    RPL   AM=VSAM,ACB=INACB,AREA=CURRTX,AREALEN=64,OPTCD=(KEY,SEQ,NUP)"
+    }
+  },
   "module_parameter_context": {
     "TXREAD": "READPARM",
     "CUSTVAL": "BUSPARM",
@@ -195,12 +202,25 @@
       "R3": "CURRTX"
     }
   },
+  "record_buffer_reads": {
+    "AUDWRITE": [
+      "LOGBUFF"
+    ],
+    "TXREAD": []
+  },
+  "record_buffer_writes": {
+    "TXREAD": [
+      "CURRTX"
+    ],
+    "AUDWRITE": []
+  },
   "reads": {
     "AUDWRITE": [
       "TXCUST",
       "AUTHSTAT",
       "TXCARD",
-      "TXAMT"
+      "TXAMT",
+      "LOGBUFF"
     ],
     "AUTHDEC": [
       "AUTHSTAT"
@@ -254,7 +274,9 @@
     "LIMITCHK": [
       "ERRCODE"
     ],
-    "TXREAD": []
+    "TXREAD": [
+      "CURRTX"
+    ]
   },
   "symbol_readers": {
     "TXCUST": [
@@ -273,6 +295,9 @@
       "FEECALC",
       "FRDCHK",
       "LIMITCHK"
+    ],
+    "LOGBUFF": [
+      "AUDWRITE"
     ],
     "TXSTAT": [
       "CARDSTAT"
@@ -320,6 +345,9 @@
     ],
     "TXFEE": [
       "FEECALC"
+    ],
+    "CURRTX": [
+      "TXREAD"
     ]
   },
   "return_codes": {
