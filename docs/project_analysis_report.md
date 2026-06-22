@@ -1,10 +1,10 @@
 # Legacy Program Intelligence + Verification Report
 
-Generated on: `2026-06-22 12:04:53`
+Generated on: `2026-06-22 12:28:04`
 
 ## 1. Project Purpose
 
-This report summarizes analysis results from the HLASM codebase. The system scans assembler modules, identifies program flow, extracts data dependencies, detects parameter passing, captures return-code behavior, and highlights modernization risks before Java conversion.
+This report summarizes analysis results from the HLASM codebase. The system scans assembler modules, identifies program flow, extracts business data dependencies, detects parameter passing, captures VSAM/RPL record-buffer effects, records return-code behavior, and highlights modernization risks before Java conversion.
 
 ## 2. Repository Analysis Summary
 
@@ -104,7 +104,17 @@ This report summarizes analysis results from the HLASM codebase. The system scan
 - Business Fields Read: `INRPL`
 - Business Fields Written: `CURRTX`
 
-## 6. Return Code Summary
+## 6. Record Buffer / VSAM I/O Effects
+
+### `AUDWRITE`
+
+- Record buffers read/written out: `LOGBUFF`
+
+### `TXREAD`
+
+- Record buffers written/populated: `CURRTX`
+
+## 7. Return Code Summary
 
 - `AUDWRITE` sets RC/R15 values: `0`
 - `AUTHDEC` sets RC/R15 values: `0`
@@ -116,7 +126,7 @@ This report summarizes analysis results from the HLASM codebase. The system scan
 - `MAINDRV` sets RC/R15 values: `0`, `12`, `16`
 - `TXREAD` sets RC/R15 values: `8`, `4`, `0`
 
-## 7. Condition Check Summary
+## 8. Condition Check Summary
 
 ### `AUTHDEC`
 
@@ -153,7 +163,7 @@ This report summarizes analysis results from the HLASM codebase. The system scan
 
 - `LTR` `15`, `15`
 
-## 8. Impact Analysis Summary
+## 9. Impact Analysis Summary
 
 ### `LOGBUFF`
 
@@ -251,13 +261,13 @@ This report summarizes analysis results from the HLASM codebase. The system scan
 - Read by: `AUDWRITE`, `AUTHDEC`
 - Impacted modules: `AUDWRITE`, `AUTHDEC`
 
-## 9. Analyzer Notes / Modernization Risks
+## 10. Analyzer Notes / Modernization Risks
 
 - AUTHDEC: AUTHSTAT mapped to multiple registers [3, 4]. Check LM/L parameter offsets.
 
-These warnings indicate areas that should be reviewed before automatic Java conversion. They may represent register ambiguity, suspicious parameter offsets, or data-flow uncertainty.
+These warnings indicate areas that should be reviewed before automatic Java conversion. They may represent register ambiguity, suspicious parameter offsets, VSAM/RPL buffer inference uncertainty, or data-flow uncertainty.
 
-## 10. Recommended Next Steps
+## 11. Recommended Next Steps
 
 1. Review analyzer warnings before Java generation.
 2. Use `generated_behavior_report.md` for module-level understanding.

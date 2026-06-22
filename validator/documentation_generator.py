@@ -9,10 +9,6 @@ class DocumentationGenerator:
 
     Output:
       docs/project_analysis_report.md
-
-    This is different from behavior_reporter.py:
-      - behavior_reporter.py = module-by-module technical behavior
-      - documentation_generator.py = executive/project-level summary
     """
 
     def __init__(self, report_path="analysis_report.json"):
@@ -30,20 +26,13 @@ class DocumentationGenerator:
         lines.append("")
         lines.append(f"Generated on: `{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}`")
         lines.append("")
-        lines.append("## 1. Project Purpose")
-        lines.append("")
-        lines.append(
-            "This report summarizes analysis results from the HLASM codebase. "
-            "The system scans assembler modules, identifies program flow, extracts "
-            "data dependencies, detects parameter passing, captures return-code behavior, "
-            "and highlights modernization risks before Java conversion."
-        )
-        lines.append("")
 
+        self._add_project_purpose(lines)
         self._add_repository_summary(lines)
         self._add_file_summary(lines)
         self._add_parameter_summary(lines)
         self._add_data_dependency_summary(lines)
+        self._add_record_buffer_summary(lines)
         self._add_return_code_summary(lines)
         self._add_condition_summary(lines)
         self._add_impact_summary(lines)
@@ -51,6 +40,18 @@ class DocumentationGenerator:
         self._add_next_steps(lines)
 
         return "\n".join(lines)
+
+    def _add_project_purpose(self, lines):
+        lines.append("## 1. Project Purpose")
+        lines.append("")
+        lines.append(
+            "This report summarizes analysis results from the HLASM codebase. "
+            "The system scans assembler modules, identifies program flow, extracts "
+            "business data dependencies, detects parameter passing, captures VSAM/RPL "
+            "record-buffer effects, records return-code behavior, and highlights "
+            "modernization risks before Java conversion."
+        )
+        lines.append("")
 
     def _add_repository_summary(self, lines):
         lines.append("## 2. Repository Analysis Summary")
@@ -129,7 +130,9 @@ class DocumentationGenerator:
             for module, regs in register_map.items():
                 if not regs:
                     continue
-                mapped = ", ".join(f"`{reg}`→`{sym}`" for reg, sym in regs.items())
+                mapped = ", ".join(
+                    f"`{reg}`→`{sym}`" for reg, sym in regs.items()
+                )
                 lines.append(f"- `{module}`: {mapped}")
             lines.append("")
 
@@ -143,7 +146,7 @@ class DocumentationGenerator:
         modules = sorted(set(reads.keys()) | set(writes.keys()))
 
         if not modules:
-            lines.append("No data reads/writes detected.")
+            lines.append("No business data reads/writes detected.")
             lines.append("")
             return
 
@@ -156,16 +159,59 @@ class DocumentationGenerator:
 
             lines.append(
                 "- Business Fields Read: "
-                + (", ".join(f"`{x}`" for x in module_reads) if module_reads else "None")
+                + (
+                    ", ".join(f"`{x}`" for x in module_reads)
+                    if module_reads
+                    else "None"
+                )
             )
             lines.append(
                 "- Business Fields Written: "
-                + (", ".join(f"`{x}`" for x in module_writes) if module_writes else "None")
+                + (
+                    ", ".join(f"`{x}`" for x in module_writes)
+                    if module_writes
+                    else "None"
+                )
             )
             lines.append("")
 
+    def _add_record_buffer_summary(self, lines):
+        lines.append("## 6. Record Buffer / VSAM I/O Effects")
+        lines.append("")
+
+        record_reads = self.report.get("record_buffer_reads", {})
+        record_writes = self.report.get("record_buffer_writes", {})
+
+        modules = sorted(set(record_reads.keys()) | set(record_writes.keys()))
+
+        if not modules:
+            lines.append("No record buffer effects detected.")
+            lines.append("")
+            return
+
+        for module in modules:
+            lines.append(f"### `{module}`")
+            lines.append("")
+
+            reads = record_reads.get(module, [])
+            writes = record_writes.get(module, [])
+
+            if writes:
+                lines.append(
+                    "- Record buffers written/populated: "
+                    + ", ".join(f"`{x}`" for x in writes)
+                )
+
+            if reads:
+                lines.append(
+                    "- Record buffers read/written out: "
+                    + ", ".join(f"`{x}`" for x in reads)
+                )
+
+            lines.append("")
+
     def _add_return_code_summary(self, lines):
-        lines.append("## 6. Return Code Summary")
+        lines.append("## 7. Return Code Summary")
         lines.append("")
 
         return_codes = self.report.get("return_codes", {})
@@ -184,7 +230,7 @@ class DocumentationGenerator:
         lines.append("")
 
     def _add_condition_summary(self, lines):
-        lines.append("## 7. Condition Check Summary")
+        lines.append("## 8. Condition Check Summary")
         lines.append("")
 
         conditions = self.report.get("conditions", {})
@@ -207,7 +253,7 @@ class DocumentationGenerator:
             lines.append("")
 
     def _add_impact_summary(self, lines):
-        lines.append("## 8. Impact Analysis Summary")
+        lines.append("## 9. Impact Analysis Summary")
         lines.append("")
 
         symbols = self.report.get("symbols", {})
@@ -234,11 +280,19 @@ class DocumentationGenerator:
             lines.append("")
             lines.append(
                 "- Written by: "
-                + (", ".join(f"`{x}`" for x in symbol_writers) if symbol_writers else "None")
+                + (
+                    ", ".join(f"`{x}`" for x in symbol_writers)
+                    if symbol_writers
+                    else "None"
+                )
             )
             lines.append(
                 "- Read by: "
-                + (", ".join(f"`{x}`" for x in symbol_readers) if symbol_readers else "None")
+                + (
+                    ", ".join(f"`{x}`" for x in symbol_readers)
+                    if symbol_readers
+                    else "None"
+                )
             )
             lines.append(
                 "- Impacted modules: "
@@ -251,7 +305,7 @@ class DocumentationGenerator:
             lines.append("")
 
     def _add_warning_summary(self, lines):
-        lines.append("## 9. Analyzer Notes / Modernization Risks")
+        lines.append("## 10. Analyzer Notes / Modernization Risks")
         lines.append("")
 
         warnings = self.report.get("warnings", [])
@@ -268,12 +322,13 @@ class DocumentationGenerator:
         lines.append(
             "These warnings indicate areas that should be reviewed before automatic "
             "Java conversion. They may represent register ambiguity, suspicious "
-            "parameter offsets, or data-flow uncertainty."
+            "parameter offsets, VSAM/RPL buffer inference uncertainty, or data-flow "
+            "uncertainty."
         )
         lines.append("")
 
     def _add_next_steps(self, lines):
-        lines.append("## 10. Recommended Next Steps")
+        lines.append("## 11. Recommended Next Steps")
         lines.append("")
         lines.append("1. Review analyzer warnings before Java generation.")
         lines.append("2. Use `generated_behavior_report.md` for module-level understanding.")
@@ -293,6 +348,8 @@ class DocumentationGenerator:
             "conditions",
             "module_parameter_context",
             "register_map",
+            "record_buffer_reads",
+            "record_buffer_writes",
         ]:
             for module in self.report.get(section, {}):
                 modules.add(module)
