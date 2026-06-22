@@ -36,30 +36,6 @@
       "datatype": "PL8",
       "line": "FEEWORK  DS    PL8                 Required math buffer boundary register space"
     },
-    "READPARM": {
-      "module": "MAINDRV",
-      "opcode": "DC",
-      "datatype": "A(INRPL)",
-      "line": "READPARM DC    A(INRPL)            Addr of input VSAM Request Parameter List"
-    },
-    "BUSPARM": {
-      "module": "MAINDRV",
-      "opcode": "DC",
-      "datatype": "A(CURRTX),A(ERRCODE)",
-      "line": "BUSPARM  DC    A(CURRTX),A(ERRCODE)"
-    },
-    "DECPARM": {
-      "module": "MAINDRV",
-      "opcode": "DC",
-      "datatype": "A(CURRTX),A(ERRCODE),A(AUTHSTAT)",
-      "line": "DECPARM  DC    A(CURRTX),A(ERRCODE),A(AUTHSTAT)"
-    },
-    "AUDPARM": {
-      "module": "MAINDRV",
-      "opcode": "DC",
-      "datatype": "A(OUTRPL)",
-      "line": "AUDPARM  DC    A(OUTRPL)           Addr of output VSAM Request Parameter List"
-    },
     "CURRTX": {
       "module": "MAINDRV",
       "opcode": "DS",
@@ -126,8 +102,7 @@
       "0": "LOGCUST",
       "10": "LOGPAN",
       "26": "LOGSTAT",
-      "31": "LOGMASK",
-      "35": "FEEWORK"
+      "31": "LOGMASK"
     },
     "CURRTX": {
       "0": "TXCARD",
@@ -184,7 +159,11 @@
     "AUDWRITE": {
       "R2": "OUTRPL"
     },
-    "AUTHDEC": {},
+    "AUTHDEC": {
+      "R2": "ERRCODE",
+      "R3": "AUTHSTAT",
+      "R4": "AUTHSTAT"
+    },
     "CARDSTAT": {
       "R2": "CURRTX",
       "R3": "ERRCODE"
@@ -205,11 +184,15 @@
       "R2": "CURRTX",
       "R3": "ERRCODE"
     },
+    "MAINDRV": {},
     "TXREAD": {
       "R2": "INRPL"
     }
   },
   "reads": {
+    "AUTHDEC": [
+      "AUTHSTAT"
+    ],
     "CARDSTAT": [
       "TXSTAT"
     ],
@@ -228,6 +211,9 @@
       "TXAMT",
       "TXLIMIT"
     ],
+    "TXREAD": [
+      "INRPL"
+    ],
     "AUDWRITE": []
   },
   "writes": {
@@ -237,6 +223,9 @@
       "LOGSTAT",
       "LOGPAN",
       "LOGMASK"
+    ],
+    "AUTHDEC": [
+      "AUTHSTAT"
     ],
     "CARDSTAT": [
       "ERRCODE"
@@ -253,9 +242,13 @@
     ],
     "LIMITCHK": [
       "ERRCODE"
-    ]
+    ],
+    "TXREAD": []
   },
   "symbol_readers": {
+    "AUTHSTAT": [
+      "AUTHDEC"
+    ],
     "TXSTAT": [
       "CARDSTAT"
     ],
@@ -275,6 +268,9 @@
     ],
     "TXLIMIT": [
       "LIMITCHK"
+    ],
+    "INRPL": [
+      "TXREAD"
     ]
   },
   "symbol_writers": {
@@ -292,6 +288,9 @@
     ],
     "LOGMASK": [
       "AUDWRITE"
+    ],
+    "AUTHSTAT": [
+      "AUTHDEC"
     ],
     "ERRCODE": [
       "CARDSTAT",
@@ -348,7 +347,7 @@
       {
         "instruction": "CLC",
         "operands": [
-          "0(4,3)",
+          "AUTHSTAT",
           "=C'0000'"
         ],
         "line": "CLC   0(4,3),=C'0000'     Is the accumulated system thread error clean?"
@@ -477,7 +476,7 @@
         "condition": {
           "instruction": "CLC",
           "operands": [
-            "0(4,3)",
+            "AUTHSTAT",
             "=C'0000'"
           ],
           "line": "CLC   0(4,3),=C'0000'     Is the accumulated system thread error clean?"
@@ -681,5 +680,8 @@
         }
       }
     ]
-  }
+  },
+  "warnings": [
+    "AUTHDEC: AUTHSTAT mapped to multiple registers [3, 4]. Check LM/L parameter offsets."
+  ]
 }

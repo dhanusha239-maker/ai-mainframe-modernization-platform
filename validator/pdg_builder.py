@@ -6,18 +6,19 @@ from collections import defaultdict
 
 class PDGBuilder:
     """
-    Program Dependency Graph Builder for HLASM.
+    Global HLASM PDG Builder.
 
     Tracks:
     - Data symbols from DS/DC
-    - Parameter blocks
-    - VSAM DDNAMEs
+    - Parameter blocks: PARM DC A(X),A(Y)
+    - VSAM DDNAMEs from ACB/DCB
     - R1 parameter passing
-    - Register mappings from LM x,y,0(1)
-    - Field offsets inside layouts like CURRTX
+    - LM/L register mapping from parameter blocks
+    - Field offsets inside record layouts like CURRTX DS 0CL64
     - Reads/writes
-    - Return codes
+    - Return codes in R15
     - Conditions
+    - Warnings for suspicious mappings
     - JSON export
     """
 
@@ -25,6 +26,8 @@ class PDGBuilder:
         self.asm_folder = asm_folder
 
         self.symbols = {}
+        self.symbol_order = []
+
         self.parameter_blocks = {}
         self.ddnames = {}
 
@@ -37,14 +40,29 @@ class PDGBuilder:
         self.symbol_writers = defaultdict(list)
 
         self.return_codes = defaultdict(list)
-        self.return_code_checks = defaultdict(list)
         self.conditions = defaultdict(list)
+        self.condition_branches = defaultdict(list)
 
         self.field_offsets = defaultdict(dict)
+        self.warnings = []
 
         self.data_definition_ops = {"DS", "DC"}
         self.control_block_ops = {"ACB", "RPL", "DCB"}
         self.ignore_symbol_prefixes = {"SAVE", "SAVEAREA"}
+
+        self.branch_ops = {
+            "B", "BE", "BNE", "BNZ", "BZ",
+            "BH", "BL", "BNH", "BNL", "JZ", "JNZ"
+        }
+
+        self.known_opcodes = {
+            "MVC", "CLC", "CLI", "CP", "C", "LTR",
+            "ZAP", "AP", "SP", "MP", "ST", "L", "LA",
+            "LM", "XR", "BALR", "BASR", "BAL", "BAS",
+            "GET", "PUT", "OPEN", "CLOSE", "MODCB",
+            "PR", "BR", "B", "BE", "BNE", "BNZ", "BZ",
+            "BH", "BL", "BNH", "BNL", "JZ", "JNZ"
+        }
 
     def _add_unique(self, items, value):
         if value not in items:
@@ -68,42 +86,82 @@ class PDGBuilder:
         for filepath in files:
             self._pass3_usage(filepath)
 
-    def _remove_comment(self, clean):
-        """
-        Keep full HLASM statement.
+        self._post_process_warnings()
 
-        Do NOT split on multiple spaces because assembler uses spacing
-        between label, opcode, operands, and comments.
-
-        Operand cleanup happens in _clean_operand().
-        """
-        return clean.strip()
-
+    # ------------------------------------------------------------
+    # General helpers
+    # ------------------------------------------------------------
     def _clean_operand(self, operand):
-        """
-        Remove trailing human comments from operands without breaking
-        literals or address expressions.
-        """
-
         operand = operand.strip()
 
         if not operand:
             return operand
 
-        # Keep literal constants only:
-        # =C'0000' comment  -> =C'0000'
-        # =P'50000' comment -> =P'50000'
         literal_match = re.match(r"(=[A-Z]?'.*?')", operand, re.IGNORECASE)
         if literal_match:
             return literal_match.group(1)
 
-        # Otherwise keep first token.
-        # Example:
-        # "33(4,2) Compare Transaction Amount" -> "33(4,2)"
         return operand.split()[0] if operand.split() else operand
 
+    def _get_operands(self, clean):
+        opcode, operand_text = self._split_opcode_operands(clean)
+
+        if not opcode or not operand_text:
+            return []
+
+        operands = []
+        current = ""
+        paren_depth = 0
+        in_quote = False
+
+        for ch in operand_text:
+            if ch == "'":
+                in_quote = not in_quote
+
+            if ch == "(" and not in_quote:
+                paren_depth += 1
+            elif ch == ")" and not in_quote:
+                paren_depth -= 1
+
+            if ch == "," and paren_depth == 0 and not in_quote:
+                operands.append(self._clean_operand(current))
+                current = ""
+            else:
+                current += ch
+
+        if current.strip():
+            operands.append(self._clean_operand(current))
+
+        return operands
+
+    def _split_opcode_operands(self, clean):
+        """
+        Handles both:
+          MVC A,B
+          LABEL MVC A,B
+        """
+
+        parts = clean.split(None, 2)
+
+        if not parts:
+            return None, None
+
+        first = parts[0].upper()
+
+        if first in self.known_opcodes:
+            opcode = first
+            operand_text = clean.split(None, 1)[1] if len(clean.split(None, 1)) > 1 else ""
+            return opcode, operand_text
+
+        if len(parts) >= 2 and parts[1].upper() in self.known_opcodes:
+            opcode = parts[1].upper()
+            operand_text = parts[2] if len(parts) >= 3 else ""
+            return opcode, operand_text
+
+        return first, clean.split(None, 1)[1] if len(clean.split(None, 1)) > 1 else ""
+
     # ------------------------------------------------------------
-    # PASS 1
+    # PASS 1: Discover symbols, parameter blocks, files
     # ------------------------------------------------------------
     def _pass1_discovery(self, filepath):
         current_module = None
@@ -116,7 +174,7 @@ class PDGBuilder:
                     continue
 
                 has_label = not raw.startswith(" ")
-                clean = self._remove_comment(raw.strip())
+                clean = raw.strip()
                 parts = clean.split()
 
                 if not parts:
@@ -130,8 +188,8 @@ class PDGBuilder:
                     continue
 
                 self._capture_ddname(current_module, has_label, parts, clean)
-                self._discover_symbol(current_module, has_label, parts, clean)
                 self._discover_parameter_block(has_label, parts, clean)
+                self._discover_symbol(current_module, has_label, parts, clean)
 
     def _capture_ddname(self, module, has_label, parts, clean):
         if not has_label or len(parts) < 2:
@@ -151,6 +209,20 @@ class PDGBuilder:
                 "line": clean,
             }
 
+    def _discover_parameter_block(self, has_label, parts, clean):
+        if not has_label or len(parts) < 3:
+            return
+
+        symbol = parts[0].upper()
+        opcode = parts[1].upper()
+
+        if opcode != "DC":
+            return
+
+        targets = re.findall(r"A\(([A-Z0-9_#$@]+)\)", clean, re.IGNORECASE)
+        if targets:
+            self.parameter_blocks[symbol] = [t.upper() for t in targets]
+
     def _discover_symbol(self, module, has_label, parts, clean):
         if not has_label or len(parts) < 3:
             return
@@ -168,6 +240,10 @@ class PDGBuilder:
         if any(symbol.startswith(prefix) for prefix in self.ignore_symbol_prefixes):
             return
 
+        # Parameter block declarations are captured separately.
+        if symbol in self.parameter_blocks:
+            return
+
         self.symbols[symbol] = {
             "module": module,
             "opcode": opcode,
@@ -175,49 +251,64 @@ class PDGBuilder:
             "line": clean,
         }
 
-    def _discover_parameter_block(self, has_label, parts, clean):
-        if not has_label or len(parts) < 3:
-            return
-
-        symbol = parts[0].upper()
-        opcode = parts[1].upper()
-
-        if opcode != "DC":
-            return
-
-        targets = re.findall(r"A\(([A-Z0-9_#$@]+)\)", clean, re.IGNORECASE)
-
-        if targets:
-            self.parameter_blocks[symbol] = [t.upper() for t in targets]
+        self.symbol_order.append({
+            "module": module,
+            "symbol": symbol,
+            "opcode": opcode,
+            "datatype": datatype,
+            "line": clean,
+            "has_label": has_label,
+        })
 
     # ------------------------------------------------------------
-    # FIELD OFFSET MAP
+    # Field offset mapping
     # ------------------------------------------------------------
     def _build_field_offsets(self):
         current_base = None
+        current_module = None
         current_offset = 0
+        current_limit = None
 
-        for symbol, info in self.symbols.items():
-            datatype = info["datatype"]
+        for item in self.symbol_order:
+            module = item["module"]
+            symbol = item["symbol"]
+            datatype = item["datatype"]
+
+            if module != current_module:
+                current_base = None
+                current_module = module
+                current_offset = 0
+                current_limit = None
 
             if datatype.startswith("0"):
                 current_base = symbol
                 current_offset = 0
+                current_limit = self._datatype_size(datatype[1:])
                 continue
 
             if current_base is None:
                 continue
 
-            size = self._datatype_size(datatype)
+            if current_limit is not None and current_offset >= current_limit:
+                current_base = None
+                current_offset = 0
+                current_limit = None
+                continue
 
+            size = self._datatype_size(datatype)
             if size is None:
                 continue
 
             self.field_offsets[current_base][current_offset] = symbol
             current_offset += size
 
+            if current_limit is not None and current_offset >= current_limit:
+                current_base = None
+                current_offset = 0
+                current_limit = None
+
     def _datatype_size(self, datatype):
-        datatype = datatype.upper()
+        datatype = datatype.upper().strip()
 
         m = re.match(r"CL(\d+)", datatype)
         if m:
@@ -231,6 +322,10 @@ class PDGBuilder:
         if m:
             return int(m.group(1))
 
+        m = re.match(r"C'(.*?)'", datatype)
+        if m:
+            return len(m.group(1))
+
         if datatype == "F":
             return 4
 
@@ -241,7 +336,7 @@ class PDGBuilder:
         return None
 
     # ------------------------------------------------------------
-    # PASS 2
+    # PASS 2: Caller context
     # ------------------------------------------------------------
     def _pass2_call_context(self, filepath):
         current_module = None
@@ -256,7 +351,7 @@ class PDGBuilder:
                     continue
 
                 has_label = not raw.startswith(" ")
-                clean = self._remove_comment(raw.strip())
+                clean = raw.strip()
                 parts = clean.split()
 
                 if not parts:
@@ -295,7 +390,7 @@ class PDGBuilder:
                     current_param_block = None
 
     # ------------------------------------------------------------
-    # PASS 3
+    # PASS 3: Usage, return codes, conditions
     # ------------------------------------------------------------
     def _pass3_usage(self, filepath):
         current_module = None
@@ -309,7 +404,7 @@ class PDGBuilder:
                     continue
 
                 has_label = not raw.startswith(" ")
-                clean = self._remove_comment(raw.strip())
+                clean = raw.strip()
                 parts = clean.split()
 
                 if not parts:
@@ -334,38 +429,55 @@ class PDGBuilder:
 
                 branch = self._extract_branch(clean)
                 if branch and last_condition:
-                    self.return_code_checks[current_module].append({
+                    self.condition_branches[current_module].append({
                         "condition": last_condition,
                         "branch": branch,
                     })
                     last_condition = None
 
     def _track_register_mapping(self, module, clean):
-        match = re.search(
-            r"\bLM\s+(\d+)\s*,\s*(\d+)\s*,\s*0\(1\)",
-            clean,
-            re.IGNORECASE,
-        )
-
-        if not match:
-            return
-
-        start_reg = int(match.group(1))
-        end_reg = int(match.group(2))
-
         block_name = self.module_param_block.get(module)
         if not block_name:
             return
 
         params = self.parameter_blocks.get(block_name, [])
 
-        reg = start_reg
-        idx = 0
+        # Actual HLASM semantics:
+        # LM 2,3,4(1) starts at parameter block + 4.
+        lm_match = re.search(
+            r"\bLM\s+(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\(1\)",
+            clean,
+            re.IGNORECASE,
+        )
 
-        while reg <= end_reg and idx < len(params):
-            self.register_map[module][reg] = params[idx]
-            reg += 1
-            idx += 1
+        if lm_match:
+            start_reg = int(lm_match.group(1))
+            end_reg = int(lm_match.group(2))
+            offset = int(lm_match.group(3))
+            param_index = offset // 4
+
+            reg = start_reg
+            idx = param_index
+
+            while reg <= end_reg and idx < len(params):
+                self.register_map[module][reg] = params[idx]
+                reg += 1
+                idx += 1
+
+        # L 4,8(,1)
+        l_match = re.search(
+            r"\bL\s+(\d+)\s*,\s*(\d+)\(,?1\)",
+            clean,
+            re.IGNORECASE,
+        )
+
+        if l_match:
+            reg = int(l_match.group(1))
+            offset = int(l_match.group(2))
+            param_index = offset // 4
+
+            if param_index < len(params):
+                self.register_map[module][reg] = params[param_index]
 
     def _track_return_code_set(self, module, clean):
         if re.search(r"\bXR\s+15\s*,\s*15\b", clean, re.IGNORECASE):
@@ -377,12 +489,10 @@ class PDGBuilder:
             self._add_unique(self.return_codes[module], match.group(1))
 
     def _track_usage(self, module, clean):
-        parts = clean.split(None, 1)
-
-        if not parts:
+        opcode, _ = self._split_opcode_operands(clean)
+        if not opcode:
             return
 
-        opcode = parts[0].upper()
         operands = self._get_operands(clean)
 
         if opcode == "MVC":
@@ -418,12 +528,10 @@ class PDGBuilder:
                 self._mark_read(module, operands[1])
 
     def _extract_condition(self, module, clean):
-        parts = clean.split(None, 1)
-
-        if not parts:
+        opcode, _ = self._split_opcode_operands(clean)
+        if not opcode:
             return None
 
-        opcode = parts[0].upper()
         operands = self._get_operands(clean)
 
         if opcode in {"CLC", "CLI", "CP", "C", "LTR"}:
@@ -442,55 +550,24 @@ class PDGBuilder:
         return None
 
     def _extract_branch(self, clean):
-        match = re.search(
-            r"\b(B|BE|BNE|BNZ|BZ|BH|BL|BNH|BNL|JZ|JNZ)\s+([A-Z0-9_#$@]+)",
-            clean,
-            re.IGNORECASE,
-        )
-        if not match:
+        opcode, operand_text = self._split_opcode_operands(clean)
+
+        if opcode not in self.branch_ops:
+            return None
+
+        operands = self._get_operands(clean)
+        if not operands:
             return None
 
         return {
-            "branch_op": match.group(1).upper(),
-            "target": match.group(2).upper(),
+            "branch_op": opcode,
+            "target": operands[0].upper(),
             "line": clean,
         }
 
     # ------------------------------------------------------------
-    # OPERANDS
+    # Operand normalization
     # ------------------------------------------------------------
-    def _get_operands(self, clean):
-        parts = clean.split(None, 1)
-
-        if len(parts) < 2:
-            return []
-
-        text = parts[1]
-        operands = []
-        current = ""
-        paren_depth = 0
-        in_quote = False
-
-        for ch in text:
-            if ch == "'":
-                in_quote = not in_quote
-
-            if ch == "(" and not in_quote:
-                paren_depth += 1
-            elif ch == ")" and not in_quote:
-                paren_depth -= 1
-
-            if ch == "," and paren_depth == 0 and not in_quote:
-                operands.append(self._clean_operand(current))
-                current = ""
-            else:
-                current += ch
-
-        if current.strip():
-            operands.append(self._clean_operand(current))
-
-        return operands
-
     def _normalize_operand(self, module, operand):
         operand = operand.upper().strip()
 
@@ -501,19 +578,38 @@ class PDGBuilder:
         if base in self.symbols:
             return base
 
-        reg_match = re.search(r"^(\d+)?(?:\(\d+,(\d+)\)|\((\d+)\))", operand)
+        # 26(4,2), 0(4,3), 16(3), 8(,1)
+        reg_match = re.search(
+            r"^(\d+)?(?:\((\d+),(\d+)\)|\((\d+)\)|\(,(\d+)\))$",
+            operand,
+        )
+
         if reg_match:
             offset_text = reg_match.group(1)
-            reg_text = reg_match.group(2) or reg_match.group(3)
+            length_reg = reg_match.group(2)
+            base_reg_1 = reg_match.group(3)
+            base_reg_2 = reg_match.group(4)
+            base_reg_3 = reg_match.group(5)
 
             offset = int(offset_text) if offset_text else 0
-            reg_num = int(reg_text)
+            reg_text = base_reg_1 or base_reg_2 or base_reg_3
 
+            if not reg_text:
+                return None
+
+            reg_num = int(reg_text)
             base_symbol = self.register_map[module].get(reg_num)
 
-            if base_symbol:
-                field_symbol = self.field_offsets.get(base_symbol, {}).get(offset)
-                return field_symbol if field_symbol else base_symbol
+            if not base_symbol:
+                return None
+
+            if base_symbol in self.parameter_blocks:
+                params = self.parameter_blocks[base_symbol]
+                index = offset // 4
+                return params[index] if index < len(params) else base_symbol
+
+            field_symbol = self.field_offsets.get(base_symbol, {}).get(offset)
+            return field_symbol if field_symbol else base_symbol
 
         return None
 
@@ -534,7 +630,24 @@ class PDGBuilder:
         self._add_unique(self.symbol_writers[symbol], module)
 
     # ------------------------------------------------------------
-    # REPORTING
+    # Warnings
+    # ------------------------------------------------------------
+    def _post_process_warnings(self):
+        for module, regs in self.register_map.items():
+            reverse = defaultdict(list)
+
+            for reg, symbol in regs.items():
+                reverse[symbol].append(reg)
+
+            for symbol, reg_list in reverse.items():
+                if len(reg_list) > 1:
+                    self.warnings.append(
+                        f"{module}: {symbol} mapped to multiple registers {reg_list}. "
+                        f"Check LM/L parameter offsets."
+                    )
+
+    # ------------------------------------------------------------
+    # Report / Export
     # ------------------------------------------------------------
     def to_dict(self):
         return {
@@ -556,7 +669,8 @@ class PDGBuilder:
             "symbol_writers": dict(self.symbol_writers),
             "return_codes": dict(self.return_codes),
             "conditions": dict(self.conditions),
-            "condition_branches": dict(self.return_code_checks),
+            "condition_branches": dict(self.condition_branches),
+            "warnings": self.warnings,
         }
 
     def export_json(self, output_path="analysis_report.json"):
@@ -652,3 +766,11 @@ class PDGBuilder:
 
         if not found:
             print("No symbol impact detected yet")
+
+        print("\nWARNINGS")
+        print("-" * 70)
+        if not self.warnings:
+            print("None")
+        else:
+            for warning in self.warnings:
+                print(f"- {warning}")
