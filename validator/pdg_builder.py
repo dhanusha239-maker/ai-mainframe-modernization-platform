@@ -10,7 +10,7 @@ class PDGBuilder:
 
     Tracks:
     - Data symbols from DS/DC
-    - Parameter blocks: PARM DC A(X),A(Y)
+    - Multi-line parameter blocks: PARM DC A(X) / DC A(Y)
     - VSAM DDNAMEs from ACB/DCB
     - R1 parameter passing
     - LM/L register mapping from parameter blocks
@@ -18,7 +18,7 @@ class PDGBuilder:
     - Reads/writes
     - Return codes in R15
     - Conditions
-    - Warnings for suspicious mappings
+    - Warnings
     - JSON export
     """
 
@@ -29,6 +29,8 @@ class PDGBuilder:
         self.symbol_order = []
 
         self.parameter_blocks = {}
+        self.current_parameter_block = None
+
         self.ddnames = {}
 
         self.module_param_block = {}
@@ -36,6 +38,7 @@ class PDGBuilder:
 
         self.reads = defaultdict(list)
         self.writes = defaultdict(list)
+
         self.symbol_readers = defaultdict(list)
         self.symbol_writers = defaultdict(list)
 
@@ -48,6 +51,7 @@ class PDGBuilder:
 
         self.data_definition_ops = {"DS", "DC"}
         self.control_block_ops = {"ACB", "RPL", "DCB"}
+
         self.ignore_symbol_prefixes = {"SAVE", "SAVEAREA"}
 
         self.branch_ops = {
@@ -149,8 +153,9 @@ class PDGBuilder:
         first = parts[0].upper()
 
         if first in self.known_opcodes:
+            split = clean.split(None, 1)
             opcode = first
-            operand_text = clean.split(None, 1)[1] if len(clean.split(None, 1)) > 1 else ""
+            operand_text = split[1] if len(split) > 1 else ""
             return opcode, operand_text
 
         if len(parts) >= 2 and parts[1].upper() in self.known_opcodes:
@@ -158,13 +163,15 @@ class PDGBuilder:
             operand_text = parts[2] if len(parts) >= 3 else ""
             return opcode, operand_text
 
-        return first, clean.split(None, 1)[1] if len(clean.split(None, 1)) > 1 else ""
+        split = clean.split(None, 1)
+        return first, split[1] if len(split) > 1 else ""
 
     # ------------------------------------------------------------
     # PASS 1: Discover symbols, parameter blocks, files
     # ------------------------------------------------------------
     def _pass1_discovery(self, filepath):
         current_module = None
+        self.current_parameter_block = None
 
         with open(filepath, "r", encoding="utf-8") as f:
             for raw_line in f:
@@ -182,6 +189,7 @@ class PDGBuilder:
 
                 if has_label and len(parts) >= 2 and parts[1].upper() == "CSECT":
                     current_module = parts[0].upper()
+                    self.current_parameter_block = None
                     continue
 
                 if current_module is None:
@@ -210,18 +218,51 @@ class PDGBuilder:
             }
 
     def _discover_parameter_block(self, has_label, parts, clean):
-        if not has_label or len(parts) < 3:
+        """
+        Supports both:
+          AUDPARM DC A(OUTRPL)
+                  DC A(CURRTX)
+                  DC A(AUTHSTAT)
+
+        and:
+          BUSPARM DC A(CURRTX),A(ERRCODE)
+        """
+
+        # Labeled DC starts a new parameter block
+        if has_label and len(parts) >= 3:
+            symbol = parts[0].upper()
+            opcode = parts[1].upper()
+
+            if opcode != "DC":
+                # Any new labeled non-DC line ends parameter block continuation.
+                self.current_parameter_block = None
+                return
+
+            targets = re.findall(r"A\(([A-Z0-9_#$@]+)\)", clean, re.IGNORECASE)
+
+            if targets:
+                self.parameter_blocks[symbol] = [t.upper() for t in targets]
+                self.current_parameter_block = symbol
+            else:
+                self.current_parameter_block = None
+
             return
 
-        symbol = parts[0].upper()
-        opcode = parts[1].upper()
+        # Unlabeled DC continuation line
+        if not has_label and self.current_parameter_block:
+            opcode = parts[0].upper()
 
-        if opcode != "DC":
-            return
+            if opcode != "DC":
+                return
 
-        targets = re.findall(r"A\(([A-Z0-9_#$@]+)\)", clean, re.IGNORECASE)
-        if targets:
-            self.parameter_blocks[symbol] = [t.upper() for t in targets]
+            targets = re.findall(r"A\(([A-Z0-9_#$@]+)\)", clean, re.IGNORECASE)
+
+            if targets:
+                for target in targets:
+                    self._add_unique(
+                        self.parameter_blocks[self.current_parameter_block],
+                        target.upper(),
+                    )
 
     def _discover_symbol(self, module, has_label, parts, clean):
         if not has_label or len(parts) < 3:
@@ -280,6 +321,7 @@ class PDGBuilder:
                 current_offset = 0
                 current_limit = None
 
+            # Base group like CURRTX DS 0CL64 or LOGBUFF DS 0CL80
             if datatype.startswith("0"):
                 current_base = symbol
                 current_offset = 0
@@ -550,7 +592,7 @@ class PDGBuilder:
         return None
 
     def _extract_branch(self, clean):
-        opcode, operand_text = self._split_opcode_operands(clean)
+        opcode, _ = self._split_opcode_operands(clean)
 
         if opcode not in self.branch_ops:
             return None
@@ -586,7 +628,6 @@ class PDGBuilder:
 
         if reg_match:
             offset_text = reg_match.group(1)
-            length_reg = reg_match.group(2)
             base_reg_1 = reg_match.group(3)
             base_reg_2 = reg_match.group(4)
             base_reg_3 = reg_match.group(5)

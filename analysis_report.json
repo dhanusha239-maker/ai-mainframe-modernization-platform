@@ -118,7 +118,8 @@
   },
   "parameter_blocks": {
     "READPARM": [
-      "INRPL"
+      "INRPL",
+      "CURRTX"
     ],
     "BUSPARM": [
       "CURRTX",
@@ -130,7 +131,9 @@
       "AUTHSTAT"
     ],
     "AUDPARM": [
-      "OUTRPL"
+      "OUTRPL",
+      "CURRTX",
+      "AUTHSTAT"
     ]
   },
   "ddnames": {
@@ -157,7 +160,9 @@
   },
   "register_map": {
     "AUDWRITE": {
-      "R2": "OUTRPL"
+      "R2": "OUTRPL",
+      "R3": "CURRTX",
+      "R4": "AUTHSTAT"
     },
     "AUTHDEC": {
       "R2": "ERRCODE",
@@ -186,10 +191,17 @@
     },
     "MAINDRV": {},
     "TXREAD": {
-      "R2": "INRPL"
+      "R2": "INRPL",
+      "R3": "CURRTX"
     }
   },
   "reads": {
+    "AUDWRITE": [
+      "TXCUST",
+      "AUTHSTAT",
+      "TXCARD",
+      "TXAMT"
+    ],
     "AUTHDEC": [
       "AUTHSTAT"
     ],
@@ -213,8 +225,7 @@
     ],
     "TXREAD": [
       "INRPL"
-    ],
-    "AUDWRITE": []
+    ]
   },
   "writes": {
     "AUDWRITE": [
@@ -246,19 +257,25 @@
     "TXREAD": []
   },
   "symbol_readers": {
-    "AUTHSTAT": [
-      "AUTHDEC"
-    ],
-    "TXSTAT": [
-      "CARDSTAT"
-    ],
     "TXCUST": [
+      "AUDWRITE",
       "CUSTVAL"
     ],
+    "AUTHSTAT": [
+      "AUDWRITE",
+      "AUTHDEC"
+    ],
+    "TXCARD": [
+      "AUDWRITE"
+    ],
     "TXAMT": [
+      "AUDWRITE",
       "FEECALC",
       "FRDCHK",
       "LIMITCHK"
+    ],
+    "TXSTAT": [
+      "CARDSTAT"
     ],
     "FEEWORK": [
       "FEECALC"

@@ -13,17 +13,28 @@ Generated from `analysis_report.json`.
 
 **Parameter block received:**
 
-- `AUDPARM` → `OUTRPL`
+- `AUDPARM` → `OUTRPL`, `CURRTX`, `AUTHSTAT`
+
+**Parameter addresses received:**
+
+- Address of `OUTRPL`
+- Address of `CURRTX`
+- Address of `AUTHSTAT`
 
 **Resolved register map:**
 
-- `R2` → `OUTRPL`
+- `R2` → address of `OUTRPL`
+- `R3` → address of `CURRTX`
+- `R4` → address of `AUTHSTAT`
 
-**Inputs used / fields read:**
+**Business/data fields read by instructions:**
 
-- None detected
+- `TXCUST`
+- `AUTHSTAT`
+- `TXCARD`
+- `TXAMT`
 
-**Outputs / fields written:**
+**Output fields written by instructions:**
 
 - `LOGBUFF`
 - `LOGCUST`
@@ -45,17 +56,23 @@ Generated from `analysis_report.json`.
 
 - `DECPARM` → `CURRTX`, `ERRCODE`, `AUTHSTAT`
 
+**Parameter addresses received:**
+
+- Address of `CURRTX`
+- Address of `ERRCODE`
+- Address of `AUTHSTAT`
+
 **Resolved register map:**
 
-- `R2` → `ERRCODE`
-- `R3` → `AUTHSTAT`
-- `R4` → `AUTHSTAT`
+- `R2` → address of `ERRCODE`
+- `R3` → address of `AUTHSTAT`
+- `R4` → address of `AUTHSTAT`
 
-**Inputs used / fields read:**
+**Business/data fields read by instructions:**
 
 - `AUTHSTAT`
 
-**Outputs / fields written:**
+**Output fields written by instructions:**
 
 - `AUTHSTAT`
 
@@ -81,16 +98,21 @@ Generated from `analysis_report.json`.
 
 - `BUSPARM` → `CURRTX`, `ERRCODE`
 
+**Parameter addresses received:**
+
+- Address of `CURRTX`
+- Address of `ERRCODE`
+
 **Resolved register map:**
 
-- `R2` → `CURRTX`
-- `R3` → `ERRCODE`
+- `R2` → address of `CURRTX`
+- `R3` → address of `ERRCODE`
 
-**Inputs used / fields read:**
+**Business/data fields read by instructions:**
 
 - `TXSTAT`
 
-**Outputs / fields written:**
+**Output fields written by instructions:**
 
 - `ERRCODE`
 
@@ -109,16 +131,21 @@ Generated from `analysis_report.json`.
 
 - `BUSPARM` → `CURRTX`, `ERRCODE`
 
+**Parameter addresses received:**
+
+- Address of `CURRTX`
+- Address of `ERRCODE`
+
 **Resolved register map:**
 
-- `R2` → `CURRTX`
-- `R3` → `ERRCODE`
+- `R2` → address of `CURRTX`
+- `R3` → address of `ERRCODE`
 
-**Inputs used / fields read:**
+**Business/data fields read by instructions:**
 
 - `TXCUST`
 
-**Outputs / fields written:**
+**Output fields written by instructions:**
 
 - `ERRCODE`
 
@@ -137,17 +164,22 @@ Generated from `analysis_report.json`.
 
 - `BUSPARM` → `CURRTX`, `ERRCODE`
 
+**Parameter addresses received:**
+
+- Address of `CURRTX`
+- Address of `ERRCODE`
+
 **Resolved register map:**
 
-- `R2` → `CURRTX`
-- `R3` → `ERRCODE`
+- `R2` → address of `CURRTX`
+- `R3` → address of `ERRCODE`
 
-**Inputs used / fields read:**
+**Business/data fields read by instructions:**
 
 - `TXAMT`
 - `FEEWORK`
 
-**Outputs / fields written:**
+**Output fields written by instructions:**
 
 - `FEEWORK`
 - `TXFEE`
@@ -166,17 +198,22 @@ Generated from `analysis_report.json`.
 
 - `BUSPARM` → `CURRTX`, `ERRCODE`
 
+**Parameter addresses received:**
+
+- Address of `CURRTX`
+- Address of `ERRCODE`
+
 **Resolved register map:**
 
-- `R2` → `CURRTX`
-- `R3` → `ERRCODE`
+- `R2` → address of `CURRTX`
+- `R3` → address of `ERRCODE`
 
-**Inputs used / fields read:**
+**Business/data fields read by instructions:**
 
 - `TXAMT`
 - `TXTYPE`
 
-**Outputs / fields written:**
+**Output fields written by instructions:**
 
 - `ERRCODE`
 
@@ -196,17 +233,22 @@ Generated from `analysis_report.json`.
 
 - `BUSPARM` → `CURRTX`, `ERRCODE`
 
+**Parameter addresses received:**
+
+- Address of `CURRTX`
+- Address of `ERRCODE`
+
 **Resolved register map:**
 
-- `R2` → `CURRTX`
-- `R3` → `ERRCODE`
+- `R2` → address of `CURRTX`
+- `R3` → address of `ERRCODE`
 
-**Inputs used / fields read:**
+**Business/data fields read by instructions:**
 
 - `TXAMT`
 - `TXLIMIT`
 
-**Outputs / fields written:**
+**Output fields written by instructions:**
 
 - `ERRCODE`
 
@@ -221,11 +263,11 @@ Generated from `analysis_report.json`.
 
 ### Module: `MAINDRV`
 
-**Inputs used / fields read:**
+**Business/data fields read by instructions:**
 
 - None detected
 
-**Outputs / fields written:**
+**Output fields written by instructions:**
 
 - None detected
 
@@ -249,17 +291,23 @@ Generated from `analysis_report.json`.
 
 **Parameter block received:**
 
-- `READPARM` → `INRPL`
+- `READPARM` → `INRPL`, `CURRTX`
+
+**Parameter addresses received:**
+
+- Address of `INRPL`
+- Address of `CURRTX`
 
 **Resolved register map:**
 
-- `R2` → `INRPL`
+- `R2` → address of `INRPL`
+- `R3` → address of `CURRTX`
 
-**Inputs used / fields read:**
+**Business/data fields read by instructions:**
 
 - `INRPL`
 
-**Outputs / fields written:**
+**Output fields written by instructions:**
 
 - None detected
 

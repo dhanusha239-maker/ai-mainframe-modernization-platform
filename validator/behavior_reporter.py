@@ -7,14 +7,13 @@ class BehaviorReporter:
     """
     Generates a clean module-by-module behavior report from analysis_report.json.
 
-    Includes:
-    - File/DDNAME summary
-    - Module parameter context
-    - Register map
-    - Inputs/outputs
+    Separates:
+    - Parameter addresses received through parameter blocks/registers
+    - Business/data fields actually read by instructions
+    - Output fields written
     - Conditions
     - Return codes
-    - Analyzer notes/warnings
+    - Analyzer notes
     """
 
     def __init__(self, report_path="analysis_report.json"):
@@ -94,6 +93,7 @@ class BehaviorReporter:
             lines.append(f"### Module: `{module}`")
             lines.append("")
 
+            # Parameter block received
             if module in parameter_context:
                 block = parameter_context[module]
                 params = parameter_blocks.get(block, [])
@@ -106,6 +106,16 @@ class BehaviorReporter:
                 )
                 lines.append("")
 
+                lines.append("**Parameter addresses received:**")
+                lines.append("")
+                if params:
+                    for param in params:
+                        lines.append(f"- Address of `{param}`")
+                else:
+                    lines.append("- None detected")
+                lines.append("")
+
+            # Register map
             if module in register_map:
                 regs = register_map[module]
 
@@ -114,13 +124,14 @@ class BehaviorReporter:
                     lines.append("")
 
                     for reg, symbol in regs.items():
-                        lines.append(f"- `{reg}` → `{symbol}`")
+                        lines.append(f"- `{reg}` → address of `{symbol}`")
 
                     lines.append("")
 
+            # Actual data/business reads
             module_reads = reads.get(module, [])
 
-            lines.append("**Inputs used / fields read:**")
+            lines.append("**Business/data fields read by instructions:**")
             lines.append("")
 
             if module_reads:
@@ -131,9 +142,10 @@ class BehaviorReporter:
 
             lines.append("")
 
+            # Writes
             module_writes = writes.get(module, [])
 
-            lines.append("**Outputs / fields written:**")
+            lines.append("**Output fields written by instructions:**")
             lines.append("")
 
             if module_writes:
@@ -144,6 +156,7 @@ class BehaviorReporter:
 
             lines.append("")
 
+            # Conditions
             module_conditions = conditions.get(module, [])
 
             lines.append("**Condition checks:**")
@@ -163,6 +176,7 @@ class BehaviorReporter:
 
             lines.append("")
 
+            # Return codes
             module_rcs = return_codes.get(module, [])
 
             lines.append("**Return codes set:**")
@@ -176,6 +190,7 @@ class BehaviorReporter:
 
             lines.append("")
 
+            # Analyzer notes
             if module in module_notes:
                 lines.append("**Analyzer notes:**")
                 lines.append("")
@@ -186,10 +201,6 @@ class BehaviorReporter:
                 lines.append("")
 
     def _build_module_notes(self):
-        """
-        Converts raw analyzer warnings into module-level readable notes.
-        """
-
         notes = defaultdict(list)
 
         warnings = self.report.get("warnings", [])
@@ -279,7 +290,6 @@ class BehaviorReporter:
             lines.append(f"- {warning}")
 
         lines.append("")
-
         lines.append(
             "These warnings do not necessarily mean the program is invalid. "
             "They indicate areas where register usage, parameter offsets, or "
