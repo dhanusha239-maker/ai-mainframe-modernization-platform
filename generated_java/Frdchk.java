@@ -48,7 +48,7 @@ public class Frdchk implements AssemblerModule {
 
         // ASM: CP    26(4,2),=P'50000'   Is payment processing amount over $500.00
         ctx.setDecimal("TXAMT_LITERAL_COMPARE", new java.math.BigDecimal("50000"));
-                AsmRuntime.Packed.cp(ctx, "TXAMT", "TXAMT_LITERAL_COMPARE", cc);
+        AsmRuntime.Packed.cp(ctx, "TXAMT", "TXAMT_LITERAL_COMPARE", cc);
 
         // ASM: BNH   FRD_OK              If not higher, skip risk flag checks
         // TODO manual review required: BNH   FRD_OK              If not higher, skip risk flag checks
@@ -58,8 +58,8 @@ public class Frdchk implements AssemblerModule {
 
         // ASM: BNE   FRD_OK              If not, process standard validation
         if (AsmRuntime.Branch.isNotEqual(cc)) {
-                    // branch to FRD_OK
-                }
+            // branch to FRD_OK
+        }
 
         // ASM: MVC   0(4,3),=C'E004'     Set Tracking Error Elevated Fraud Vector
         AsmRuntime.Memory.mvcLiteral(ctx, "ERRCODE", 4, "E004");

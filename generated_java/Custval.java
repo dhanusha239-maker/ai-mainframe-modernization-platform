@@ -49,8 +49,8 @@ public class Custval implements AssemblerModule {
 
         // ASM: BE    VAL_OK              If true, configuration is correct
         if (AsmRuntime.Branch.isEqual(cc)) {
-                    // branch to VAL_OK
-                }
+            // branch to VAL_OK
+        }
 
         // ASM: MVC   0(4,3),=C'E001'     Set Tracking Error: Bad Structural Prefix
         AsmRuntime.Memory.mvcLiteral(ctx, "ERRCODE", 4, "E001");

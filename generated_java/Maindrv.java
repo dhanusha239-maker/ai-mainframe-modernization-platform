@@ -63,8 +63,8 @@ public class Maindrv implements AssemblerModule {
 
         // ASM: BNZ   OPEN_ERR            If file error, abort execution loop
         if (AsmRuntime.Branch.isNotEqual(cc)) {
-                    // branch to OPEN_ERR
-                }
+            // branch to OPEN_ERR
+        }
 
         // ASM: TXLOOP   DS    0H
         // DS declaration: TXLOOP   DS    0H
@@ -86,13 +86,13 @@ public class Maindrv implements AssemblerModule {
 
         // ASM: BE    CLOSE_EXIT          Yes, exit loop safely
         if (AsmRuntime.Branch.isEqual(cc)) {
-                    // branch to CLOSE_EXIT
-                }
+            // branch to CLOSE_EXIT
+        }
 
         // ASM: BNZ   IO_ERROR            Any other error, trigger termination code
         if (AsmRuntime.Branch.isNotEqual(cc)) {
-                    // branch to IO_ERROR
-                }
+            // branch to IO_ERROR
+        }
 
         // ASM: LA    1,BUSPARM           Customer Identity Scan
         // TODO LA requires address/register model integration: LA    1,BUSPARM           Customer Identity Scan
@@ -108,8 +108,8 @@ public class Maindrv implements AssemblerModule {
 
         // ASM: BNZ   REJECT_PATH
         if (AsmRuntime.Branch.isNotEqual(cc)) {
-                    // branch to REJECT_PATH
-                }
+            // branch to REJECT_PATH
+        }
 
         // ASM: LA    1,BUSPARM           Card Token Check
         // TODO LA requires address/register model integration: LA    1,BUSPARM           Card Token Check
@@ -125,8 +125,8 @@ public class Maindrv implements AssemblerModule {
 
         // ASM: BNZ   REJECT_PATH
         if (AsmRuntime.Branch.isNotEqual(cc)) {
-                    // branch to REJECT_PATH
-                }
+            // branch to REJECT_PATH
+        }
 
         // ASM: LA    1,BUSPARM           Packed Limit Margin Assessment
         // TODO LA requires address/register model integration: LA    1,BUSPARM           Packed Limit Margin Assessment
@@ -142,8 +142,8 @@ public class Maindrv implements AssemblerModule {
 
         // ASM: BNZ   REJECT_PATH
         if (AsmRuntime.Branch.isNotEqual(cc)) {
-                    // branch to REJECT_PATH
-                }
+            // branch to REJECT_PATH
+        }
 
         // ASM: LA    1,BUSPARM           Fraud Risk Verification
         // TODO LA requires address/register model integration: LA    1,BUSPARM           Fraud Risk Verification
@@ -159,8 +159,8 @@ public class Maindrv implements AssemblerModule {
 
         // ASM: BNZ   REJECT_PATH
         if (AsmRuntime.Branch.isNotEqual(cc)) {
-                    // branch to REJECT_PATH
-                }
+            // branch to REJECT_PATH
+        }
 
         // ASM: LA    1,BUSPARM           Financial Cost Pipeline Execution
         // TODO LA requires address/register model integration: LA    1,BUSPARM           Financial Cost Pipeline Execution

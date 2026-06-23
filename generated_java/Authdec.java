@@ -52,8 +52,8 @@ public class Authdec implements AssemblerModule {
 
         // ASM: BNE   SET_REJECT          If not equal, branch to reject state mapping
         if (AsmRuntime.Branch.isNotEqual(cc)) {
-                    // branch to SET_REJECT
-                }
+            // branch to SET_REJECT
+        }
 
         // ASM: MVC   0(5,4),=C'APPRV'    Apply operational authorization confirmation
         AsmRuntime.Memory.mvcLiteral(ctx, "AUTHSTAT", 5, "APPRV");

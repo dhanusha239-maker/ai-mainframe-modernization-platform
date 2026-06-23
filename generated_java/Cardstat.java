@@ -49,8 +49,8 @@ public class Cardstat implements AssemblerModule {
 
         // ASM: BE    STAT_OK             If equal, card is verified active
         if (AsmRuntime.Branch.isEqual(cc)) {
-                    // branch to STAT_OK
-                }
+            // branch to STAT_OK
+        }
 
         // ASM: MVC   0(4,3),=C'E002'     Set Tracking Error: Card Inactive/Suspended
         AsmRuntime.Memory.mvcLiteral(ctx, "ERRCODE", 4, "E002");

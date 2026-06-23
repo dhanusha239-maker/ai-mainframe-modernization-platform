@@ -61,8 +61,8 @@ public class Txread implements AssemblerModule {
 
         // ASM: BE    GET_EOF             Yes, branch to exit framework code
         if (AsmRuntime.Branch.isEqual(cc)) {
-                    // branch to GET_EOF
-                }
+            // branch to GET_EOF
+        }
 
         // ASM: LA    15,8                Return structural tracking error code
         // TODO LA requires address/register model integration: LA    15,8                Return structural tracking error code

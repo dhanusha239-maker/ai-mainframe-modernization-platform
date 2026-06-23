@@ -4,11 +4,17 @@ from instruction_semantics import get_semantics
 
 class InstructionTranslator:
     """
-    Helper-based HLASM instruction translator with register/offset resolution.
+    Helper-based HLASM instruction translator.
 
-    Resolves examples:
-      16(4,2) -> TXCUST when R2 -> CURRTX and CURRTX+16 -> TXCUST
-      0(4,3)  -> ERRCODE when R3 -> ERRCODE
+    Responsibilities:
+    1. Translate individual HLASM instructions into AsmRuntime helper calls.
+    2. Resolve register-offset operands such as:
+          16(4,2) -> TXCUST
+          0(4,3)  -> ERRCODE
+    3. Provide basic block / branch-flow translation support.
+
+    Note:
+    Basic block logic is kept here to avoid creating too many project files.
     """
 
     BRANCH_ALIASES = {
@@ -41,6 +47,10 @@ class InstructionTranslator:
 
         return normalized
 
+    # ============================================================
+    # Public API: single-line translation
+    # ============================================================
+
     def translate_line(self, line):
         clean = line.strip()
 
@@ -69,6 +79,70 @@ class InstructionTranslator:
 
         helper = semantics.get("java_helper")
         return f"// TODO implement helper translation for {opcode}: {helper} // {clean}"
+
+    # ============================================================
+    # Public API: block-aware translation
+    # ============================================================
+
+    def translate_block_flow(self, asm_lines):
+        """
+        Converts ASM lines into Java candidate lines with simple branch awareness.
+
+        This is an early block-flow translator.
+
+        It does NOT yet produce perfect structured Java for every branch pattern.
+        It does:
+        - preserve labels
+        - translate instructions
+        - convert conditional branches into if statements
+        - mark branch targets clearly
+        - keep generated Java compilable
+
+        Later enhancement:
+        Convert common label/branch patterns into real Java if/else/while blocks.
+        """
+
+        output = []
+
+        for raw_line in asm_lines:
+            line = raw_line.strip()
+
+            if not line or line.startswith("*"):
+                continue
+
+            label = self._extract_label(line)
+            opcode, operands = self._parse_instruction(line)
+
+            if label:
+                output.append(f"// LABEL: {label}")
+
+            translated = self.translate_line(line)
+
+            if translated:
+                output.extend(translated.splitlines())
+
+        return output
+
+    def _extract_label(self, line):
+        parts = line.split()
+
+        if len(parts) >= 2:
+            first = parts[0].upper()
+            second = parts[1].upper()
+
+            if (
+                get_semantics(second).get("translation_status") != "manual_review"
+                or second in self.BRANCH_ALIASES
+                or second in {"DS", "DC", "EQU"}
+            ):
+                if first not in self.BRANCH_ALIASES:
+                    return first
+
+        return None
+
+    # ============================================================
+    # Parsing helpers
+    # ============================================================
 
     def _parse_instruction(self, line):
         parts = line.split(None, 2)
@@ -125,44 +199,32 @@ class InstructionTranslator:
 
         return operands
 
-    # ------------------------------------------------------------
+    # ============================================================
     # Operand resolution
-    # ------------------------------------------------------------
+    # ============================================================
 
     def _resolve_operand(self, operand):
-        """
-        Resolves:
-          FIELD(4)     -> FIELD
-          16(4,2)      -> field at base register R2 + offset 16
-          0(4,3)       -> register R3 base symbol if no child offset
-          8(,1)        -> parameter offset style, kept as base if unresolved
-        """
-
         operand = operand.strip().upper()
 
         if self._is_literal(operand):
             return operand
 
-        # FIELD(10)
         symbolic_len = re.match(r"^([A-Z0-9_#$@]+)\((\d+)\)$", operand)
         if symbolic_len:
             return symbolic_len.group(1)
 
-        # 16(4,2)
         indexed = re.match(r"^(\d+)?\((\d+),(\d+)\)$", operand)
         if indexed:
             offset = int(indexed.group(1) or 0)
             base_reg = indexed.group(3)
             return self._resolve_register_offset(base_reg, offset)
 
-        # 16(2)
         based = re.match(r"^(\d+)?\((\d+)\)$", operand)
         if based:
             offset = int(based.group(1) or 0)
             base_reg = based.group(2)
             return self._resolve_register_offset(base_reg, offset)
 
-        # 8(,1)
         base_only = re.match(r"^(\d+)?\(,(\d+)\)$", operand)
         if base_only:
             offset = int(base_only.group(1) or 0)
@@ -179,18 +241,15 @@ class InstructionTranslator:
 
         base_symbol = base_symbol.upper()
 
-        # If offset is zero and base symbol is already a real field, use it.
         if offset == 0 and base_symbol in self.symbol_metadata:
             return base_symbol
 
-        # If base has field offsets, resolve child field.
         offsets = self.field_offsets.get(base_symbol, {})
         field = offsets.get(str(offset))
 
         if field:
             return field.upper()
 
-        # If no child found, return base symbol.
         return base_symbol
 
     def _length_from_operand(self, operand, default=1):
@@ -233,9 +292,9 @@ class InstructionTranslator:
     def _packed_literal_value(self, operand):
         return operand[3:-1]
 
-    # ------------------------------------------------------------
+    # ============================================================
     # Character/data movement
-    # ------------------------------------------------------------
+    # ============================================================
 
     def _translate_mvc(self, operands, clean):
         if len(operands) < 2:
@@ -271,9 +330,9 @@ class InstructionTranslator:
 
         return f'AsmRuntime.Memory.mvi(ctx, "{target}", \'{value[0]}\');'
 
-    # ------------------------------------------------------------
+    # ============================================================
     # Character compare
-    # ------------------------------------------------------------
+    # ============================================================
 
     def _translate_clc(self, operands, clean):
         if len(operands) < 2:
@@ -309,9 +368,9 @@ class InstructionTranslator:
 
         return f'AsmRuntime.Memory.cli(ctx, "{left}", \'{literal[0]}\', cc);'
 
-    # ------------------------------------------------------------
+    # ============================================================
     # Packed decimal
-    # ------------------------------------------------------------
+    # ============================================================
 
     def _translate_zap(self, operands, clean):
         if len(operands) < 2:
@@ -362,7 +421,7 @@ class InstructionTranslator:
 
             return (
                 f'ctx.setDecimal("{temp_name}", new java.math.BigDecimal("{literal}"));\n'
-                f'        AsmRuntime.Packed.cp(ctx, "{left}", "{temp_name}", cc);'
+                f'AsmRuntime.Packed.cp(ctx, "{left}", "{temp_name}", cc);'
             )
 
         right_field = self._resolve_operand(right)
@@ -374,9 +433,9 @@ class InstructionTranslator:
     def _translate_unpk(self, operands, clean):
         return f"// TODO UNPK requires packed/zoned metadata: {clean}"
 
-    # ------------------------------------------------------------
+    # ============================================================
     # Register and binary
-    # ------------------------------------------------------------
+    # ============================================================
 
     def _translate_xr(self, operands, clean):
         if len(operands) < 2:
@@ -438,9 +497,9 @@ class InstructionTranslator:
     def _translate_stm(self, operands, clean):
         return f"// TODO STM requires multiple-register storage metadata: {clean}"
 
-    # ------------------------------------------------------------
+    # ============================================================
     # Branching
-    # ------------------------------------------------------------
+    # ============================================================
 
     def _translate_b(self, operands, clean):
         target = operands[0] if operands else "UNKNOWN"
@@ -452,8 +511,8 @@ class InstructionTranslator:
 
         return (
             f"if (AsmRuntime.Branch.{method}(cc)) {{\n"
-            f"            // branch to {target}\n"
-            f"        }}"
+            f"    // branch to {target}\n"
+            f"}}"
         )
 
     def _translate_bct(self, operands, clean):
@@ -465,8 +524,8 @@ class InstructionTranslator:
 
         return (
             f"if (AsmRuntime.Branch.bct(registers, {reg})) {{\n"
-            f"            // branch to {target}\n"
-            f"        }}"
+            f"    // branch to {target}\n"
+            f"}}"
         )
 
     def _translate_bctr(self, operands, clean):
@@ -478,8 +537,8 @@ class InstructionTranslator:
 
         return (
             f"if (AsmRuntime.Branch.bctr(registers, {reg})) {{\n"
-            f"            // branch to {target}\n"
-            f"        }}"
+            f"    // branch to {target}\n"
+            f"}}"
         )
 
     def _translate_br(self, operands, clean):
@@ -494,9 +553,9 @@ class InstructionTranslator:
     def _translate_bc(self, operands, clean):
         return f"// TODO BC requires condition mask decoding: {clean}"
 
-    # ------------------------------------------------------------
+    # ============================================================
     # Directives
-    # ------------------------------------------------------------
+    # ============================================================
 
     def _translate_csect(self, operands, clean):
         return f"// CSECT directive: {clean}"
@@ -558,14 +617,21 @@ if __name__ == "__main__":
 
     samples = [
         "CLC   16(4,2),=C'CUST'",
+        "BE    VAL_OK",
         "MVC   0(4,3),=C'E001'",
-        "MVC   TXCUST(4),=C'CUST'",
+        "VAL_OK DS 0H",
         "ZAP   TXFEE,TXAMT",
         "AP    TXAMT,TXFEE",
-        "BE    VAL_OK",
         "BCT   5,LOOP",
     ]
 
+    print("SINGLE LINE TRANSLATION")
+    print("-" * 60)
     for sample in samples:
         print(sample)
         print("  ->", translator.translate_line(sample))
+
+    print("\nBLOCK FLOW TRANSLATION")
+    print("-" * 60)
+    for line in translator.translate_block_flow(samples):
+        print(line)
