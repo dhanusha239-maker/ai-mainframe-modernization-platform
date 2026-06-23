@@ -1,25 +1,45 @@
 import re
-
 from instruction_semantics import get_semantics
 
 
 class InstructionTranslator:
     """
-    Helper-based HLASM instruction translator.
+    Helper-based HLASM instruction translator with register/offset resolution.
 
-    This translator does NOT directly guess business Java logic.
-    It generates calls to AsmRuntime helpers.
-
-    Example:
-      MVC A(5),B
-        -> AsmRuntime.Memory.mvc(ctx, "A", 5, "B");
-
-      ZAP TXFEE,TXAMT
-        -> AsmRuntime.Packed.zap(ctx, "TXFEE", "TXAMT", 7, 2, cc);
+    Resolves examples:
+      16(4,2) -> TXCUST when R2 -> CURRTX and CURRTX+16 -> TXCUST
+      0(4,3)  -> ERRCODE when R3 -> ERRCODE
     """
 
-    def __init__(self, symbol_metadata=None):
+    BRANCH_ALIASES = {
+        "BE": "isEqual",
+        "BZ": "isEqual",
+        "BNE": "isNotEqual",
+        "BNZ": "isNotEqual",
+        "BH": "isHigh",
+        "BL": "isLow",
+    }
+
+    def __init__(
+        self,
+        symbol_metadata=None,
+        register_map=None,
+        field_offsets=None,
+        module=None,
+    ):
         self.symbol_metadata = symbol_metadata or {}
+        self.register_map = self._normalize_register_map(register_map or {})
+        self.field_offsets = field_offsets or {}
+        self.module = module
+
+    def _normalize_register_map(self, register_map):
+        normalized = {}
+
+        for reg, symbol in register_map.items():
+            reg_text = str(reg).upper().replace("R", "")
+            normalized[reg_text] = str(symbol).upper()
+
+        return normalized
 
     def translate_line(self, line):
         clean = line.strip()
@@ -33,6 +53,10 @@ class InstructionTranslator:
             return None
 
         opcode = opcode.upper()
+
+        if opcode in self.BRANCH_ALIASES:
+            return self._translate_branch_alias(opcode, operands, clean)
+
         semantics = get_semantics(opcode)
 
         if semantics.get("translation_status") == "manual_review":
@@ -46,10 +70,6 @@ class InstructionTranslator:
         helper = semantics.get("java_helper")
         return f"// TODO implement helper translation for {opcode}: {helper} // {clean}"
 
-    # ------------------------------------------------------------
-    # Parsing helpers
-    # ------------------------------------------------------------
-
     def _parse_instruction(self, line):
         parts = line.split(None, 2)
 
@@ -58,17 +78,24 @@ class InstructionTranslator:
 
         first = parts[0].upper()
 
-        if get_semantics(first).get("translation_status") != "manual_review":
-            opcode = first
+        if first in self.BRANCH_ALIASES:
             operand_text = parts[1] if len(parts) > 1 else ""
-            return opcode, self._split_operands(operand_text)
+            return first, self._split_operands(operand_text)
+
+        if get_semantics(first).get("translation_status") != "manual_review":
+            operand_text = parts[1] if len(parts) > 1 else ""
+            return first, self._split_operands(operand_text)
 
         if len(parts) >= 2:
             second = parts[1].upper()
-            if get_semantics(second).get("translation_status") != "manual_review":
-                opcode = second
+
+            if second in self.BRANCH_ALIASES:
                 operand_text = parts[2] if len(parts) > 2 else ""
-                return opcode, self._split_operands(operand_text)
+                return second, self._split_operands(operand_text)
+
+            if get_semantics(second).get("translation_status") != "manual_review":
+                operand_text = parts[2] if len(parts) > 2 else ""
+                return second, self._split_operands(operand_text)
 
         return first, []
 
@@ -98,30 +125,83 @@ class InstructionTranslator:
 
         return operands
 
-    def _base_field(self, operand):
-        """
-        FIELD(5) -> FIELD
-        16(4,3) -> unresolved memory reference, keep original
-        """
-        operand = operand.strip()
+    # ------------------------------------------------------------
+    # Operand resolution
+    # ------------------------------------------------------------
 
-        if re.match(r"^[A-Z0-9_#$@]+\(", operand, re.IGNORECASE):
-            return operand.split("(", 1)[0].upper()
+    def _resolve_operand(self, operand):
+        """
+        Resolves:
+          FIELD(4)     -> FIELD
+          16(4,2)      -> field at base register R2 + offset 16
+          0(4,3)       -> register R3 base symbol if no child offset
+          8(,1)        -> parameter offset style, kept as base if unresolved
+        """
 
-        return operand.upper()
+        operand = operand.strip().upper()
+
+        if self._is_literal(operand):
+            return operand
+
+        # FIELD(10)
+        symbolic_len = re.match(r"^([A-Z0-9_#$@]+)\((\d+)\)$", operand)
+        if symbolic_len:
+            return symbolic_len.group(1)
+
+        # 16(4,2)
+        indexed = re.match(r"^(\d+)?\((\d+),(\d+)\)$", operand)
+        if indexed:
+            offset = int(indexed.group(1) or 0)
+            base_reg = indexed.group(3)
+            return self._resolve_register_offset(base_reg, offset)
+
+        # 16(2)
+        based = re.match(r"^(\d+)?\((\d+)\)$", operand)
+        if based:
+            offset = int(based.group(1) or 0)
+            base_reg = based.group(2)
+            return self._resolve_register_offset(base_reg, offset)
+
+        # 8(,1)
+        base_only = re.match(r"^(\d+)?\(,(\d+)\)$", operand)
+        if base_only:
+            offset = int(base_only.group(1) or 0)
+            base_reg = base_only.group(2)
+            return self._resolve_register_offset(base_reg, offset)
+
+        return operand
+
+    def _resolve_register_offset(self, reg, offset):
+        base_symbol = self.register_map.get(str(reg))
+
+        if not base_symbol:
+            return str(offset)
+
+        base_symbol = base_symbol.upper()
+
+        # If offset is zero and base symbol is already a real field, use it.
+        if offset == 0 and base_symbol in self.symbol_metadata:
+            return base_symbol
+
+        # If base has field offsets, resolve child field.
+        offsets = self.field_offsets.get(base_symbol, {})
+        field = offsets.get(str(offset))
+
+        if field:
+            return field.upper()
+
+        # If no child found, return base symbol.
+        return base_symbol
 
     def _length_from_operand(self, operand, default=1):
-        """
-        FIELD(10) -> 10
-        If no explicit length, use symbol metadata if available.
-        """
+        operand = operand.strip().upper()
 
-        match = re.search(r"\((\d+)\)", operand)
-        if match:
-            return int(match.group(1))
+        explicit = re.search(r"\((\d+)[,\)]", operand)
+        if explicit:
+            return int(explicit.group(1))
 
-        field = self._base_field(operand)
-        meta = self.symbol_metadata.get(field, {})
+        resolved = self._resolve_operand(operand)
+        meta = self.symbol_metadata.get(resolved, {})
 
         return meta.get("length", default)
 
@@ -132,6 +212,14 @@ class InstructionTranslator:
     def _packed_scale(self, field):
         meta = self.symbol_metadata.get(field.upper(), {})
         return meta.get("scale", 0)
+
+    def _is_literal(self, operand):
+        return (
+            operand.startswith("=C'")
+            or operand.startswith("C'")
+            or operand.startswith("=P'")
+            or operand.startswith("=F'")
+        )
 
     def _is_char_literal(self, operand):
         return operand.startswith("=C'") and operand.endswith("'")
@@ -145,12 +233,6 @@ class InstructionTranslator:
     def _packed_literal_value(self, operand):
         return operand[3:-1]
 
-    def _is_fullword_literal(self, operand):
-        return operand.startswith("=F'") and operand.endswith("'")
-
-    def _fullword_literal_value(self, operand):
-        return operand[3:-1]
-
     # ------------------------------------------------------------
     # Character/data movement
     # ------------------------------------------------------------
@@ -159,30 +241,23 @@ class InstructionTranslator:
         if len(operands) < 2:
             return f"// TODO invalid MVC: {clean}"
 
-        target = self._base_field(operands[0])
+        target = self._resolve_operand(operands[0])
         length = self._length_from_operand(operands[0], default=1)
-        source = operands[1]
+        source = operands[1].upper()
 
         if self._is_char_literal(source):
             literal = self._char_literal_value(source)
-            return (
-                f'AsmRuntime.Memory.mvcLiteral(ctx, "{target}", '
-                f'{length}, "{literal}");'
-            )
+            return f'AsmRuntime.Memory.mvcLiteral(ctx, "{target}", {length}, "{literal}");'
 
-        source_field = self._base_field(source)
-
-        return (
-            f'AsmRuntime.Memory.mvc(ctx, "{target}", '
-            f'{length}, "{source_field}");'
-        )
+        source_field = self._resolve_operand(source)
+        return f'AsmRuntime.Memory.mvc(ctx, "{target}", {length}, "{source_field}");'
 
     def _translate_mvi(self, operands, clean):
         if len(operands) < 2:
             return f"// TODO invalid MVI: {clean}"
 
-        target = self._base_field(operands[0])
-        source = operands[1]
+        target = self._resolve_operand(operands[0])
+        source = operands[1].upper()
 
         if source.startswith("C'") and source.endswith("'"):
             value = source[2:-1]
@@ -204,30 +279,23 @@ class InstructionTranslator:
         if len(operands) < 2:
             return f"// TODO invalid CLC: {clean}"
 
-        left = self._base_field(operands[0])
+        left = self._resolve_operand(operands[0])
         length = self._length_from_operand(operands[0], default=1)
-        right = operands[1]
+        right = operands[1].upper()
 
         if self._is_char_literal(right):
             literal = self._char_literal_value(right)
-            return (
-                f'AsmRuntime.Memory.clcLiteral(ctx, "{left}", '
-                f'{length}, "{literal}", cc);'
-            )
+            return f'AsmRuntime.Memory.clcLiteral(ctx, "{left}", {length}, "{literal}", cc);'
 
-        right_field = self._base_field(right)
-
-        return (
-            f'AsmRuntime.Memory.clc(ctx, "{left}", '
-            f'{length}, "{right_field}", cc);'
-        )
+        right_field = self._resolve_operand(right)
+        return f'AsmRuntime.Memory.clc(ctx, "{left}", {length}, "{right_field}", cc);'
 
     def _translate_cli(self, operands, clean):
         if len(operands) < 2:
             return f"// TODO invalid CLI: {clean}"
 
-        left = self._base_field(operands[0])
-        right = operands[1]
+        left = self._resolve_operand(operands[0])
+        right = operands[1].upper()
 
         if right.startswith("C'") and right.endswith("'"):
             literal = right[2:-1]
@@ -249,16 +317,13 @@ class InstructionTranslator:
         if len(operands) < 2:
             return f"// TODO invalid ZAP: {clean}"
 
-        target = self._base_field(operands[0])
-        source = self._base_field(operands[1])
+        target = self._resolve_operand(operands[0])
+        source = self._resolve_operand(operands[1])
 
         digits = self._packed_digits(target)
         scale = self._packed_scale(target)
 
-        return (
-            f'AsmRuntime.Packed.zap(ctx, "{target}", "{source}", '
-            f'{digits}, {scale}, cc);'
-        )
+        return f'AsmRuntime.Packed.zap(ctx, "{target}", "{source}", {digits}, {scale}, cc);'
 
     def _translate_ap(self, operands, clean):
         return self._packed_binary_operation("ap", operands, clean)
@@ -276,23 +341,20 @@ class InstructionTranslator:
         if len(operands) < 2:
             return f"// TODO invalid {op.upper()}: {clean}"
 
-        target = self._base_field(operands[0])
-        source = self._base_field(operands[1])
+        target = self._resolve_operand(operands[0])
+        source = self._resolve_operand(operands[1])
 
         digits = self._packed_digits(target)
         scale = self._packed_scale(target)
 
-        return (
-            f'AsmRuntime.Packed.{op}(ctx, "{target}", "{source}", '
-            f'{digits}, {scale}, cc);'
-        )
+        return f'AsmRuntime.Packed.{op}(ctx, "{target}", "{source}", {digits}, {scale}, cc);'
 
     def _translate_cp(self, operands, clean):
         if len(operands) < 2:
             return f"// TODO invalid CP: {clean}"
 
-        left = self._base_field(operands[0])
-        right = operands[1]
+        left = self._resolve_operand(operands[0])
+        right = operands[1].upper()
 
         if self._is_packed_literal(right):
             literal = self._packed_literal_value(right)
@@ -303,8 +365,7 @@ class InstructionTranslator:
                 f'        AsmRuntime.Packed.cp(ctx, "{left}", "{temp_name}", cc);'
             )
 
-        right_field = self._base_field(right)
-
+        right_field = self._resolve_operand(right)
         return f'AsmRuntime.Packed.cp(ctx, "{left}", "{right_field}", cc);'
 
     def _translate_pack(self, operands, clean):
@@ -354,7 +415,7 @@ class InstructionTranslator:
         return f"AsmRuntime.Register.ltr(registers, {operands[0]}, {operands[1]}, cc);"
 
     def _translate_lh(self, operands, clean):
-        return f"// TODO LH requires memory address resolution before exact helper call: {clean}"
+        return f"// TODO LH requires exact memory byte access before helper call: {clean}"
 
     def _translate_l(self, operands, clean):
         return f"// TODO L requires memory/address resolution before exact helper call: {clean}"
@@ -363,7 +424,7 @@ class InstructionTranslator:
         return f"// TODO LA requires address/register model integration: {clean}"
 
     def _translate_lm(self, operands, clean):
-        return f"// TODO LM requires parameter/register block resolution: {clean}"
+        return f"// TODO LM already handled by analyzer register_map when possible: {clean}"
 
     def _translate_st(self, operands, clean):
         return f"// TODO ST requires register-to-memory metadata: {clean}"
@@ -384,6 +445,16 @@ class InstructionTranslator:
     def _translate_b(self, operands, clean):
         target = operands[0] if operands else "UNKNOWN"
         return f"// branch target: {target}"
+
+    def _translate_branch_alias(self, opcode, operands, clean):
+        target = operands[0] if operands else "UNKNOWN"
+        method = self.BRANCH_ALIASES[opcode]
+
+        return (
+            f"if (AsmRuntime.Branch.{method}(cc)) {{\n"
+            f"            // branch to {target}\n"
+            f"        }}"
+        )
 
     def _translate_bct(self, operands, clean):
         if len(operands) < 2:
@@ -448,10 +519,6 @@ class InstructionTranslator:
     def _translate_drop(self, operands, clean):
         return f"// DROP directive: {clean}"
 
-    # ------------------------------------------------------------
-    # Fallbacks for supported-but-not-yet-implemented helpers
-    # ------------------------------------------------------------
-
     def __getattr__(self, name):
         if name.startswith("_translate_"):
             opcode = name.replace("_translate_", "").upper()
@@ -469,23 +536,34 @@ class InstructionTranslator:
 if __name__ == "__main__":
     translator = InstructionTranslator(
         symbol_metadata={
-            "ERRCODE": {"length": 4},
+            "CURRTX": {"length": 64},
             "TXCUST": {"length": 10},
+            "ERRCODE": {"length": 4},
             "TXAMT": {"digits": 7, "scale": 2},
             "TXFEE": {"digits": 7, "scale": 2},
-        }
+        },
+        register_map={
+            "R2": "CURRTX",
+            "R3": "ERRCODE",
+        },
+        field_offsets={
+            "CURRTX": {
+                "16": "TXCUST",
+                "26": "TXAMT",
+                "37": "TXFEE",
+            }
+        },
+        module="CUSTVAL",
     )
 
     samples = [
-        "MVC ERRCODE,=C'E001'",
-        "MVC TXCUST(4),=C'CUST'",
-        "CLC TXCUST(4),=C'CUST'",
-        "CLI TXSTAT,C'A'",
-        "ZAP TXFEE,TXAMT",
-        "AP TXAMT,TXFEE",
-        "CP TXAMT,TXFEE",
-        "XR 15,15",
-        "BCT 5,LOOP",
+        "CLC   16(4,2),=C'CUST'",
+        "MVC   0(4,3),=C'E001'",
+        "MVC   TXCUST(4),=C'CUST'",
+        "ZAP   TXFEE,TXAMT",
+        "AP    TXAMT,TXFEE",
+        "BE    VAL_OK",
+        "BCT   5,LOOP",
     ]
 
     for sample in samples:

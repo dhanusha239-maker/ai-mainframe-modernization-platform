@@ -27,11 +27,49 @@ public class Feecalc implements AssemblerModule {
          *   - TXFEE
          */
 
-        // TODO: instruction-level Java translation will be generated here.
-        // Future generated code should call AsmRuntime helpers, for example:
-        // AsmRuntime.Memory.mvc(ctx, "TARGET", 10, "SOURCE");
-        // AsmRuntime.Packed.zap(ctx, "TARGET", "SOURCE", 7, 2, cc);
-        // AsmRuntime.Branch.bct(registers, 5);
+        // Translated instruction candidates from HLASM source.
+
+        // ASM: FEECALC  CSECT ,                   Financial Cost Pipeline
+        // CSECT directive: FEECALC  CSECT ,                   Financial Cost Pipeline
+
+        // ASM: BAKR  14,0                Save state
+        // TODO manual review required: BAKR  14,0                Save state
+
+        // ASM: BASR  12,0
+        // subroutine call via BASR: BASR  12,0
+
+        // ASM: USING *,12
+        // USING directive: USING *,12
+
+        // ASM: LM    2,3,0(1)            R2 = Addr of CURRTX, R3 = Addr of ERRCODE
+        // TODO LM already handled by analyzer register_map when possible: LM    2,3,0(1)            R2 = Addr of CURRTX, R3 = Addr of ERRCODE
+
+        // ASM: ZAP   FEEWORK(8),26(4,2)  Load Transaction Amount into 8-byte workspace
+        AsmRuntime.Packed.zap(ctx, "FEEWORK", "TXAMT", 15, 0, cc);
+
+        // ASM: MP    FEEWORK(8),=P'15'   Multiply by 15 (representing 1.5% scale factor)
+        AsmRuntime.Packed.mp(ctx, "FEEWORK", "=P'15'", 15, 0, cc);
+
+        // ASM: SRP   FEEWORK(8),64-3,5   Shift right 3 decimal spots with rounding
+        // TODO manual review required: SRP   FEEWORK(8),64-3,5   Shift right 3 decimal spots with rounding
+
+        // ASM: ZAP   37(4,2),FEEWORK+4(4) Extract and store calculated fee value
+        AsmRuntime.Packed.zap(ctx, "TXFEE", "FEEWORK+4(4)", 7, 0, cc);
+
+        // ASM: XR    15,15               Fee calculation does not impact approvals
+        registers.clear(15);
+
+        // ASM: PR
+        // TODO manual review required: PR
+
+        // ASM: FEEWORK  DS    PL8                 Required math buffer boundary register space
+        // DS declaration: FEEWORK  DS    PL8                 Required math buffer boundary register space
+
+        // ASM: LTORG ,
+        // TODO manual review required: LTORG ,
+
+        // ASM: END   FEECALC
+        // TODO manual review required: END   FEECALC
 
         return ModuleResult.rc(0, "FEECALC executed as generated candidate");
     }

@@ -29,11 +29,297 @@ public class Maindrv implements AssemblerModule {
          *   - LTR 15, 15
          */
 
-        // TODO: instruction-level Java translation will be generated here.
-        // Future generated code should call AsmRuntime helpers, for example:
-        // AsmRuntime.Memory.mvc(ctx, "TARGET", 10, "SOURCE");
-        // AsmRuntime.Packed.zap(ctx, "TARGET", "SOURCE", 7, 2, cc);
-        // AsmRuntime.Branch.bct(registers, 5);
+        // Translated instruction candidates from HLASM source.
+
+        // ASM: MAINDRV  CSECT ,                   Main VSAM Orchestration Driver
+        // CSECT directive: MAINDRV  CSECT ,                   Main VSAM Orchestration Driver
+
+        // ASM: STM   14,12,12(13)        Save caller's registers
+        // TODO STM requires multiple-register storage metadata: STM   14,12,12(13)        Save caller's registers
+
+        // ASM: BASR  12,0                Establish base register
+        // subroutine call via BASR: BASR  12,0                Establish base register
+
+        // ASM: USING *,12
+        // USING directive: USING *,12
+
+        // ASM: ST    13,SAVEAREA+4       Forward link save area
+        // TODO ST requires register-to-memory metadata: ST    13,SAVEAREA+4       Forward link save area
+
+        // ASM: LA    11,SAVEAREA
+        // TODO LA requires address/register model integration: LA    11,SAVEAREA
+
+        // ASM: ST    11,8(,13)           Backward link save area
+        // TODO ST requires register-to-memory metadata: ST    11,8(,13)           Backward link save area
+
+        // ASM: LR    13,11               Point to current save area
+        // TODO manual review required: LR    13,11               Point to current save area
+
+        // ASM: OPEN  (INACB,INPUT,OUTACB,OUTPUT) Open dynamic datasets
+        // TODO manual review required: OPEN  (INACB,INPUT,OUTACB,OUTPUT) Open dynamic datasets
+
+        // ASM: LTR   15,15               Verify file allocation initialization
+        AsmRuntime.Register.ltr(registers, 15, 15, cc);
+
+        // ASM: BNZ   OPEN_ERR            If file error, abort execution loop
+        if (AsmRuntime.Branch.isNotEqual(cc)) {
+                    // branch to OPEN_ERR
+                }
+
+        // ASM: TXLOOP   DS    0H
+        // DS declaration: TXLOOP   DS    0H
+
+        // ASM: LA    1,READPARM          Pass parameters to VSAM Reader module
+        // TODO LA requires address/register model integration: LA    1,READPARM          Pass parameters to VSAM Reader module
+
+        // ASM: L     15,=V(TXREAD)       V-CON invocation target
+        // TODO L requires memory/address resolution before exact helper call: L     15,=V(TXREAD)       V-CON invocation target
+
+        // ASM: BALR  14,15               Branch and Link
+        // subroutine call via BALR: BALR  14,15               Branch and Link
+
+        // ASM: LTR   15,15               Check return code
+        AsmRuntime.Register.ltr(registers, 15, 15, cc);
+
+        // ASM: C     15,=F'4'            Did we hit End-of-File (EOF)?
+        // TODO C helper integration needed: AsmCompare.c // C     15,=F'4'            Did we hit End-of-File (EOF)?
+
+        // ASM: BE    CLOSE_EXIT          Yes, exit loop safely
+        if (AsmRuntime.Branch.isEqual(cc)) {
+                    // branch to CLOSE_EXIT
+                }
+
+        // ASM: BNZ   IO_ERROR            Any other error, trigger termination code
+        if (AsmRuntime.Branch.isNotEqual(cc)) {
+                    // branch to IO_ERROR
+                }
+
+        // ASM: LA    1,BUSPARM           Customer Identity Scan
+        // TODO LA requires address/register model integration: LA    1,BUSPARM           Customer Identity Scan
+
+        // ASM: L     15,=V(CUSTVAL)
+        // TODO L requires memory/address resolution before exact helper call: L     15,=V(CUSTVAL)
+
+        // ASM: BALR  14,15
+        // subroutine call via BALR: BALR  14,15
+
+        // ASM: LTR   15,15
+        AsmRuntime.Register.ltr(registers, 15, 15, cc);
+
+        // ASM: BNZ   REJECT_PATH
+        if (AsmRuntime.Branch.isNotEqual(cc)) {
+                    // branch to REJECT_PATH
+                }
+
+        // ASM: LA    1,BUSPARM           Card Token Check
+        // TODO LA requires address/register model integration: LA    1,BUSPARM           Card Token Check
+
+        // ASM: L     15,=V(CARDSTAT)
+        // TODO L requires memory/address resolution before exact helper call: L     15,=V(CARDSTAT)
+
+        // ASM: BALR  14,15
+        // subroutine call via BALR: BALR  14,15
+
+        // ASM: LTR   15,15
+        AsmRuntime.Register.ltr(registers, 15, 15, cc);
+
+        // ASM: BNZ   REJECT_PATH
+        if (AsmRuntime.Branch.isNotEqual(cc)) {
+                    // branch to REJECT_PATH
+                }
+
+        // ASM: LA    1,BUSPARM           Packed Limit Margin Assessment
+        // TODO LA requires address/register model integration: LA    1,BUSPARM           Packed Limit Margin Assessment
+
+        // ASM: L     15,=V(LIMITCHK)
+        // TODO L requires memory/address resolution before exact helper call: L     15,=V(LIMITCHK)
+
+        // ASM: BALR  14,15
+        // subroutine call via BALR: BALR  14,15
+
+        // ASM: LTR   15,15
+        AsmRuntime.Register.ltr(registers, 15, 15, cc);
+
+        // ASM: BNZ   REJECT_PATH
+        if (AsmRuntime.Branch.isNotEqual(cc)) {
+                    // branch to REJECT_PATH
+                }
+
+        // ASM: LA    1,BUSPARM           Fraud Risk Verification
+        // TODO LA requires address/register model integration: LA    1,BUSPARM           Fraud Risk Verification
+
+        // ASM: L     15,=V(FRDCHK)
+        // TODO L requires memory/address resolution before exact helper call: L     15,=V(FRDCHK)
+
+        // ASM: BALR  14,15
+        // subroutine call via BALR: BALR  14,15
+
+        // ASM: LTR   15,15
+        AsmRuntime.Register.ltr(registers, 15, 15, cc);
+
+        // ASM: BNZ   REJECT_PATH
+        if (AsmRuntime.Branch.isNotEqual(cc)) {
+                    // branch to REJECT_PATH
+                }
+
+        // ASM: LA    1,BUSPARM           Financial Cost Pipeline Execution
+        // TODO LA requires address/register model integration: LA    1,BUSPARM           Financial Cost Pipeline Execution
+
+        // ASM: L     15,=V(FEECALC)
+        // TODO L requires memory/address resolution before exact helper call: L     15,=V(FEECALC)
+
+        // ASM: BALR  14,15
+        // subroutine call via BALR: BALR  14,15
+
+        // ASM: LA    1,DECPARM
+        // TODO LA requires address/register model integration: LA    1,DECPARM
+
+        // ASM: L     15,=V(AUTHDEC)
+        // TODO L requires memory/address resolution before exact helper call: L     15,=V(AUTHDEC)
+
+        // ASM: BALR  14,15
+        // subroutine call via BALR: BALR  14,15
+
+        // ASM: B     WRITE_AUDIT
+        // branch target: WRITE_AUDIT
+
+        // ASM: REJECT_PATH DS 0H
+        // DS declaration: REJECT_PATH DS 0H
+
+        // ASM: LA    1,DECPARM           Process rejection trace logic
+        // TODO LA requires address/register model integration: LA    1,DECPARM           Process rejection trace logic
+
+        // ASM: L     15,=V(AUTHDEC)
+        // TODO L requires memory/address resolution before exact helper call: L     15,=V(AUTHDEC)
+
+        // ASM: BALR  14,15
+        // subroutine call via BALR: BALR  14,15
+
+        // ASM: WRITE_AUDIT DS 0H
+        // DS declaration: WRITE_AUDIT DS 0H
+
+        // ASM: LA    1,AUDPARM
+        // TODO LA requires address/register model integration: LA    1,AUDPARM
+
+        // ASM: L     15,=V(AUDWRITE)
+        // TODO L requires memory/address resolution before exact helper call: L     15,=V(AUDWRITE)
+
+        // ASM: BALR  14,15
+        // subroutine call via BALR: BALR  14,15
+
+        // ASM: B     TXLOOP              Loop back for subsequent records
+        // branch target: TXLOOP
+
+        // ASM: CLOSE_EXIT DS  0H
+        // DS declaration: CLOSE_EXIT DS  0H
+
+        // ASM: CLOSE (INACB,,OUTACB)     Safely terminate VSAM connections
+        // TODO manual review required: CLOSE (INACB,,OUTACB)     Safely terminate VSAM connections
+
+        // ASM: XR    15,15               Set Return Code = 0
+        registers.clear(15);
+
+        // ASM: B     FINAL_RETURN
+        // branch target: FINAL_RETURN
+
+        // ASM: OPEN_ERR LA    15,12               Set standard operational error RC=12
+        // TODO LA requires address/register model integration: OPEN_ERR LA    15,12               Set standard operational error RC=12
+
+        // ASM: B     FINAL_RETURN
+        // branch target: FINAL_RETURN
+
+        // ASM: IO_ERROR LA    15,16               Set severe I/O corruption RC=16
+        // TODO LA requires address/register model integration: IO_ERROR LA    15,16               Set severe I/O corruption RC=16
+
+        // ASM: FINAL_RETURN DS 0H
+        // DS declaration: FINAL_RETURN DS 0H
+
+        // ASM: L     13,SAVEAREA+4       Restore system backplanes
+        // TODO L requires memory/address resolution before exact helper call: L     13,SAVEAREA+4       Restore system backplanes
+
+        // ASM: LM    14,12,12(13)
+        // TODO LM already handled by analyzer register_map when possible: LM    14,12,12(13)
+
+        // ASM: BR    14                  Return execution control back to z/OS
+        // branch register / return: BR    14                  Return execution control back to z/OS
+
+        // ASM: SAVEAREA DS    18F
+        // DS declaration: SAVEAREA DS    18F
+
+        // ASM: READPARM DC    A(INRPL)            Addr of input VSAM Request Parameter List
+        // DC declaration: READPARM DC    A(INRPL)            Addr of input VSAM Request Parameter List
+
+        // ASM: DC    A(CURRTX)           Addr of data target work matrix
+        // DC declaration: DC    A(CURRTX)           Addr of data target work matrix
+
+        // ASM: BUSPARM  DC    A(CURRTX),A(ERRCODE)
+        // DC declaration: BUSPARM  DC    A(CURRTX),A(ERRCODE)
+
+        // ASM: DECPARM  DC    A(CURRTX),A(ERRCODE),A(AUTHSTAT)
+        // DC declaration: DECPARM  DC    A(CURRTX),A(ERRCODE),A(AUTHSTAT)
+
+        // ASM: AUDPARM  DC    A(OUTRPL)           Addr of output VSAM Request Parameter List
+        // DC declaration: AUDPARM  DC    A(OUTRPL)           Addr of output VSAM Request Parameter List
+
+        // ASM: DC    A(CURRTX)           Addr of transaction line
+        // DC declaration: DC    A(CURRTX)           Addr of transaction line
+
+        // ASM: DC    A(AUTHSTAT)         Addr of authorization calculation
+        // DC declaration: DC    A(AUTHSTAT)         Addr of authorization calculation
+
+        // ASM: CURRTX   DS    0CL64
+        // DS declaration: CURRTX   DS    0CL64
+
+        // ASM: TXCARD   DS    CL16
+        // DS declaration: TXCARD   DS    CL16
+
+        // ASM: TXCUST   DS    CL10
+        // DS declaration: TXCUST   DS    CL10
+
+        // ASM: TXAMT    DS    PL4
+        // DS declaration: TXAMT    DS    PL4
+
+        // ASM: TXTYPE   DS    CL2
+        // DS declaration: TXTYPE   DS    CL2
+
+        // ASM: TXSTAT   DS    CL1
+        // DS declaration: TXSTAT   DS    CL1
+
+        // ASM: TXLIMIT  DS    PL4
+        // DS declaration: TXLIMIT  DS    PL4
+
+        // ASM: TXFEE    DS    PL4
+        // DS declaration: TXFEE    DS    PL4
+
+        // ASM: DS    CL23
+        // DS declaration: DS    CL23
+
+        // ASM: ERRCODE  DC    CL4'0000'
+        // DC declaration: ERRCODE  DC    CL4'0000'
+
+        // ASM: AUTHSTAT DC    CL5'     '
+        // DC declaration: AUTHSTAT DC    CL5'     '
+
+        // ASM: DS    0D                  Enforce strict doubleword boundaries
+        // DS declaration: DS    0D                  Enforce strict doubleword boundaries
+
+        // ASM: INACB    ACB   AM=VSAM,DDNAME=INVSAM,MACRF=(KEY,SEQ,IN) Input Cluster
+        // TODO manual review required: INACB    ACB   AM=VSAM,DDNAME=INVSAM,MACRF=(KEY,SEQ,IN) Input Cluster
+
+        // ASM: OUTACB   ACB   AM=VSAM,DDNAME=OUTVSAM,MACRF=(ADR,SEQ,OUT) Output Trace
+        // TODO manual review required: OUTACB   ACB   AM=VSAM,DDNAME=OUTVSAM,MACRF=(ADR,SEQ,OUT) Output Trace
+
+        // ASM: INRPL    RPL   AM=VSAM,ACB=INACB,AREA=CURRTX,AREALEN=64,OPTCD=(KEY,SEQ,NUP)
+        // TODO manual review required: INRPL    RPL   AM=VSAM,ACB=INACB,AREA=CURRTX,AREALEN=64,OPTCD=(KEY,SEQ,NUP)
+
+        // ASM: OUTRPL   RPL   AM=VSAM,ACB=OUTACB,OPTCD=(ADR,SEQ) Record Storage Request
+        // TODO manual review required: OUTRPL   RPL   AM=VSAM,ACB=OUTACB,OPTCD=(ADR,SEQ) Record Storage Request
+
+        // ASM: LTORG ,
+        // TODO manual review required: LTORG ,
+
+        // ASM: END   MAINDRV
+        // TODO manual review required: END   MAINDRV
 
         return ModuleResult.rc(0, "MAINDRV executed as generated candidate");
     }

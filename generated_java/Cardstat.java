@@ -27,11 +27,54 @@ public class Cardstat implements AssemblerModule {
          *   - CLI TXSTAT, C'A'
          */
 
-        // TODO: instruction-level Java translation will be generated here.
-        // Future generated code should call AsmRuntime helpers, for example:
-        // AsmRuntime.Memory.mvc(ctx, "TARGET", 10, "SOURCE");
-        // AsmRuntime.Packed.zap(ctx, "TARGET", "SOURCE", 7, 2, cc);
-        // AsmRuntime.Branch.bct(registers, 5);
+        // Translated instruction candidates from HLASM source.
+
+        // ASM: CARDSTAT CSECT ,                   Administrative Block Reviewer
+        // CSECT directive: CARDSTAT CSECT ,                   Administrative Block Reviewer
+
+        // ASM: BAKR  14,0                Save registers on linkage stack
+        // TODO manual review required: BAKR  14,0                Save registers on linkage stack
+
+        // ASM: BASR  12,0
+        // subroutine call via BASR: BASR  12,0
+
+        // ASM: USING *,12
+        // USING directive: USING *,12
+
+        // ASM: LM    2,3,0(1)            R2 = Addr of CURRTX, R3 = Addr of ERRCODE
+        // TODO LM already handled by analyzer register_map when possible: LM    2,3,0(1)            R2 = Addr of CURRTX, R3 = Addr of ERRCODE
+
+        // ASM: CLI   32(2),C'A'          Is Status indicator character equal to 'A'?
+        AsmRuntime.Memory.cli(ctx, "32", 'A', cc);
+
+        // ASM: BE    STAT_OK             If equal, card is verified active
+        if (AsmRuntime.Branch.isEqual(cc)) {
+                    // branch to STAT_OK
+                }
+
+        // ASM: MVC   0(4,3),=C'E002'     Set Tracking Error: Card Inactive/Suspended
+        AsmRuntime.Memory.mvcLiteral(ctx, "ERRCODE", 4, "E002");
+
+        // ASM: LA    15,4                Set error condition code return
+        // TODO LA requires address/register model integration: LA    15,4                Set error condition code return
+
+        // ASM: PR
+        // TODO manual review required: PR
+
+        // ASM: STAT_OK  DS    0H
+        // DS declaration: STAT_OK  DS    0H
+
+        // ASM: XR    15,15               Set success
+        registers.clear(15);
+
+        // ASM: PR
+        // TODO manual review required: PR
+
+        // ASM: LTORG ,
+        // TODO manual review required: LTORG ,
+
+        // ASM: END   CARDSTAT
+        // TODO manual review required: END   CARDSTAT
 
         return ModuleResult.rc(0, "CARDSTAT executed as generated candidate");
     }

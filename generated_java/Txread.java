@@ -27,11 +27,72 @@ public class Txread implements AssemblerModule {
          *   - LTR 15, 15
          */
 
-        // TODO: instruction-level Java translation will be generated here.
-        // Future generated code should call AsmRuntime helpers, for example:
-        // AsmRuntime.Memory.mvc(ctx, "TARGET", 10, "SOURCE");
-        // AsmRuntime.Packed.zap(ctx, "TARGET", "SOURCE", 7, 2, cc);
-        // AsmRuntime.Branch.bct(registers, 5);
+        // Translated instruction candidates from HLASM source.
+
+        // ASM: TXREAD   CSECT ,                   VSAM Sequential Input Processor
+        // CSECT directive: TXREAD   CSECT ,                   VSAM Sequential Input Processor
+
+        // ASM: BAKR  14,0                Save registers on stack
+        // TODO manual review required: BAKR  14,0                Save registers on stack
+
+        // ASM: BASR  12,0
+        // subroutine call via BASR: BASR  12,0
+
+        // ASM: USING *,12
+        // USING directive: USING *,12
+
+        // ASM: LM    2,3,0(1)            R2 = Addr of INRPL, R3 = Addr of CURRTX
+        // TODO LM already handled by analyzer register_map when possible: LM    2,3,0(1)            R2 = Addr of INRPL, R3 = Addr of CURRTX
+
+        // ASM: GET   RPL=(2)             Retrieve record into CURRTX buffer
+        // TODO manual review required: GET   RPL=(2)             Retrieve record into CURRTX buffer
+
+        // ASM: LTR   15,15               Check low-level subsystem health code
+        AsmRuntime.Register.ltr(registers, 15, 15, cc);
+
+        // ASM: JZ    GET_SUCCESS         If 0, line extracted cleanly
+        // TODO manual review required: JZ    GET_SUCCESS         If 0, line extracted cleanly
+
+        // ASM: L     4,4(,2)             Access the RPL feedback control field
+        // TODO L requires memory/address resolution before exact helper call: L     4,4(,2)             Access the RPL feedback control field
+
+        // ASM: CLM   4,B'0001',=X'04'    Is the specific feedback code End of File?
+        // TODO manual review required: CLM   4,B'0001',=X'04'    Is the specific feedback code End of File?
+
+        // ASM: BE    GET_EOF             Yes, branch to exit framework code
+        if (AsmRuntime.Branch.isEqual(cc)) {
+                    // branch to GET_EOF
+                }
+
+        // ASM: LA    15,8                Return structural tracking error code
+        // TODO LA requires address/register model integration: LA    15,8                Return structural tracking error code
+
+        // ASM: PR
+        // TODO manual review required: PR
+
+        // ASM: GET_EOF  DS    0H
+        // DS declaration: GET_EOF  DS    0H
+
+        // ASM: LA    15,4                Signal EOF condition to driver loop (RC=4)
+        // TODO LA requires address/register model integration: LA    15,4                Signal EOF condition to driver loop (RC=4)
+
+        // ASM: PR
+        // TODO manual review required: PR
+
+        // ASM: GET_SUCCESS DS 0H
+        // DS declaration: GET_SUCCESS DS 0H
+
+        // ASM: XR    15,15               Signal continuous loop state (RC=0)
+        registers.clear(15);
+
+        // ASM: PR
+        // TODO manual review required: PR
+
+        // ASM: LTORG ,
+        // TODO manual review required: LTORG ,
+
+        // ASM: END   TXREAD
+        // TODO manual review required: END   TXREAD
 
         return ModuleResult.rc(0, "TXREAD executed as generated candidate");
     }

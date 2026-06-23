@@ -27,11 +27,60 @@ public class Authdec implements AssemblerModule {
          *   - CLC AUTHSTAT, =C'0000'
          */
 
-        // TODO: instruction-level Java translation will be generated here.
-        // Future generated code should call AsmRuntime helpers, for example:
-        // AsmRuntime.Memory.mvc(ctx, "TARGET", 10, "SOURCE");
-        // AsmRuntime.Packed.zap(ctx, "TARGET", "SOURCE", 7, 2, cc);
-        // AsmRuntime.Branch.bct(registers, 5);
+        // Translated instruction candidates from HLASM source.
+
+        // ASM: AUTHDEC  CSECT ,                   Transactional State Evaluator
+        // CSECT directive: AUTHDEC  CSECT ,                   Transactional State Evaluator
+
+        // ASM: BAKR  14,0                Save state
+        // TODO manual review required: BAKR  14,0                Save state
+
+        // ASM: BASR  12,0
+        // subroutine call via BASR: BASR  12,0
+
+        // ASM: USING *,12
+        // USING directive: USING *,12
+
+        // ASM: LM    2,3,4(1)            R2 = Addr of CURRTX, R3 = Addr of ERRCODE
+        // TODO LM already handled by analyzer register_map when possible: LM    2,3,4(1)            R2 = Addr of CURRTX, R3 = Addr of ERRCODE
+
+        // ASM: L     4,8(,1)             R4 = Addr of TARGET AUTHSTAT BUFFER
+        // TODO L requires memory/address resolution before exact helper call: L     4,8(,1)             R4 = Addr of TARGET AUTHSTAT BUFFER
+
+        // ASM: CLC   0(4,3),=C'0000'     Is the accumulated system thread error clean?
+        AsmRuntime.Memory.clcLiteral(ctx, "AUTHSTAT", 4, "0000", cc);
+
+        // ASM: BNE   SET_REJECT          If not equal, branch to reject state mapping
+        if (AsmRuntime.Branch.isNotEqual(cc)) {
+                    // branch to SET_REJECT
+                }
+
+        // ASM: MVC   0(5,4),=C'APPRV'    Apply operational authorization confirmation
+        AsmRuntime.Memory.mvcLiteral(ctx, "AUTHSTAT", 5, "APPRV");
+
+        // ASM: B     DEC_DONE
+        // branch target: DEC_DONE
+
+        // ASM: SET_REJECT DS  0H
+        // DS declaration: SET_REJECT DS  0H
+
+        // ASM: MVC   0(5,4),=C'REJCT'    Apply operational transaction decline code
+        AsmRuntime.Memory.mvcLiteral(ctx, "AUTHSTAT", 5, "REJCT");
+
+        // ASM: DEC_DONE DS    0H
+        // DS declaration: DEC_DONE DS    0H
+
+        // ASM: XR    15,15               Resolution tracking complete
+        registers.clear(15);
+
+        // ASM: PR
+        // TODO manual review required: PR
+
+        // ASM: LTORG ,
+        // TODO manual review required: LTORG ,
+
+        // ASM: END   AUTHDEC
+        // TODO manual review required: END   AUTHDEC
 
         return ModuleResult.rc(0, "AUTHDEC executed as generated candidate");
     }

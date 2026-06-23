@@ -27,11 +27,54 @@ public class Custval implements AssemblerModule {
          *   - CLC TXCUST, =C'CUST'
          */
 
-        // TODO: instruction-level Java translation will be generated here.
-        // Future generated code should call AsmRuntime helpers, for example:
-        // AsmRuntime.Memory.mvc(ctx, "TARGET", 10, "SOURCE");
-        // AsmRuntime.Packed.zap(ctx, "TARGET", "SOURCE", 7, 2, cc);
-        // AsmRuntime.Branch.bct(registers, 5);
+        // Translated instruction candidates from HLASM source.
+
+        // ASM: CUSTVAL  CSECT ,                   Structural Identity Validator
+        // CSECT directive: CUSTVAL  CSECT ,                   Structural Identity Validator
+
+        // ASM: BAKR  14,0                Save execution context
+        // TODO manual review required: BAKR  14,0                Save execution context
+
+        // ASM: BASR  12,0
+        // subroutine call via BASR: BASR  12,0
+
+        // ASM: USING *,12
+        // USING directive: USING *,12
+
+        // ASM: LM    2,3,0(1)            R2 = Addr of CURRTX, R3 = Addr of ERRCODE
+        // TODO LM already handled by analyzer register_map when possible: LM    2,3,0(1)            R2 = Addr of CURRTX, R3 = Addr of ERRCODE
+
+        // ASM: CLC   16(4,2),=C'CUST'    Does Customer ID begin with 'CUST'?
+        AsmRuntime.Memory.clcLiteral(ctx, "TXCUST", 4, "CUST", cc);
+
+        // ASM: BE    VAL_OK              If true, configuration is correct
+        if (AsmRuntime.Branch.isEqual(cc)) {
+                    // branch to VAL_OK
+                }
+
+        // ASM: MVC   0(4,3),=C'E001'     Set Tracking Error: Bad Structural Prefix
+        AsmRuntime.Memory.mvcLiteral(ctx, "ERRCODE", 4, "E001");
+
+        // ASM: LA    15,4                Return error verification failure
+        // TODO LA requires address/register model integration: LA    15,4                Return error verification failure
+
+        // ASM: PR
+        // TODO manual review required: PR
+
+        // ASM: VAL_OK   DS    0H
+        // DS declaration: VAL_OK   DS    0H
+
+        // ASM: XR    15,15               Clear status to 0
+        registers.clear(15);
+
+        // ASM: PR
+        // TODO manual review required: PR
+
+        // ASM: LTORG ,
+        // TODO manual review required: LTORG ,
+
+        // ASM: END   CUSTVAL
+        // TODO manual review required: END   CUSTVAL
 
         return ModuleResult.rc(0, "CUSTVAL executed as generated candidate");
     }

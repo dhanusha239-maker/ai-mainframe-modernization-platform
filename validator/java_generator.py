@@ -1,13 +1,28 @@
 import json
 import re
+import sys
 from pathlib import Path
+
+CURRENT_DIR = Path(__file__).resolve().parent
+if str(CURRENT_DIR) not in sys.path:
+    sys.path.insert(0, str(CURRENT_DIR))
+
+from instruction_translator import InstructionTranslator
 
 
 class JavaGenerator:
-    def __init__(self, report_path="analysis_report.json", output_dir="generated_java"):
+    def __init__(
+        self,
+        report_path="analysis_report.json",
+        output_dir="generated_java",
+        asm_dir="HLASM",
+    ):
         self.report_path = report_path
         self.output_dir = Path(output_dir)
+        self.asm_dir = Path(asm_dir)
         self.report = self._load_report()
+        self.symbol_metadata = self._build_symbol_metadata()
+        self.module_source_lines = self._load_module_source_lines()
 
     def _load_report(self):
         with open(self.report_path, "r", encoding="utf-8") as f:
@@ -33,7 +48,10 @@ class JavaGenerator:
 
         for module in modules:
             class_name = self._to_class_name(module)
-            self._write(f"{class_name}.java", self._module_class(module, class_name))
+            self._write(
+                f"{class_name}.java",
+                self._module_class(module, class_name),
+            )
 
         print(f"\nGenerated Java files in: {self.output_dir}")
 
@@ -68,7 +86,97 @@ class JavaGenerator:
             if isinstance(info, dict) and info.get("module"):
                 modules.add(info["module"].upper())
 
+        for module in self.module_source_lines:
+            modules.add(module.upper())
+
         return sorted(modules)
+
+    def _build_symbol_metadata(self):
+        metadata = {}
+
+        for symbol, info in self.report.get("symbols", {}).items():
+            datatype = str(info.get("datatype", "")).upper()
+
+            meta = {}
+
+            cl_match = re.match(r"CL(\d+)", datatype)
+            xl_match = re.match(r"XL(\d+)", datatype)
+            pl_match = re.match(r"PL(\d+)", datatype)
+
+            if cl_match:
+                meta["type"] = "char"
+                meta["length"] = int(cl_match.group(1))
+
+            elif xl_match:
+                meta["type"] = "hex"
+                meta["length"] = int(xl_match.group(1))
+
+            elif pl_match:
+                packed_bytes = int(pl_match.group(1))
+                meta["type"] = "packed_decimal"
+                meta["length"] = packed_bytes
+                meta["digits"] = (packed_bytes * 2) - 1
+
+                # No safe universal way to infer scale from PLn alone.
+                # Keep scale 0 unless future metadata explicitly provides it.
+                meta["scale"] = int(info.get("scale", 0) or 0)
+
+            elif datatype == "F":
+                meta["type"] = "fullword"
+                meta["length"] = 4
+
+            f_match = re.match(r"(\d+)F", datatype)
+            if f_match:
+                meta["type"] = "fullword_array"
+                meta["length"] = int(f_match.group(1)) * 4
+
+            if meta:
+                metadata[symbol.upper()] = meta
+
+        return metadata
+
+    def _load_module_source_lines(self):
+        modules = {}
+
+        if not self.asm_dir.exists():
+            return modules
+
+        files = sorted(
+            [
+                path
+                for path in self.asm_dir.iterdir()
+                if path.is_file()
+                and path.name.lower().endswith((".asm", ".asm.txt", ".txt"))
+            ]
+        )
+
+        current_module = None
+
+        for file_path in files:
+            current_module = None
+
+            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                for raw_line in f:
+                    line = raw_line.rstrip("\n")
+
+                    if not line.strip():
+                        continue
+
+                    if line.startswith("*"):
+                        continue
+
+                    parts = line.strip().split()
+
+                    if len(parts) >= 2 and parts[1].upper() == "CSECT":
+                        current_module = parts[0].upper()
+                        modules[current_module] = []
+                        modules[current_module].append(line)
+                        continue
+
+                    if current_module:
+                        modules[current_module].append(line)
+
+        return modules
 
     def _to_class_name(self, module_name):
         parts = re.split(r"[^A-Za-z0-9]+", module_name.lower())
@@ -561,32 +669,8 @@ public class ModernizationRuntime {{
 
         default_rc = "0" if "0" in return_codes else (return_codes[0] if return_codes else "0")
 
-        comment_lines = [
-            "        /*",
-            f"         * HLASM Module: {module}",
-            "         *",
-        ]
-
-        if reads:
-            comment_lines.append("         * Business fields read:")
-            for item in reads:
-                comment_lines.append(f"         *   - {item}")
-
-        if writes:
-            comment_lines.append("         * Business fields written:")
-            for item in writes:
-                comment_lines.append(f"         *   - {item}")
-
-        if conditions:
-            comment_lines.append("         * Conditions:")
-            for condition in conditions:
-                instr = condition.get("instruction")
-                operands = ", ".join(condition.get("operands", []))
-                comment_lines.append(f"         *   - {instr} {operands}")
-
-        comment_lines.append("         */")
-
-        comment = "\n".join(comment_lines)
+        comment = self._module_comment(module, reads, writes, conditions)
+        translated_code = self._translated_module_code(module)
 
         return self._header(class_name) + f"""
 public class {class_name} implements AssemblerModule {{
@@ -604,21 +688,85 @@ public class {class_name} implements AssemblerModule {{
 
 {comment}
 
-        // TODO: instruction-level Java translation will be generated here.
-        // Future generated code should call AsmRuntime helpers, for example:
-        // AsmRuntime.Memory.mvc(ctx, "TARGET", 10, "SOURCE");
-        // AsmRuntime.Packed.zap(ctx, "TARGET", "SOURCE", 7, 2, cc);
-        // AsmRuntime.Branch.bct(registers, 5);
+{translated_code}
 
         return ModuleResult.rc({default_rc}, "{module} executed as generated candidate");
     }}
 }}
 """
 
+    def _module_comment(self, module, reads, writes, conditions):
+        lines = [
+            "        /*",
+            f"         * HLASM Module: {module}",
+            "         *",
+        ]
+
+        if reads:
+            lines.append("         * Business fields read:")
+            for item in reads:
+                lines.append(f"         *   - {item}")
+
+        if writes:
+            lines.append("         * Business fields written:")
+            for item in writes:
+                lines.append(f"         *   - {item}")
+
+        if conditions:
+            lines.append("         * Conditions:")
+            for condition in conditions:
+                instr = condition.get("instruction")
+                operands = ", ".join(condition.get("operands", []))
+                lines.append(f"         *   - {instr} {operands}")
+
+        lines.append("         */")
+
+        return "\n".join(lines)
+
+    def _translated_module_code(self, module):
+        lines = self.module_source_lines.get(module.upper(), [])
+
+        if not lines:
+            return "        // No HLASM source lines found for this module."
+
+        translator = InstructionTranslator(
+            symbol_metadata=self.symbol_metadata,
+            register_map=self.report.get("register_map", {}).get(module.upper(), {}),
+            field_offsets=self.report.get("field_offsets", {}),
+            module=module.upper(),
+      )
+
+        java_lines = []
+        java_lines.append("        // Translated instruction candidates from HLASM source.")
+
+        for asm_line in lines:
+            stripped = asm_line.strip()
+
+            if not stripped or stripped.startswith("*"):
+                continue
+
+            translated = translator.translate_line(asm_line)
+
+            if translated is None:
+                continue
+
+            java_lines.append("")
+            java_lines.append(f"        // ASM: {stripped}")
+
+            for output_line in translated.splitlines():
+                if output_line.strip():
+                    java_lines.append(f"        {output_line}")
+
+        if len(java_lines) == 1:
+            java_lines.append("        // No translatable instructions found.")
+
+        return "\n".join(java_lines)
+
 
 if __name__ == "__main__":
     generator = JavaGenerator(
         report_path="analysis_report.json",
         output_dir="generated_java",
+        asm_dir="HLASM",
     )
     generator.generate()

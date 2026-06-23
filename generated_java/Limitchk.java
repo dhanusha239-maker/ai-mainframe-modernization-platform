@@ -28,11 +28,52 @@ public class Limitchk implements AssemblerModule {
          *   - CP TXAMT, TXLIMIT
          */
 
-        // TODO: instruction-level Java translation will be generated here.
-        // Future generated code should call AsmRuntime helpers, for example:
-        // AsmRuntime.Memory.mvc(ctx, "TARGET", 10, "SOURCE");
-        // AsmRuntime.Packed.zap(ctx, "TARGET", "SOURCE", 7, 2, cc);
-        // AsmRuntime.Branch.bct(registers, 5);
+        // Translated instruction candidates from HLASM source.
+
+        // ASM: LIMITCHK CSECT ,                   Packed Math Margin Assessor
+        // CSECT directive: LIMITCHK CSECT ,                   Packed Math Margin Assessor
+
+        // ASM: BAKR  14,0                Save context
+        // TODO manual review required: BAKR  14,0                Save context
+
+        // ASM: BASR  12,0
+        // subroutine call via BASR: BASR  12,0
+
+        // ASM: USING *,12
+        // USING directive: USING *,12
+
+        // ASM: LM    2,3,0(1)            R2 = Addr of CURRTX, R3 = Addr of ERRCODE
+        // TODO LM already handled by analyzer register_map when possible: LM    2,3,0(1)            R2 = Addr of CURRTX, R3 = Addr of ERRCODE
+
+        // ASM: CP    26(4,2),33(4,2)     Compare Transaction Amount to Credit Limit
+        AsmRuntime.Packed.cp(ctx, "TXAMT", "TXLIMIT", cc);
+
+        // ASM: BNH   LIMIT_OK            If Amount is Not Higher, proceed cleanly
+        // TODO manual review required: BNH   LIMIT_OK            If Amount is Not Higher, proceed cleanly
+
+        // ASM: MVC   0(4,3),=C'E003'     Set Tracking Error: Margin Overdraft Overruns
+        AsmRuntime.Memory.mvcLiteral(ctx, "ERRCODE", 4, "E003");
+
+        // ASM: LA    15,4                Set code to trigger execution rollback
+        // TODO LA requires address/register model integration: LA    15,4                Set code to trigger execution rollback
+
+        // ASM: PR
+        // TODO manual review required: PR
+
+        // ASM: LIMIT_OK DS    0H
+        // DS declaration: LIMIT_OK DS    0H
+
+        // ASM: XR    15,15               RC = 0
+        registers.clear(15);
+
+        // ASM: PR
+        // TODO manual review required: PR
+
+        // ASM: LTORG ,
+        // TODO manual review required: LTORG ,
+
+        // ASM: END   LIMITCHK
+        // TODO manual review required: END   LIMITCHK
 
         return ModuleResult.rc(0, "LIMITCHK executed as generated candidate");
     }

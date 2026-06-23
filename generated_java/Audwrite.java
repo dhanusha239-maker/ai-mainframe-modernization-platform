@@ -33,11 +33,97 @@ public class Audwrite implements AssemblerModule {
          *   - LOGMASK
          */
 
-        // TODO: instruction-level Java translation will be generated here.
-        // Future generated code should call AsmRuntime helpers, for example:
-        // AsmRuntime.Memory.mvc(ctx, "TARGET", 10, "SOURCE");
-        // AsmRuntime.Packed.zap(ctx, "TARGET", "SOURCE", 7, 2, cc);
-        // AsmRuntime.Branch.bct(registers, 5);
+        // Translated instruction candidates from HLASM source.
+
+        // ASM: AUDWRITE CSECT ,                   VSAM Record Persistence Engine
+        // CSECT directive: AUDWRITE CSECT ,                   VSAM Record Persistence Engine
+
+        // ASM: BAKR  14,0                Save state
+        // TODO manual review required: BAKR  14,0                Save state
+
+        // ASM: BASR  12,0
+        // subroutine call via BASR: BASR  12,0
+
+        // ASM: USING *,12
+        // USING directive: USING *,12
+
+        // ASM: LM    2,4,0(1)            R2 = Addr of OUTRPL, R3 = Addr of CURRTX, R4 = AuthStat
+        // TODO LM already handled by analyzer register_map when possible: LM    2,4,0(1)            R2 = Addr of OUTRPL, R3 = Addr of CURRTX, R4 = AuthStat
+
+        // ASM: MVC   LOGBUFF(80),=CL80' ' Clear buffer trace
+        AsmRuntime.Memory.mvc(ctx, "LOGBUFF", 80, "=CL80'");
+
+        // ASM: MVC   LOGCUST(10),16(3)   Extract client trace identity
+        AsmRuntime.Memory.mvc(ctx, "LOGCUST", 10, "16");
+
+        // ASM: MVC   LOGSTAT(5),0(4)     Inject finalized confirmation string
+        AsmRuntime.Memory.mvc(ctx, "LOGSTAT", 5, "0");
+
+        // ASM: MVC   LOGPAN(16),0(3)     Extract raw credit card PAN
+        AsmRuntime.Memory.mvc(ctx, "LOGPAN", 16, "0");
+
+        // ASM: MVC   LOGPAN+4(8),=C'XXXXXXXX' Obfuscate internal processing digits
+        AsmRuntime.Memory.mvcLiteral(ctx, "LOGPAN+4(8)", 8, "XXXXXXXX");
+
+        // ASM: L     5,26(,3)            Load raw 4-byte packed transaction amount
+        // TODO L requires memory/address resolution before exact helper call: L     5,26(,3)            Load raw 4-byte packed transaction amount
+
+        // ASM: X     5,=X'EF7A9BC1'      Apply cryptographic verification matrix
+        // TODO manual review required: X     5,=X'EF7A9BC1'      Apply cryptographic verification matrix
+
+        // ASM: ST    5,LOGMASK           Store value into target layout field
+        // TODO ST requires register-to-memory metadata: ST    5,LOGMASK           Store value into target layout field
+
+        // ASM: MODCB RPL=(2),AREA=LOGBUFF,AREALEN=80 Connect record pointers
+        // TODO manual review required: MODCB RPL=(2),AREA=LOGBUFF,AREALEN=80 Connect record pointers
+
+        // ASM: PUT   RPL=(2)             Write audit entry out to target file
+        // TODO manual review required: PUT   RPL=(2)             Write audit entry out to target file
+
+        // ASM: XR    15,15               Flush output context safely
+        registers.clear(15);
+
+        // ASM: PR
+        // TODO manual review required: PR
+
+        // ASM: DS    0F
+        // DS declaration: DS    0F
+
+        // ASM: LOGBUFF  DS    0CL80               80-Byte Structural Record Output
+        // DS declaration: LOGBUFF  DS    0CL80               80-Byte Structural Record Output
+
+        // ASM: DC    C'AUDIT|'
+        // DC declaration: DC    C'AUDIT|'
+
+        // ASM: LOGCUST  DS    CL10
+        // DS declaration: LOGCUST  DS    CL10
+
+        // ASM: DC    C'|PAN:'
+        // DC declaration: DC    C'|PAN:'
+
+        // ASM: LOGPAN   DS    CL16
+        // DS declaration: LOGPAN   DS    CL16
+
+        // ASM: DC    C'|RES:'
+        // DC declaration: DC    C'|RES:'
+
+        // ASM: LOGSTAT  DS    CL5
+        // DS declaration: LOGSTAT  DS    CL5
+
+        // ASM: DC    C'|MSK:'
+        // DC declaration: DC    C'|MSK:'
+
+        // ASM: LOGMASK  DS    XL4
+        // DS declaration: LOGMASK  DS    XL4
+
+        // ASM: DS    CL23
+        // DS declaration: DS    CL23
+
+        // ASM: LTORG ,
+        // TODO manual review required: LTORG ,
+
+        // ASM: END   AUDWRITE
+        // TODO manual review required: END   AUDWRITE
 
         return ModuleResult.rc(0, "AUDWRITE executed as generated candidate");
     }
