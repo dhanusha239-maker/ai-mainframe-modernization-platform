@@ -1,0 +1,41 @@
+[
+  {
+    "case_id": "CUSTVAL_VALID_001",
+    "module": "CUSTVAL",
+    "RC": "0",
+    "ERRCODE": "0000",
+    "AUTHSTAT": "",
+    "TXFEE": "",
+    "TXAMT": "",
+    "TXLIMIT": "",
+    "TXCUST": "CUST000001",
+    "TXSTAT": "",
+    "TXTYPE": ""
+  },
+  {
+    "case_id": "CUSTVAL_INVALID_001",
+    "module": "CUSTVAL",
+    "RC": "4",
+    "ERRCODE": "E001",
+    "AUTHSTAT": "",
+    "TXFEE": "",
+    "TXAMT": "",
+    "TXLIMIT": "",
+    "TXCUST": "BAD000001",
+    "TXSTAT": "",
+    "TXTYPE": ""
+  },
+  {
+    "case_id": "LIMITCHK_REJECT_001",
+    "module": "LIMITCHK",
+    "RC": "4",
+    "ERRCODE": "E003",
+    "AUTHSTAT": "",
+    "TXFEE": "",
+    "TXAMT": "750.00",
+    "TXLIMIT": "500.00",
+    "TXCUST": "",
+    "TXSTAT": "",
+    "TXTYPE": ""
+  }
+]

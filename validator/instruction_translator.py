@@ -23,7 +23,11 @@ class InstructionTranslator:
         "BNE": "isNotEqual",
         "BNZ": "isNotEqual",
         "BH": "isHigh",
+        "BP": "isHigh",
         "BL": "isLow",
+        "BM": "isLow",
+        "BNH": "isNotHigh",
+        "BNL": "isNotLow",
     }
 
     def __init__(
@@ -85,44 +89,160 @@ class InstructionTranslator:
     # ============================================================
 
     def translate_block_flow(self, asm_lines):
-        """
-        Converts ASM lines into Java candidate lines with simple branch awareness.
-
-        This is an early block-flow translator.
-
-        It does NOT yet produce perfect structured Java for every branch pattern.
-        It does:
-        - preserve labels
-        - translate instructions
-        - convert conditional branches into if statements
-        - mark branch targets clearly
-        - keep generated Java compilable
-
-        Later enhancement:
-        Convert common label/branch patterns into real Java if/else/while blocks.
-        """
-
         output = []
+        lines = [line.strip() for line in asm_lines if line.strip() and not line.strip().startswith("*")]
 
-        for raw_line in asm_lines:
-            line = raw_line.strip()
-
-            if not line or line.startswith("*"):
-                continue
-
+        label_positions = {}
+        for idx, line in enumerate(lines):
             label = self._extract_label(line)
+            if label:
+                label_positions[label] = idx
+
+        i = 0
+        while i < len(lines):
+            line = lines[i]
             opcode, operands = self._parse_instruction(line)
 
+            if not opcode:
+                i += 1
+                continue
+
+            opcode = opcode.upper()
+
+            label = self._extract_label(line)
             if label:
                 output.append(f"// LABEL: {label}")
 
-            translated = self.translate_line(line)
+            if opcode in {"DS", "DC", "EQU"}:
+                translated = self.translate_line(line)
+                if translated:
+                    output.extend(translated.splitlines())
+                i += 1
+                continue
 
+            if opcode in self.BRANCH_ALIASES and operands:
+                target_label = operands[0].upper()
+                target_idx = label_positions.get(target_label)
+
+                if target_idx is not None and target_idx > i:
+                    negated_method = self._negated_branch_method(opcode)
+
+                    output.append(f"if (AsmRuntime.Branch.{negated_method}(cc)) {{")
+
+                    inner_idx = i + 1
+                    emitted_error_return = False
+
+                    while inner_idx < target_idx:
+                        inner_line = lines[inner_idx]
+                        inner_upper = inner_line.upper().strip()
+
+                        # Skip return-code setup and PR after we already return from error block.
+                        if inner_upper.startswith("LA") and "15,4" in inner_upper:
+                            inner_idx += 1
+                            continue
+
+                        if inner_upper == "PR":
+                            inner_idx += 1
+                            continue
+
+                        if self._extract_label(inner_line):
+                            inner_idx += 1
+                            continue
+
+                        translated_inner = self.translate_line(inner_line)
+                        if translated_inner:
+                            for translated_line in translated_inner.splitlines():
+                                output.append(f"    {translated_line}")
+
+                        if self._is_error_assignment_line(inner_line) and not emitted_error_return:
+                            output.append(
+                                '    return ModuleResult.rc(4, "Rejected by translated branch logic");'
+                            )
+                            emitted_error_return = True
+
+                        inner_idx += 1
+
+                    output.append("}")
+                    i = target_idx
+                    continue
+
+                translated = self.translate_line(line)
+                if translated:
+                    output.extend(translated.splitlines())
+
+                i += 1
+                continue
+
+            translated = self.translate_line(line)
             if translated:
                 output.extend(translated.splitlines())
 
+            i += 1
+
         return output
 
+    def _negated_branch_method(self, opcode):
+        negation = {
+            "BE": "isNotEqual",
+            "BZ": "isNotEqual",
+            "BNE": "isEqual",
+            "BNZ": "isEqual",
+            "BH": "isNotHigh",
+            "BP": "isNotHigh",
+            "BL": "isNotLow",
+            "BM": "isNotLow",
+            "BNH": "isHigh",
+            "BNL": "isLow",
+        }
+
+        return negation.get(opcode.upper(), "isNotEqual")   
+
+    def _is_error_assignment_line(self, line):
+        """
+        Detects assembler statements that set an error code.
+
+        Examples:
+            MVC ERRCODE,=C'E001'
+            MVC 0(4,3),=C'E003'
+        """
+        upper = line.upper()
+
+        return (
+            "ERRCODE" in upper
+            or "=C'E" in upper
+        )
+
+    def _is_return_or_exit_line(self, line):
+        """
+        Detects common return/exit patterns without hardcoding module names.
+        """
+        upper = line.upper().strip()
+
+        return (
+            upper.startswith("BR ")
+            or upper.startswith("B ")
+            or "RETURN" in upper
+            or "EXIT" in upper
+            or "FINAL" in upper
+            or "DONE" in upper
+        )
+
+    def _next_meaningful_line(self, lines, start_index):
+        """
+        Finds next non-empty, non-comment assembler line.
+        """
+        idx = start_index + 1
+
+        while idx < len(lines):
+            candidate = lines[idx].strip()
+
+            if candidate and not candidate.startswith("*"):
+                return candidate
+
+            idx += 1
+
+        return ""
+    
     def _extract_label(self, line):
         parts = line.split()
 
@@ -480,6 +600,15 @@ class InstructionTranslator:
         return f"// TODO L requires memory/address resolution before exact helper call: {clean}"
 
     def _translate_la(self, operands, clean):
+        if len(operands) < 2:
+            return f"// TODO invalid LA: {clean}"
+
+        reg = operands[0].strip()
+        value = operands[1].strip()
+
+        if value.isdigit():
+           return f"registers.set({reg}, {value});"
+
         return f"// TODO LA requires address/register model integration: {clean}"
 
     def _translate_lm(self, operands, clean):
@@ -552,6 +681,9 @@ class InstructionTranslator:
 
     def _translate_bc(self, operands, clean):
         return f"// TODO BC requires condition mask decoding: {clean}"
+    
+    def _translate_pr(self, operands, clean):
+        return "// PR return instruction handled by block-flow translator"
 
     # ============================================================
     # Directives

@@ -622,6 +622,14 @@ public class AsmRuntime {
             registers.decrement(register);
             return registers.get(register) != 0;
         }
+
+        public static boolean isNotHigh(ConditionCode cc) {
+            return cc.get() != ConditionCode.HIGH;
+       }
+
+        public static boolean isNotLow(ConditionCode cc) {
+            return cc.get() != ConditionCode.LOW;
+        }
     }
 }
 """
@@ -734,34 +742,20 @@ public class {class_name} implements AssemblerModule {{
             register_map=self.report.get("register_map", {}).get(module.upper(), {}),
             field_offsets=self.report.get("field_offsets", {}),
             module=module.upper(),
-      )
+        )
+
+        translated_lines = translator.translate_block_flow(lines)
 
         java_lines = []
-        java_lines.append("        // Translated instruction candidates from HLASM source.")
+        java_lines.append("        // Branch-aware translated instruction candidates from HLASM source.")
 
-        for asm_line in lines:
-            stripped = asm_line.strip()
-
-            if not stripped or stripped.startswith("*"):
-                continue
-
-            translated = translator.translate_line(asm_line)
-
-            if translated is None:
-                continue
-
-            java_lines.append("")
-            java_lines.append(f"        // ASM: {stripped}")
-
-            for output_line in translated.splitlines():
-                if output_line.strip():
-                    java_lines.append(f"        {output_line}")
+        for translated in translated_lines:
+            java_lines.append(f"        {translated}")
 
         if len(java_lines) == 1:
             java_lines.append("        // No translatable instructions found.")
 
         return "\n".join(java_lines)
-
 
 if __name__ == "__main__":
     generator = JavaGenerator(

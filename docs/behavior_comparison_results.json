@@ -1,0 +1,100 @@
+[
+  {
+    "case_id": "CUSTVAL_VALID_001",
+    "mode": "module",
+    "module": "CUSTVAL",
+    "description": "Customer ID begins with CUST and should pass validation.",
+    "input": {
+      "TXCUST": "CUST000001",
+      "ERRCODE": "0000"
+    },
+    "expected_asm_output": {
+      "RC": "0",
+      "ERRCODE": "0000"
+    },
+    "actual_java_output": {
+      "case_id": "CUSTVAL_VALID_001",
+      "module": "CUSTVAL",
+      "RC": "0",
+      "ERRCODE": "0000",
+      "AUTHSTAT": "",
+      "TXFEE": "",
+      "TXAMT": "",
+      "TXLIMIT": "",
+      "TXCUST": "CUST000001",
+      "TXSTAT": "",
+      "TXTYPE": ""
+    },
+    "comparison": {
+      "total_fields": 2,
+      "matched_fields": 2,
+      "mismatched_fields": [],
+      "match_score": 100.0
+    }
+  },
+  {
+    "case_id": "CUSTVAL_INVALID_001",
+    "mode": "module",
+    "module": "CUSTVAL",
+    "description": "Customer ID does not begin with CUST and should set E001.",
+    "input": {
+      "TXCUST": "BAD000001"
+    },
+    "expected_asm_output": {
+      "RC": "4",
+      "ERRCODE": "E001"
+    },
+    "actual_java_output": {
+      "case_id": "CUSTVAL_INVALID_001",
+      "module": "CUSTVAL",
+      "RC": "4",
+      "ERRCODE": "E001",
+      "AUTHSTAT": "",
+      "TXFEE": "",
+      "TXAMT": "",
+      "TXLIMIT": "",
+      "TXCUST": "BAD000001",
+      "TXSTAT": "",
+      "TXTYPE": ""
+    },
+    "comparison": {
+      "total_fields": 2,
+      "matched_fields": 2,
+      "mismatched_fields": [],
+      "match_score": 100.0
+    }
+  },
+  {
+    "case_id": "LIMITCHK_REJECT_001",
+    "mode": "module",
+    "module": "LIMITCHK",
+    "description": "Transaction amount exceeds limit and should set E003.",
+    "input": {
+      "TXAMT": "750.00",
+      "TXLIMIT": "500.00"
+    },
+    "expected_asm_output": {
+      "RC": "4",
+      "ERRCODE": "E003"
+    },
+    "actual_java_output": {
+      "case_id": "LIMITCHK_REJECT_001",
+      "module": "LIMITCHK",
+      "RC": "4",
+      "ERRCODE": "E003",
+      "AUTHSTAT": "",
+      "TXFEE": "",
+      "TXAMT": "750.00",
+      "TXLIMIT": "500.00",
+      "TXCUST": "",
+      "TXSTAT": "",
+      "TXTYPE": ""
+    },
+    "comparison": {
+      "total_fields": 2,
+      "matched_fields": 2,
+      "mismatched_fields": [],
+      "match_score": 100.0
+    }
+  }
+]

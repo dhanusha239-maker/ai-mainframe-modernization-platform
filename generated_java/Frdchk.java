@@ -29,60 +29,28 @@ public class Frdchk implements AssemblerModule {
          *   - CLC TXTYPE, =C'RE'
          */
 
-        // Translated instruction candidates from HLASM source.
-
-        // ASM: FRDCHK   CSECT ,                   Fraud Risk Analytical Engine
+        // Branch-aware translated instruction candidates from HLASM source.
+        // LABEL: FRDCHK
         // CSECT directive: FRDCHK   CSECT ,                   Fraud Risk Analytical Engine
-
-        // ASM: BAKR  14,0                Save execution context
         // TODO manual review required: BAKR  14,0                Save execution context
-
-        // ASM: BASR  12,0
         // subroutine call via BASR: BASR  12,0
-
-        // ASM: USING ,12
         // USING directive: USING ,12
-
-        // ASM: LM    2,3,0(1)            R2 = Addr of CURRTX, R3 = Addr of ERRCODE
         // TODO LM already handled by analyzer register_map when possible: LM    2,3,0(1)            R2 = Addr of CURRTX, R3 = Addr of ERRCODE
-
-        // ASM: CP    26(4,2),=P'50000'   Is payment processing amount over $500.00
         ctx.setDecimal("TXAMT_LITERAL_COMPARE", new java.math.BigDecimal("50000"));
         AsmRuntime.Packed.cp(ctx, "TXAMT", "TXAMT_LITERAL_COMPARE", cc);
-
-        // ASM: BNH   FRD_OK              If not higher, skip risk flag checks
-        // TODO manual review required: BNH   FRD_OK              If not higher, skip risk flag checks
-
-        // ASM: CLC   30(2,2),=C'RE'      Is the point-of-sale type Remote Electronic
-        AsmRuntime.Memory.clcLiteral(ctx, "TXTYPE", 2, "RE", cc);
-
-        // ASM: BNE   FRD_OK              If not, process standard validation
-        if (AsmRuntime.Branch.isNotEqual(cc)) {
-            // branch to FRD_OK
+        if (AsmRuntime.Branch.isHigh(cc)) {
+            AsmRuntime.Memory.clcLiteral(ctx, "TXTYPE", 2, "RE", cc);
+            if (AsmRuntime.Branch.isNotEqual(cc)) {
+                // branch to FRD_OK
+            }
+            AsmRuntime.Memory.mvcLiteral(ctx, "ERRCODE", 4, "E004");
+            return ModuleResult.rc(4, "Rejected by translated branch logic");
         }
-
-        // ASM: MVC   0(4,3),=C'E004'     Set Tracking Error Elevated Fraud Vector
-        AsmRuntime.Memory.mvcLiteral(ctx, "ERRCODE", 4, "E004");
-
-        // ASM: LA    15,4                Reject execution pass
-        // TODO LA requires address/register model integration: LA    15,4                Reject execution pass
-
-        // ASM: PR
-        // TODO manual review required: PR
-
-        // ASM: FRD_OK   DS    0H
+        // LABEL: FRD_OK
         // DS declaration: FRD_OK   DS    0H
-
-        // ASM: XR    15,15               Return safe clearance code
         registers.clear(15);
-
-        // ASM: PR
         // TODO manual review required: PR
-
-        // ASM: LTORG ,
         // TODO manual review required: LTORG ,
-
-        // ASM: END   FRDCHK
         // TODO manual review required: END   FRDCHK
 
         return ModuleResult.rc(0, "FRDCHK executed as generated candidate");

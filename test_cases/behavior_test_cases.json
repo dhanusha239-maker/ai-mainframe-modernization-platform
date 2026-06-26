@@ -1,0 +1,52 @@
+[
+  {
+    "case_id": "CUSTVAL_VALID_001",
+    "module": "CUSTVAL",
+    "description": "Customer ID begins with CUST and should pass validation.",
+    "input": {
+      "TXCUST": "CUST000001",
+      "ERRCODE": "0000"
+    },
+    "expected_asm_output": {
+      "RC": "0",
+      "ERRCODE": "0000"
+    },
+    "generated_java_output": {
+      "RC": "0",
+      "ERRCODE": "0000"
+    }
+  },
+  {
+    "case_id": "CUSTVAL_INVALID_001",
+    "module": "CUSTVAL",
+    "description": "Customer ID does not begin with CUST and should set E001.",
+    "input": {
+      "TXCUST": "BAD000001"
+    },
+    "expected_asm_output": {
+      "RC": "4",
+      "ERRCODE": "E001"
+    },
+    "generated_java_output": {
+      "RC": "4",
+      "ERRCODE": "E001"
+    }
+  },
+  {
+    "case_id": "LIMITCHK_REJECT_001",
+    "module": "LIMITCHK",
+    "description": "Transaction amount exceeds limit and should set E003.",
+    "input": {
+      "TXAMT": "750.00",
+      "TXLIMIT": "500.00"
+    },
+    "expected_asm_output": {
+      "RC": "4",
+      "ERRCODE": "E003"
+    },
+    "generated_java_output": {
+      "RC": "4",
+      "ERRCODE": "E003"
+    }
+  }
+]
