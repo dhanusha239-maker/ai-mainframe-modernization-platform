@@ -96,7 +96,6 @@ class JavaGenerator:
 
         for symbol, info in self.report.get("symbols", {}).items():
             datatype = str(info.get("datatype", "")).upper()
-
             meta = {}
 
             cl_match = re.match(r"CL(\d+)", datatype)
@@ -116,9 +115,6 @@ class JavaGenerator:
                 meta["type"] = "packed_decimal"
                 meta["length"] = packed_bytes
                 meta["digits"] = (packed_bytes * 2) - 1
-
-                # No safe universal way to infer scale from PLn alone.
-                # Keep scale 0 unless future metadata explicitly provides it.
                 meta["scale"] = int(info.get("scale", 0) or 0)
 
             elif datatype == "F":
@@ -149,8 +145,6 @@ class JavaGenerator:
                 and path.name.lower().endswith((".asm", ".asm.txt", ".txt"))
             ]
         )
-
-        current_module = None
 
         for file_path in files:
             current_module = None
@@ -403,18 +397,6 @@ public class AsmRuntime {
             return result;
         }
 
-        public static void xc(ExecutionContext ctx, String target, int length, String source) {
-            byte[] left = normalize(ctx.getString(target), length).getBytes();
-            byte[] right = normalize(ctx.getString(source), length).getBytes();
-            byte[] out = new byte[length];
-
-            for (int i = 0; i < length; i++) {
-                out[i] = (byte) (left[i] ^ right[i]);
-            }
-
-            ctx.setString(target, new String(out));
-        }
-
         private static void setCompareCondition(int result, ConditionCode cc) {
             if (result == 0) {
                 cc.setEqual();
@@ -576,14 +558,6 @@ public class AsmRuntime {
             setBinaryCondition(value, cc);
         }
 
-        public static void lh(Registers registers, int register, short halfword) {
-            registers.set(register, halfword);
-        }
-
-        public static void l(Registers registers, int register, int fullword) {
-            registers.set(register, fullword);
-        }
-
         private static void setBinaryCondition(int value, ConditionCode cc) {
             if (value == 0) {
                 cc.setEqual();
@@ -613,6 +587,14 @@ public class AsmRuntime {
             return cc.get() == ConditionCode.HIGH;
         }
 
+        public static boolean isNotHigh(ConditionCode cc) {
+            return cc.get() != ConditionCode.HIGH;
+        }
+
+        public static boolean isNotLow(ConditionCode cc) {
+            return cc.get() != ConditionCode.LOW;
+        }
+
         public static boolean bct(Registers registers, int register) {
             registers.decrement(register);
             return registers.get(register) != 0;
@@ -621,14 +603,6 @@ public class AsmRuntime {
         public static boolean bctr(Registers registers, int register) {
             registers.decrement(register);
             return registers.get(register) != 0;
-        }
-
-        public static boolean isNotHigh(ConditionCode cc) {
-            return cc.get() != ConditionCode.HIGH;
-       }
-
-        public static boolean isNotLow(ConditionCode cc) {
-            return cc.get() != ConditionCode.LOW;
         }
     }
 }
@@ -680,6 +654,16 @@ public class ModernizationRuntime {{
         comment = self._module_comment(module, reads, writes, conditions)
         translated_code = self._translated_module_code(module)
 
+        default_return = (
+            f'        return ModuleResult.rc({default_rc}, "{module} executed as generated candidate");'
+        )
+
+        if (
+            "return ModuleResult.rc" in translated_code
+            and "if (" not in translated_code
+        ):
+            default_return = ""
+
         return self._header(class_name) + f"""
 public class {class_name} implements AssemblerModule {{
 
@@ -698,7 +682,8 @@ public class {class_name} implements AssemblerModule {{
 
 {translated_code}
 
-        return ModuleResult.rc({default_rc}, "{module} executed as generated candidate");
+{default_return}
+
     }}
 }}
 """
@@ -756,6 +741,7 @@ public class {class_name} implements AssemblerModule {{
             java_lines.append("        // No translatable instructions found.")
 
         return "\n".join(java_lines)
+
 
 if __name__ == "__main__":
     generator = JavaGenerator(

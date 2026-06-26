@@ -54,5 +54,6 @@ public class Txread implements AssemblerModule {
         // TODO manual review required: END   TXREAD
 
         return ModuleResult.rc(0, "TXREAD executed as generated candidate");
+
     }
 }

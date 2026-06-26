@@ -107,18 +107,6 @@ public class AsmRuntime {
             return result;
         }
 
-        public static void xc(ExecutionContext ctx, String target, int length, String source) {
-            byte[] left = normalize(ctx.getString(target), length).getBytes();
-            byte[] right = normalize(ctx.getString(source), length).getBytes();
-            byte[] out = new byte[length];
-
-            for (int i = 0; i < length; i++) {
-                out[i] = (byte) (left[i] ^ right[i]);
-            }
-
-            ctx.setString(target, new String(out));
-        }
-
         private static void setCompareCondition(int result, ConditionCode cc) {
             if (result == 0) {
                 cc.setEqual();
@@ -280,14 +268,6 @@ public class AsmRuntime {
             setBinaryCondition(value, cc);
         }
 
-        public static void lh(Registers registers, int register, short halfword) {
-            registers.set(register, halfword);
-        }
-
-        public static void l(Registers registers, int register, int fullword) {
-            registers.set(register, fullword);
-        }
-
         private static void setBinaryCondition(int value, ConditionCode cc) {
             if (value == 0) {
                 cc.setEqual();
@@ -317,6 +297,14 @@ public class AsmRuntime {
             return cc.get() == ConditionCode.HIGH;
         }
 
+        public static boolean isNotHigh(ConditionCode cc) {
+            return cc.get() != ConditionCode.HIGH;
+        }
+
+        public static boolean isNotLow(ConditionCode cc) {
+            return cc.get() != ConditionCode.LOW;
+        }
+
         public static boolean bct(Registers registers, int register) {
             registers.decrement(register);
             return registers.get(register) != 0;
@@ -325,14 +313,6 @@ public class AsmRuntime {
         public static boolean bctr(Registers registers, int register) {
             registers.decrement(register);
             return registers.get(register) != 0;
-        }
-
-        public static boolean isNotHigh(ConditionCode cc) {
-            return cc.get() != ConditionCode.HIGH;
-       }
-
-        public static boolean isNotLow(ConditionCode cc) {
-            return cc.get() != ConditionCode.LOW;
         }
     }
 }

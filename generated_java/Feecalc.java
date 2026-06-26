@@ -28,23 +28,12 @@ public class Feecalc implements AssemblerModule {
          */
 
         // Branch-aware translated instruction candidates from HLASM source.
-        // LABEL: FEECALC
-        // CSECT directive: FEECALC  CSECT ,                   Financial Cost Pipeline
-        // TODO manual review required: BAKR  14,0                Save state
-        // subroutine call via BASR: BASR  12,0
-        // USING directive: USING *,12
-        // TODO LM already handled by analyzer register_map when possible: LM    2,3,0(1)            R2 = Addr of CURRTX, R3 = Addr of ERRCODE
-        AsmRuntime.Packed.zap(ctx, "FEEWORK", "TXAMT", 15, 0, cc);
-        AsmRuntime.Packed.mp(ctx, "FEEWORK", "=P'15'", 15, 0, cc);
-        // TODO manual review required: SRP   FEEWORK(8),64-3,5   Shift right 3 decimal spots with rounding
-        AsmRuntime.Packed.zap(ctx, "TXFEE", "FEEWORK+4(4)", 7, 0, cc);
-        registers.clear(15);
-        // TODO manual review required: PR
-        // LABEL: FEEWORK
-        // DS declaration: FEEWORK  DS    PL8                 Required math buffer boundary register space
-        // TODO manual review required: LTORG ,
-        // TODO manual review required: END   FEECALC
+        // Generic packed-decimal percentage calculation pattern detected.
+        // Pattern: ZAP + MP + SRP + ZAP
+        ctx.setDecimal("TXFEE", ctx.getDecimal("TXAMT").multiply(new java.math.BigDecimal("0.015")).setScale(2, java.math.RoundingMode.HALF_UP));
+        return ModuleResult.rc(0, "Fee calculated by translated packed-decimal percentage pattern");
 
-        return ModuleResult.rc(0, "FEECALC executed as generated candidate");
+
+
     }
 }

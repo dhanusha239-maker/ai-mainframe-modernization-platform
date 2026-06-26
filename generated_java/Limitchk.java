@@ -48,5 +48,6 @@ public class Limitchk implements AssemblerModule {
         // TODO manual review required: END   LIMITCHK
 
         return ModuleResult.rc(0, "LIMITCHK executed as generated candidate");
+
     }
 }

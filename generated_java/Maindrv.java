@@ -152,5 +152,6 @@ public class Maindrv implements AssemblerModule {
         // TODO manual review required: END   MAINDRV
 
         return ModuleResult.rc(0, "MAINDRV executed as generated candidate");
+
     }
 }

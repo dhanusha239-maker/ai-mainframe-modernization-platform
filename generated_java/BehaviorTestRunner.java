@@ -11,6 +11,14 @@ public class BehaviorTestRunner {
         results.add(runCase0());
         results.add(runCase1());
         results.add(runCase2());
+        results.add(runCase3());
+        results.add(runCase4());
+        results.add(runCase5());
+        results.add(runCase6());
+        results.add(runCase7());
+        results.add(runCase8());
+        results.add(runCase9());
+        results.add(runCase10());
 
         writeJson(results);
     }
@@ -92,6 +100,7 @@ public class BehaviorTestRunner {
         ExecutionContext ctx = new ExecutionContext();
 
         ctx.setString("TXCUST", "BAD000001");
+        ctx.setString("ERRCODE", "0000");
 
 
         AssemblerModule module = new Custval();
@@ -120,8 +129,100 @@ public class BehaviorTestRunner {
     private static java.util.Map<String, String> runCase2() {
         ExecutionContext ctx = new ExecutionContext();
 
+        ctx.setString("TXSTAT", "A");
+        ctx.setString("ERRCODE", "0000");
+
+
+        AssemblerModule module = new Cardstat();
+        ModuleResult result = module.execute(ctx);
+        int rc = result.getReturnCode();
+
+
+        java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
+        output.put("case_id", "CARDSTAT_ACTIVE_001");
+        output.put("module", "CARDSTAT");
+        output.put("RC", String.valueOf(rc));
+
+        output.put("ERRCODE", ctx.getString("ERRCODE"));
+        output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
+        output.put("TXFEE", ctx.getString("TXFEE"));
+        output.put("TXAMT", ctx.getString("TXAMT"));
+        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
+        output.put("TXCUST", ctx.getString("TXCUST"));
+        output.put("TXSTAT", ctx.getString("TXSTAT"));
+        output.put("TXTYPE", ctx.getString("TXTYPE"));
+
+        return output;
+    }
+
+
+    private static java.util.Map<String, String> runCase3() {
+        ExecutionContext ctx = new ExecutionContext();
+
+        ctx.setString("TXSTAT", "B");
+        ctx.setString("ERRCODE", "0000");
+
+
+        AssemblerModule module = new Cardstat();
+        ModuleResult result = module.execute(ctx);
+        int rc = result.getReturnCode();
+
+
+        java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
+        output.put("case_id", "CARDSTAT_BLOCKED_001");
+        output.put("module", "CARDSTAT");
+        output.put("RC", String.valueOf(rc));
+
+        output.put("ERRCODE", ctx.getString("ERRCODE"));
+        output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
+        output.put("TXFEE", ctx.getString("TXFEE"));
+        output.put("TXAMT", ctx.getString("TXAMT"));
+        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
+        output.put("TXCUST", ctx.getString("TXCUST"));
+        output.put("TXSTAT", ctx.getString("TXSTAT"));
+        output.put("TXTYPE", ctx.getString("TXTYPE"));
+
+        return output;
+    }
+
+
+    private static java.util.Map<String, String> runCase4() {
+        ExecutionContext ctx = new ExecutionContext();
+
+        ctx.setDecimal("TXAMT", new java.math.BigDecimal("250.00"));
+        ctx.setDecimal("TXLIMIT", new java.math.BigDecimal("500.00"));
+        ctx.setString("ERRCODE", "0000");
+
+
+        AssemblerModule module = new Limitchk();
+        ModuleResult result = module.execute(ctx);
+        int rc = result.getReturnCode();
+
+
+        java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
+        output.put("case_id", "LIMITCHK_APPROVE_001");
+        output.put("module", "LIMITCHK");
+        output.put("RC", String.valueOf(rc));
+
+        output.put("ERRCODE", ctx.getString("ERRCODE"));
+        output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
+        output.put("TXFEE", ctx.getString("TXFEE"));
+        output.put("TXAMT", ctx.getString("TXAMT"));
+        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
+        output.put("TXCUST", ctx.getString("TXCUST"));
+        output.put("TXSTAT", ctx.getString("TXSTAT"));
+        output.put("TXTYPE", ctx.getString("TXTYPE"));
+
+        return output;
+    }
+
+
+    private static java.util.Map<String, String> runCase5() {
+        ExecutionContext ctx = new ExecutionContext();
+
         ctx.setDecimal("TXAMT", new java.math.BigDecimal("750.00"));
         ctx.setDecimal("TXLIMIT", new java.math.BigDecimal("500.00"));
+        ctx.setString("ERRCODE", "0000");
 
 
         AssemblerModule module = new Limitchk();
@@ -136,6 +237,159 @@ public class BehaviorTestRunner {
 
         output.put("ERRCODE", ctx.getString("ERRCODE"));
         output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
+        output.put("TXFEE", ctx.getString("TXFEE"));
+        output.put("TXAMT", ctx.getString("TXAMT"));
+        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
+        output.put("TXCUST", ctx.getString("TXCUST"));
+        output.put("TXSTAT", ctx.getString("TXSTAT"));
+        output.put("TXTYPE", ctx.getString("TXTYPE"));
+
+        return output;
+    }
+
+
+    private static java.util.Map<String, String> runCase6() {
+        ExecutionContext ctx = new ExecutionContext();
+
+        ctx.setDecimal("TXAMT", new java.math.BigDecimal("100.00"));
+        ctx.setString("TXTYPE", "PO");
+        ctx.setString("ERRCODE", "0000");
+
+
+        AssemblerModule module = new Frdchk();
+        ModuleResult result = module.execute(ctx);
+        int rc = result.getReturnCode();
+
+
+        java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
+        output.put("case_id", "FRDCHK_NORMAL_001");
+        output.put("module", "FRDCHK");
+        output.put("RC", String.valueOf(rc));
+
+        output.put("ERRCODE", ctx.getString("ERRCODE"));
+        output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
+        output.put("TXFEE", ctx.getString("TXFEE"));
+        output.put("TXAMT", ctx.getString("TXAMT"));
+        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
+        output.put("TXCUST", ctx.getString("TXCUST"));
+        output.put("TXSTAT", ctx.getString("TXSTAT"));
+        output.put("TXTYPE", ctx.getString("TXTYPE"));
+
+        return output;
+    }
+
+
+    private static java.util.Map<String, String> runCase7() {
+        ExecutionContext ctx = new ExecutionContext();
+
+        ctx.setDecimal("TXAMT", new java.math.BigDecimal("600.00"));
+        ctx.setString("TXTYPE", "RE");
+        ctx.setString("ERRCODE", "0000");
+
+
+        AssemblerModule module = new Frdchk();
+        ModuleResult result = module.execute(ctx);
+        int rc = result.getReturnCode();
+
+
+        java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
+        output.put("case_id", "FRDCHK_REMOTE_HIGH_001");
+        output.put("module", "FRDCHK");
+        output.put("RC", String.valueOf(rc));
+
+        output.put("ERRCODE", ctx.getString("ERRCODE"));
+        output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
+        output.put("TXFEE", ctx.getString("TXFEE"));
+        output.put("TXAMT", ctx.getString("TXAMT"));
+        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
+        output.put("TXCUST", ctx.getString("TXCUST"));
+        output.put("TXSTAT", ctx.getString("TXSTAT"));
+        output.put("TXTYPE", ctx.getString("TXTYPE"));
+
+        return output;
+    }
+
+
+    private static java.util.Map<String, String> runCase8() {
+        ExecutionContext ctx = new ExecutionContext();
+
+        ctx.setDecimal("TXAMT", new java.math.BigDecimal("100.00"));
+        ctx.setDecimal("TXFEE", new java.math.BigDecimal("0.00"));
+        ctx.setString("ERRCODE", "0000");
+
+
+        AssemblerModule module = new Feecalc();
+        ModuleResult result = module.execute(ctx);
+        int rc = result.getReturnCode();
+
+
+        java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
+        output.put("case_id", "FEECALC_BASIC_001");
+        output.put("module", "FEECALC");
+        output.put("RC", String.valueOf(rc));
+
+        output.put("TXFEE", ctx.getString("TXFEE"));
+        output.put("ERRCODE", ctx.getString("ERRCODE"));
+        output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
+        output.put("TXAMT", ctx.getString("TXAMT"));
+        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
+        output.put("TXCUST", ctx.getString("TXCUST"));
+        output.put("TXSTAT", ctx.getString("TXSTAT"));
+        output.put("TXTYPE", ctx.getString("TXTYPE"));
+
+        return output;
+    }
+
+
+    private static java.util.Map<String, String> runCase9() {
+        ExecutionContext ctx = new ExecutionContext();
+
+        ctx.setString("ERRCODE", "0000");
+        ctx.setString("AUTHSTAT", "");
+
+
+        AssemblerModule module = new Authdec();
+        ModuleResult result = module.execute(ctx);
+        int rc = result.getReturnCode();
+
+
+        java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
+        output.put("case_id", "AUTHDEC_APPROVE_001");
+        output.put("module", "AUTHDEC");
+        output.put("RC", String.valueOf(rc));
+
+        output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
+        output.put("ERRCODE", ctx.getString("ERRCODE"));
+        output.put("TXFEE", ctx.getString("TXFEE"));
+        output.put("TXAMT", ctx.getString("TXAMT"));
+        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
+        output.put("TXCUST", ctx.getString("TXCUST"));
+        output.put("TXSTAT", ctx.getString("TXSTAT"));
+        output.put("TXTYPE", ctx.getString("TXTYPE"));
+
+        return output;
+    }
+
+
+    private static java.util.Map<String, String> runCase10() {
+        ExecutionContext ctx = new ExecutionContext();
+
+        ctx.setString("ERRCODE", "E003");
+        ctx.setString("AUTHSTAT", "");
+
+
+        AssemblerModule module = new Authdec();
+        ModuleResult result = module.execute(ctx);
+        int rc = result.getReturnCode();
+
+
+        java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
+        output.put("case_id", "AUTHDEC_REJECT_001");
+        output.put("module", "AUTHDEC");
+        output.put("RC", String.valueOf(rc));
+
+        output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
+        output.put("ERRCODE", ctx.getString("ERRCODE"));
         output.put("TXFEE", ctx.getString("TXFEE"));
         output.put("TXAMT", ctx.getString("TXAMT"));
         output.put("TXLIMIT", ctx.getString("TXLIMIT"));

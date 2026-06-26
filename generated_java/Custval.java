@@ -47,5 +47,6 @@ public class Custval implements AssemblerModule {
         // TODO manual review required: END   CUSTVAL
 
         return ModuleResult.rc(0, "CUSTVAL executed as generated candidate");
+
     }
 }

@@ -41,9 +41,9 @@ public class Audwrite implements AssemblerModule {
         // USING directive: USING *,12
         // TODO LM already handled by analyzer register_map when possible: LM    2,4,0(1)            R2 = Addr of OUTRPL, R3 = Addr of CURRTX, R4 = AuthStat
         AsmRuntime.Memory.mvc(ctx, "LOGBUFF", 80, "=CL80'");
-        AsmRuntime.Memory.mvc(ctx, "LOGCUST", 10, "16");
-        AsmRuntime.Memory.mvc(ctx, "LOGSTAT", 5, "0");
-        AsmRuntime.Memory.mvc(ctx, "LOGPAN", 16, "0");
+        AsmRuntime.Memory.mvc(ctx, "LOGCUST", 10, "TXCUST");
+        AsmRuntime.Memory.mvc(ctx, "LOGSTAT", 5, "AUTHSTAT");
+        AsmRuntime.Memory.mvc(ctx, "LOGPAN", 16, "TXCARD");
         AsmRuntime.Memory.mvcLiteral(ctx, "LOGPAN+4(8)", 8, "XXXXXXXX");
         // TODO L requires memory/address resolution before exact helper call: L     5,26(,3)            Load raw 4-byte packed transaction amount
         // TODO manual review required: X     5,=X'EF7A9BC1'      Apply cryptographic verification matrix
@@ -72,5 +72,6 @@ public class Audwrite implements AssemblerModule {
         // TODO manual review required: END   AUDWRITE
 
         return ModuleResult.rc(0, "AUDWRITE executed as generated candidate");
+
     }
 }

@@ -51,5 +51,6 @@ public class Authdec implements AssemblerModule {
         // TODO manual review required: END   AUTHDEC
 
         return ModuleResult.rc(0, "AUTHDEC executed as generated candidate");
+
     }
 }

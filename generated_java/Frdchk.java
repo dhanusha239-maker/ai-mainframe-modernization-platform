@@ -36,7 +36,7 @@ public class Frdchk implements AssemblerModule {
         // subroutine call via BASR: BASR  12,0
         // USING directive: USING ,12
         // TODO LM already handled by analyzer register_map when possible: LM    2,3,0(1)            R2 = Addr of CURRTX, R3 = Addr of ERRCODE
-        ctx.setDecimal("TXAMT_LITERAL_COMPARE", new java.math.BigDecimal("50000"));
+        ctx.setDecimal("TXAMT_LITERAL_COMPARE", new java.math.BigDecimal("500.00"));
         AsmRuntime.Packed.cp(ctx, "TXAMT", "TXAMT_LITERAL_COMPARE", cc);
         if (AsmRuntime.Branch.isHigh(cc)) {
             AsmRuntime.Memory.clcLiteral(ctx, "TXTYPE", 2, "RE", cc);
@@ -54,5 +54,6 @@ public class Frdchk implements AssemblerModule {
         // TODO manual review required: END   FRDCHK
 
         return ModuleResult.rc(0, "FRDCHK executed as generated candidate");
+
     }
 }

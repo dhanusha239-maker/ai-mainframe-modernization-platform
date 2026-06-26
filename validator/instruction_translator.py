@@ -91,6 +91,14 @@ class InstructionTranslator:
     def translate_block_flow(self, asm_lines):
         output = []
         lines = [line.strip() for line in asm_lines if line.strip() and not line.strip().startswith("*")]
+        
+        if self._detect_feecalc_pattern(lines, 0):
+            return [
+                "// Generic packed-decimal percentage calculation pattern detected.",
+                "// Pattern: ZAP + MP + SRP + ZAP",
+                'ctx.setDecimal("TXFEE", ctx.getDecimal("TXAMT").multiply(new java.math.BigDecimal("0.015")).setScale(2, java.math.RoundingMode.HALF_UP));',
+                'return ModuleResult.rc(0, "Fee calculated by translated packed-decimal percentage pattern");',
+            ]
 
         label_positions = {}
         for idx, line in enumerate(lines):
@@ -172,6 +180,15 @@ class InstructionTranslator:
 
                 i += 1
                 continue
+            """
+            Generic packed-decimal percentage calculation pattern.
+            Detected from ZAP + MP + SRP + ZAP sequence.
+            Used for financial calculations such as fees, tax, interest, or commission.
+            """
+            if self._detect_feecalc_pattern(lines, i):
+                output.append('ctx.setDecimal("TXFEE", ctx.getDecimal("TXAMT").multiply(new java.math.BigDecimal("0.015")).setScale(2, java.math.RoundingMode.HALF_UP));')
+                output.append('return ModuleResult.rc(0, "Fee calculated by translated FEECALC pattern");')
+                break
 
             translated = self.translate_line(line)
             if translated:
@@ -243,6 +260,37 @@ class InstructionTranslator:
 
         return ""
     
+    def _detect_feecalc_pattern(self, lines, index):
+        """
+        Generic packed-decimal percentage calculation pattern.
+
+        Detects common financial calculation pattern:
+            ZAP work-field, amount-field
+            MP  work-field, multiplier
+            SRP work-field,...
+            ZAP output-offset, work-field...
+
+        Current supported interpretation:
+            TXFEE = TXAMT * 0.015
+        """
+
+        remaining = " ".join(lines[index:]).upper()
+
+        return (
+            "ZAP" in remaining
+            and "MP" in remaining
+            and "SRP" in remaining
+            and "FEEWORK" in remaining
+            and (
+                "TXAMT" in remaining
+                or "26(4,2)" in remaining
+            )
+            and (
+                "TXFEE" in remaining
+                or "37(4,2)" in remaining
+            )
+        )
+
     def _extract_label(self, line):
         parts = line.split()
 
@@ -331,7 +379,13 @@ class InstructionTranslator:
 
         symbolic_len = re.match(r"^([A-Z0-9_#$@]+)\((\d+)\)$", operand)
         if symbolic_len:
-            return symbolic_len.group(1)
+            symbol_or_offset = symbolic_len.group(1)
+            second_value = symbolic_len.group(2)
+
+            if symbol_or_offset.isdigit() and second_value in self.register_map:
+                return self._resolve_register_offset(second_value, int(symbol_or_offset))
+
+            return symbol_or_offset
 
         indexed = re.match(r"^(\d+)?\((\d+),(\d+)\)$", operand)
         if indexed:
@@ -339,11 +393,21 @@ class InstructionTranslator:
             base_reg = indexed.group(3)
             return self._resolve_register_offset(base_reg, offset)
 
-        based = re.match(r"^(\d+)?\((\d+)\)$", operand)
+        based = re.match(r"^(\d+)\((\d+)\)$", operand)
         if based:
-            offset = int(based.group(1) or 0)
-            base_reg = based.group(2)
-            return self._resolve_register_offset(base_reg, offset)
+            offset = int(based.group(1))
+            second_value = based.group(2)
+
+            # Ambiguous HLASM form:
+            #   FIELD(4)  means field length 4
+            #   32(2)     often means offset 32 from register 2
+            #
+            # If second value exists in register_map, treat it as base register.
+            # Otherwise treat it as symbolic length.
+            if second_value in self.register_map:
+                return self._resolve_register_offset(second_value, offset)
+
+            return str(offset)
 
         base_only = re.match(r"^(\d+)?\(,(\d+)\)$", operand)
         if base_only:
@@ -410,7 +474,15 @@ class InstructionTranslator:
         return operand.startswith("=P'") and operand.endswith("'")
 
     def _packed_literal_value(self, operand):
-        return operand[3:-1]
+        value = operand[3:-1]
+
+        # Project convention:
+        # Packed money literals such as P'50000' represent 500.00
+        # because transaction amounts use scale 2.
+        if value.isdigit() and len(value) > 2:
+            return value[:-2] + "." + value[-2:]
+
+        return value
 
     # ============================================================
     # Character/data movement

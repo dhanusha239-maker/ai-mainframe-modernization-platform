@@ -34,7 +34,7 @@ public class Cardstat implements AssemblerModule {
         // subroutine call via BASR: BASR  12,0
         // USING directive: USING *,12
         // TODO LM already handled by analyzer register_map when possible: LM    2,3,0(1)            R2 = Addr of CURRTX, R3 = Addr of ERRCODE
-        AsmRuntime.Memory.cli(ctx, "32", 'A', cc);
+        AsmRuntime.Memory.cli(ctx, "TXSTAT", 'A', cc);
         if (AsmRuntime.Branch.isNotEqual(cc)) {
             AsmRuntime.Memory.mvcLiteral(ctx, "ERRCODE", 4, "E002");
             return ModuleResult.rc(4, "Rejected by translated branch logic");
@@ -47,5 +47,6 @@ public class Cardstat implements AssemblerModule {
         // TODO manual review required: END   CARDSTAT
 
         return ModuleResult.rc(0, "CARDSTAT executed as generated candidate");
+
     }
 }

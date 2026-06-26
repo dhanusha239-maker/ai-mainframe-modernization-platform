@@ -4,10 +4,10 @@ This report compares expected assembler behavior against actual generated Java e
 
 ## Summary
 
-- Total test cases: `3`
-- Passed cases: `3`
-- Failed cases: `0`
-- Average behavior match score: `100.0%`
+- Total test cases: `11`
+- Passed cases: `10`
+- Failed cases: `1`
+- Average behavior match score: `95.45%`
 
 ## Validation Flow
 
@@ -78,7 +78,8 @@ No mismatches detected.
 
 ```json
 {
-  "TXCUST": "BAD000001"
+  "TXCUST": "BAD000001",
+  "ERRCODE": "0000"
 }
 ```
 
@@ -111,6 +112,145 @@ No mismatches detected.
 
 No mismatches detected.
 
+### Test Case: `CARDSTAT_ACTIVE_001`
+
+- Mode: `module`
+- Module: `CARDSTAT`
+- Description: Card status is active and should pass validation.
+- Match score: `100.0%`
+- Fields matched: `2/2`
+
+**Input:**
+
+```json
+{
+  "TXSTAT": "A",
+  "ERRCODE": "0000"
+}
+```
+
+**Expected ASM Output:**
+
+```json
+{
+  "RC": "0",
+  "ERRCODE": "0000"
+}
+```
+
+**Actual Java Output:**
+
+```json
+{
+  "case_id": "CARDSTAT_ACTIVE_001",
+  "module": "CARDSTAT",
+  "RC": "0",
+  "ERRCODE": "0000",
+  "AUTHSTAT": "",
+  "TXFEE": "",
+  "TXAMT": "",
+  "TXLIMIT": "",
+  "TXCUST": "",
+  "TXSTAT": "A",
+  "TXTYPE": ""
+}
+```
+
+No mismatches detected.
+
+### Test Case: `CARDSTAT_BLOCKED_001`
+
+- Mode: `module`
+- Module: `CARDSTAT`
+- Description: Card status is not active and should set E002.
+- Match score: `100.0%`
+- Fields matched: `2/2`
+
+**Input:**
+
+```json
+{
+  "TXSTAT": "B",
+  "ERRCODE": "0000"
+}
+```
+
+**Expected ASM Output:**
+
+```json
+{
+  "RC": "4",
+  "ERRCODE": "E002"
+}
+```
+
+**Actual Java Output:**
+
+```json
+{
+  "case_id": "CARDSTAT_BLOCKED_001",
+  "module": "CARDSTAT",
+  "RC": "4",
+  "ERRCODE": "E002",
+  "AUTHSTAT": "",
+  "TXFEE": "",
+  "TXAMT": "",
+  "TXLIMIT": "",
+  "TXCUST": "",
+  "TXSTAT": "B",
+  "TXTYPE": ""
+}
+```
+
+No mismatches detected.
+
+### Test Case: `LIMITCHK_APPROVE_001`
+
+- Mode: `module`
+- Module: `LIMITCHK`
+- Description: Transaction amount is within limit and should pass.
+- Match score: `100.0%`
+- Fields matched: `2/2`
+
+**Input:**
+
+```json
+{
+  "TXAMT": "250.00",
+  "TXLIMIT": "500.00",
+  "ERRCODE": "0000"
+}
+```
+
+**Expected ASM Output:**
+
+```json
+{
+  "RC": "0",
+  "ERRCODE": "0000"
+}
+```
+
+**Actual Java Output:**
+
+```json
+{
+  "case_id": "LIMITCHK_APPROVE_001",
+  "module": "LIMITCHK",
+  "RC": "0",
+  "ERRCODE": "0000",
+  "AUTHSTAT": "",
+  "TXFEE": "",
+  "TXAMT": "250.00",
+  "TXLIMIT": "500.00",
+  "TXCUST": "",
+  "TXSTAT": "",
+  "TXTYPE": ""
+}
+```
+
+No mismatches detected.
+
 ### Test Case: `LIMITCHK_REJECT_001`
 
 - Mode: `module`
@@ -124,7 +264,8 @@ No mismatches detected.
 ```json
 {
   "TXAMT": "750.00",
-  "TXLIMIT": "500.00"
+  "TXLIMIT": "500.00",
+  "ERRCODE": "0000"
 }
 ```
 
@@ -149,6 +290,241 @@ No mismatches detected.
   "TXFEE": "",
   "TXAMT": "750.00",
   "TXLIMIT": "500.00",
+  "TXCUST": "",
+  "TXSTAT": "",
+  "TXTYPE": ""
+}
+```
+
+No mismatches detected.
+
+### Test Case: `FRDCHK_NORMAL_001`
+
+- Mode: `module`
+- Module: `FRDCHK`
+- Description: Normal transaction should pass fraud check.
+- Match score: `100.0%`
+- Fields matched: `2/2`
+
+**Input:**
+
+```json
+{
+  "TXAMT": "100.00",
+  "TXTYPE": "PO",
+  "ERRCODE": "0000"
+}
+```
+
+**Expected ASM Output:**
+
+```json
+{
+  "RC": "0",
+  "ERRCODE": "0000"
+}
+```
+
+**Actual Java Output:**
+
+```json
+{
+  "case_id": "FRDCHK_NORMAL_001",
+  "module": "FRDCHK",
+  "RC": "0",
+  "ERRCODE": "0000",
+  "AUTHSTAT": "",
+  "TXFEE": "",
+  "TXAMT": "100.00",
+  "TXLIMIT": "",
+  "TXCUST": "",
+  "TXSTAT": "",
+  "TXTYPE": "PO"
+}
+```
+
+No mismatches detected.
+
+### Test Case: `FRDCHK_REMOTE_HIGH_001`
+
+- Mode: `module`
+- Module: `FRDCHK`
+- Description: High amount remote transaction should set E004.
+- Match score: `100.0%`
+- Fields matched: `2/2`
+
+**Input:**
+
+```json
+{
+  "TXAMT": "600.00",
+  "TXTYPE": "RE",
+  "ERRCODE": "0000"
+}
+```
+
+**Expected ASM Output:**
+
+```json
+{
+  "RC": "4",
+  "ERRCODE": "E004"
+}
+```
+
+**Actual Java Output:**
+
+```json
+{
+  "case_id": "FRDCHK_REMOTE_HIGH_001",
+  "module": "FRDCHK",
+  "RC": "4",
+  "ERRCODE": "E004",
+  "AUTHSTAT": "",
+  "TXFEE": "",
+  "TXAMT": "600.00",
+  "TXLIMIT": "",
+  "TXCUST": "",
+  "TXSTAT": "",
+  "TXTYPE": "RE"
+}
+```
+
+No mismatches detected.
+
+### Test Case: `FEECALC_BASIC_001`
+
+- Mode: `module`
+- Module: `FEECALC`
+- Description: Fee calculation should populate TXFEE.
+- Match score: `100.0%`
+- Fields matched: `2/2`
+
+**Input:**
+
+```json
+{
+  "TXAMT": "100.00",
+  "TXFEE": "0.00",
+  "ERRCODE": "0000"
+}
+```
+
+**Expected ASM Output:**
+
+```json
+{
+  "RC": "0",
+  "TXFEE": "1.50"
+}
+```
+
+**Actual Java Output:**
+
+```json
+{
+  "case_id": "FEECALC_BASIC_001",
+  "module": "FEECALC",
+  "RC": "0",
+  "TXFEE": "1.50",
+  "ERRCODE": "0000",
+  "AUTHSTAT": "",
+  "TXAMT": "100.00",
+  "TXLIMIT": "",
+  "TXCUST": "",
+  "TXSTAT": "",
+  "TXTYPE": ""
+}
+```
+
+No mismatches detected.
+
+### Test Case: `AUTHDEC_APPROVE_001`
+
+- Mode: `module`
+- Module: `AUTHDEC`
+- Description: No error code should approve authorization.
+- Match score: `50.0%`
+- Fields matched: `1/2`
+
+**Input:**
+
+```json
+{
+  "ERRCODE": "0000",
+  "AUTHSTAT": ""
+}
+```
+
+**Expected ASM Output:**
+
+```json
+{
+  "RC": "0",
+  "AUTHSTAT": "APPRV"
+}
+```
+
+**Actual Java Output:**
+
+```json
+{
+  "case_id": "AUTHDEC_APPROVE_001",
+  "module": "AUTHDEC",
+  "RC": "0",
+  "AUTHSTAT": "REJCT",
+  "ERRCODE": "0000",
+  "TXFEE": "",
+  "TXAMT": "",
+  "TXLIMIT": "",
+  "TXCUST": "",
+  "TXSTAT": "",
+  "TXTYPE": ""
+}
+```
+
+**Mismatches:**
+
+- `AUTHSTAT` expected `APPRV` but Java produced `REJCT`
+
+### Test Case: `AUTHDEC_REJECT_001`
+
+- Mode: `module`
+- Module: `AUTHDEC`
+- Description: Any error code should reject authorization.
+- Match score: `100.0%`
+- Fields matched: `2/2`
+
+**Input:**
+
+```json
+{
+  "ERRCODE": "E003",
+  "AUTHSTAT": ""
+}
+```
+
+**Expected ASM Output:**
+
+```json
+{
+  "RC": "0",
+  "AUTHSTAT": "REJCT"
+}
+```
+
+**Actual Java Output:**
+
+```json
+{
+  "case_id": "AUTHDEC_REJECT_001",
+  "module": "AUTHDEC",
+  "RC": "0",
+  "AUTHSTAT": "REJCT",
+  "ERRCODE": "E003",
+  "TXFEE": "",
+  "TXAMT": "",
+  "TXLIMIT": "",
   "TXCUST": "",
   "TXSTAT": "",
   "TXTYPE": ""

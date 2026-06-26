@@ -38,7 +38,8 @@
     "module": "CUSTVAL",
     "description": "Customer ID does not begin with CUST and should set E001.",
     "input": {
-      "TXCUST": "BAD000001"
+      "TXCUST": "BAD000001",
+      "ERRCODE": "0000"
     },
     "expected_asm_output": {
       "RC": "4",
@@ -65,13 +66,114 @@
     }
   },
   {
+    "case_id": "CARDSTAT_ACTIVE_001",
+    "mode": "module",
+    "module": "CARDSTAT",
+    "description": "Card status is active and should pass validation.",
+    "input": {
+      "TXSTAT": "A",
+      "ERRCODE": "0000"
+    },
+    "expected_asm_output": {
+      "RC": "0",
+      "ERRCODE": "0000"
+    },
+    "actual_java_output": {
+      "case_id": "CARDSTAT_ACTIVE_001",
+      "module": "CARDSTAT",
+      "RC": "0",
+      "ERRCODE": "0000",
+      "AUTHSTAT": "",
+      "TXFEE": "",
+      "TXAMT": "",
+      "TXLIMIT": "",
+      "TXCUST": "",
+      "TXSTAT": "A",
+      "TXTYPE": ""
+    },
+    "comparison": {
+      "total_fields": 2,
+      "matched_fields": 2,
+      "mismatched_fields": [],
+      "match_score": 100.0
+    }
+  },
+  {
+    "case_id": "CARDSTAT_BLOCKED_001",
+    "mode": "module",
+    "module": "CARDSTAT",
+    "description": "Card status is not active and should set E002.",
+    "input": {
+      "TXSTAT": "B",
+      "ERRCODE": "0000"
+    },
+    "expected_asm_output": {
+      "RC": "4",
+      "ERRCODE": "E002"
+    },
+    "actual_java_output": {
+      "case_id": "CARDSTAT_BLOCKED_001",
+      "module": "CARDSTAT",
+      "RC": "4",
+      "ERRCODE": "E002",
+      "AUTHSTAT": "",
+      "TXFEE": "",
+      "TXAMT": "",
+      "TXLIMIT": "",
+      "TXCUST": "",
+      "TXSTAT": "B",
+      "TXTYPE": ""
+    },
+    "comparison": {
+      "total_fields": 2,
+      "matched_fields": 2,
+      "mismatched_fields": [],
+      "match_score": 100.0
+    }
+  },
+  {
+    "case_id": "LIMITCHK_APPROVE_001",
+    "mode": "module",
+    "module": "LIMITCHK",
+    "description": "Transaction amount is within limit and should pass.",
+    "input": {
+      "TXAMT": "250.00",
+      "TXLIMIT": "500.00",
+      "ERRCODE": "0000"
+    },
+    "expected_asm_output": {
+      "RC": "0",
+      "ERRCODE": "0000"
+    },
+    "actual_java_output": {
+      "case_id": "LIMITCHK_APPROVE_001",
+      "module": "LIMITCHK",
+      "RC": "0",
+      "ERRCODE": "0000",
+      "AUTHSTAT": "",
+      "TXFEE": "",
+      "TXAMT": "250.00",
+      "TXLIMIT": "500.00",
+      "TXCUST": "",
+      "TXSTAT": "",
+      "TXTYPE": ""
+    },
+    "comparison": {
+      "total_fields": 2,
+      "matched_fields": 2,
+      "mismatched_fields": [],
+      "match_score": 100.0
+    }
+  },
+  {
     "case_id": "LIMITCHK_REJECT_001",
     "mode": "module",
     "module": "LIMITCHK",
     "description": "Transaction amount exceeds limit and should set E003.",
     "input": {
       "TXAMT": "750.00",
-      "TXLIMIT": "500.00"
+      "TXLIMIT": "500.00",
+      "ERRCODE": "0000"
     },
     "expected_asm_output": {
       "RC": "4",
@@ -86,6 +188,180 @@
       "TXFEE": "",
       "TXAMT": "750.00",
       "TXLIMIT": "500.00",
+      "TXCUST": "",
+      "TXSTAT": "",
+      "TXTYPE": ""
+    },
+    "comparison": {
+      "total_fields": 2,
+      "matched_fields": 2,
+      "mismatched_fields": [],
+      "match_score": 100.0
+    }
+  },
+  {
+    "case_id": "FRDCHK_NORMAL_001",
+    "mode": "module",
+    "module": "FRDCHK",
+    "description": "Normal transaction should pass fraud check.",
+    "input": {
+      "TXAMT": "100.00",
+      "TXTYPE": "PO",
+      "ERRCODE": "0000"
+    },
+    "expected_asm_output": {
+      "RC": "0",
+      "ERRCODE": "0000"
+    },
+    "actual_java_output": {
+      "case_id": "FRDCHK_NORMAL_001",
+      "module": "FRDCHK",
+      "RC": "0",
+      "ERRCODE": "0000",
+      "AUTHSTAT": "",
+      "TXFEE": "",
+      "TXAMT": "100.00",
+      "TXLIMIT": "",
+      "TXCUST": "",
+      "TXSTAT": "",
+      "TXTYPE": "PO"
+    },
+    "comparison": {
+      "total_fields": 2,
+      "matched_fields": 2,
+      "mismatched_fields": [],
+      "match_score": 100.0
+    }
+  },
+  {
+    "case_id": "FRDCHK_REMOTE_HIGH_001",
+    "mode": "module",
+    "module": "FRDCHK",
+    "description": "High amount remote transaction should set E004.",
+    "input": {
+      "TXAMT": "600.00",
+      "TXTYPE": "RE",
+      "ERRCODE": "0000"
+    },
+    "expected_asm_output": {
+      "RC": "4",
+      "ERRCODE": "E004"
+    },
+    "actual_java_output": {
+      "case_id": "FRDCHK_REMOTE_HIGH_001",
+      "module": "FRDCHK",
+      "RC": "4",
+      "ERRCODE": "E004",
+      "AUTHSTAT": "",
+      "TXFEE": "",
+      "TXAMT": "600.00",
+      "TXLIMIT": "",
+      "TXCUST": "",
+      "TXSTAT": "",
+      "TXTYPE": "RE"
+    },
+    "comparison": {
+      "total_fields": 2,
+      "matched_fields": 2,
+      "mismatched_fields": [],
+      "match_score": 100.0
+    }
+  },
+  {
+    "case_id": "FEECALC_BASIC_001",
+    "mode": "module",
+    "module": "FEECALC",
+    "description": "Fee calculation should populate TXFEE.",
+    "input": {
+      "TXAMT": "100.00",
+      "TXFEE": "0.00",
+      "ERRCODE": "0000"
+    },
+    "expected_asm_output": {
+      "RC": "0",
+      "TXFEE": "1.50"
+    },
+    "actual_java_output": {
+      "case_id": "FEECALC_BASIC_001",
+      "module": "FEECALC",
+      "RC": "0",
+      "TXFEE": "1.50",
+      "ERRCODE": "0000",
+      "AUTHSTAT": "",
+      "TXAMT": "100.00",
+      "TXLIMIT": "",
+      "TXCUST": "",
+      "TXSTAT": "",
+      "TXTYPE": ""
+    },
+    "comparison": {
+      "total_fields": 2,
+      "matched_fields": 2,
+      "mismatched_fields": [],
+      "match_score": 100.0
+    }
+  },
+  {
+    "case_id": "AUTHDEC_APPROVE_001",
+    "mode": "module",
+    "module": "AUTHDEC",
+    "description": "No error code should approve authorization.",
+    "input": {
+      "ERRCODE": "0000",
+      "AUTHSTAT": ""
+    },
+    "expected_asm_output": {
+      "RC": "0",
+      "AUTHSTAT": "APPRV"
+    },
+    "actual_java_output": {
+      "case_id": "AUTHDEC_APPROVE_001",
+      "module": "AUTHDEC",
+      "RC": "0",
+      "AUTHSTAT": "REJCT",
+      "ERRCODE": "0000",
+      "TXFEE": "",
+      "TXAMT": "",
+      "TXLIMIT": "",
+      "TXCUST": "",
+      "TXSTAT": "",
+      "TXTYPE": ""
+    },
+    "comparison": {
+      "total_fields": 2,
+      "matched_fields": 1,
+      "mismatched_fields": [
+        {
+          "field": "AUTHSTAT",
+          "expected": "APPRV",
+          "actual": "REJCT"
+        }
+      ],
+      "match_score": 50.0
+    }
+  },
+  {
+    "case_id": "AUTHDEC_REJECT_001",
+    "mode": "module",
+    "module": "AUTHDEC",
+    "description": "Any error code should reject authorization.",
+    "input": {
+      "ERRCODE": "E003",
+      "AUTHSTAT": ""
+    },
+    "expected_asm_output": {
+      "RC": "0",
+      "AUTHSTAT": "REJCT"
+    },
+    "actual_java_output": {
+      "case_id": "AUTHDEC_REJECT_001",
+      "module": "AUTHDEC",
+      "RC": "0",
+      "AUTHSTAT": "REJCT",
+      "ERRCODE": "E003",
+      "TXFEE": "",
+      "TXAMT": "",
+      "TXLIMIT": "",
       "TXCUST": "",
       "TXSTAT": "",
       "TXTYPE": ""

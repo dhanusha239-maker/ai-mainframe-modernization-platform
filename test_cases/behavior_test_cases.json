@@ -1,6 +1,7 @@
 [
   {
     "case_id": "CUSTVAL_VALID_001",
+    "mode": "module",
     "module": "CUSTVAL",
     "description": "Customer ID begins with CUST and should pass validation.",
     "input": {
@@ -10,43 +11,151 @@
     "expected_asm_output": {
       "RC": "0",
       "ERRCODE": "0000"
+    }
+  },
+  {
+    "case_id": "CUSTVAL_INVALID_001",
+    "mode": "module",
+    "module": "CUSTVAL",
+    "description": "Customer ID does not begin with CUST and should set E001.",
+    "input": {
+      "TXCUST": "BAD000001",
+      "ERRCODE": "0000"
     },
-    "generated_java_output": {
+    "expected_asm_output": {
+      "RC": "4",
+      "ERRCODE": "E001"
+    }
+  },
+  {
+    "case_id": "CARDSTAT_ACTIVE_001",
+    "mode": "module",
+    "module": "CARDSTAT",
+    "description": "Card status is active and should pass validation.",
+    "input": {
+      "TXSTAT": "A",
+      "ERRCODE": "0000"
+    },
+    "expected_asm_output": {
       "RC": "0",
       "ERRCODE": "0000"
     }
   },
   {
-    "case_id": "CUSTVAL_INVALID_001",
-    "module": "CUSTVAL",
-    "description": "Customer ID does not begin with CUST and should set E001.",
+    "case_id": "CARDSTAT_BLOCKED_001",
+    "mode": "module",
+    "module": "CARDSTAT",
+    "description": "Card status is not active and should set E002.",
     "input": {
-      "TXCUST": "BAD000001"
+      "TXSTAT": "B",
+      "ERRCODE": "0000"
     },
     "expected_asm_output": {
       "RC": "4",
-      "ERRCODE": "E001"
+      "ERRCODE": "E002"
+    }
+  },
+  {
+    "case_id": "LIMITCHK_APPROVE_001",
+    "mode": "module",
+    "module": "LIMITCHK",
+    "description": "Transaction amount is within limit and should pass.",
+    "input": {
+      "TXAMT": "250.00",
+      "TXLIMIT": "500.00",
+      "ERRCODE": "0000"
     },
-    "generated_java_output": {
-      "RC": "4",
-      "ERRCODE": "E001"
+    "expected_asm_output": {
+      "RC": "0",
+      "ERRCODE": "0000"
     }
   },
   {
     "case_id": "LIMITCHK_REJECT_001",
+    "mode": "module",
     "module": "LIMITCHK",
     "description": "Transaction amount exceeds limit and should set E003.",
     "input": {
       "TXAMT": "750.00",
-      "TXLIMIT": "500.00"
+      "TXLIMIT": "500.00",
+      "ERRCODE": "0000"
     },
     "expected_asm_output": {
       "RC": "4",
       "ERRCODE": "E003"
+    }
+  },
+  {
+    "case_id": "FRDCHK_NORMAL_001",
+    "mode": "module",
+    "module": "FRDCHK",
+    "description": "Normal transaction should pass fraud check.",
+    "input": {
+      "TXAMT": "100.00",
+      "TXTYPE": "PO",
+      "ERRCODE": "0000"
     },
-    "generated_java_output": {
+    "expected_asm_output": {
+      "RC": "0",
+      "ERRCODE": "0000"
+    }
+  },
+  {
+    "case_id": "FRDCHK_REMOTE_HIGH_001",
+    "mode": "module",
+    "module": "FRDCHK",
+    "description": "High amount remote transaction should set E004.",
+    "input": {
+      "TXAMT": "600.00",
+      "TXTYPE": "RE",
+      "ERRCODE": "0000"
+    },
+    "expected_asm_output": {
       "RC": "4",
-      "ERRCODE": "E003"
+      "ERRCODE": "E004"
+    }
+  },
+  {
+    "case_id": "FEECALC_BASIC_001",
+    "mode": "module",
+    "module": "FEECALC",
+    "description": "Fee calculation should populate TXFEE.",
+    "input": {
+      "TXAMT": "100.00",
+      "TXFEE": "0.00",
+      "ERRCODE": "0000"
+    },
+    "expected_asm_output": {
+      "RC": "0",
+      "TXFEE": "1.50"
+    }
+  },
+  {
+    "case_id": "AUTHDEC_APPROVE_001",
+    "mode": "module",
+    "module": "AUTHDEC",
+    "description": "No error code should approve authorization.",
+    "input": {
+      "ERRCODE": "0000",
+      "AUTHSTAT": ""
+    },
+    "expected_asm_output": {
+      "RC": "0",
+      "AUTHSTAT": "APPRV"
+    }
+  },
+  {
+    "case_id": "AUTHDEC_REJECT_001",
+    "mode": "module",
+    "module": "AUTHDEC",
+    "description": "Any error code should reject authorization.",
+    "input": {
+      "ERRCODE": "E003",
+      "AUTHSTAT": ""
+    },
+    "expected_asm_output": {
+      "RC": "0",
+      "AUTHSTAT": "REJCT"
     }
   }
 ]
