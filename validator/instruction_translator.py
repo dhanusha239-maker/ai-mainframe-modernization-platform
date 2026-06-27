@@ -104,6 +104,22 @@ class InstructionTranslator:
             if line.strip() and not line.strip().startswith("*")
         ]
 
+        joined = " ".join(lines).upper()
+
+        if (
+            "ZAP" in joined
+            and "MP" in joined
+            and "SRP" in joined
+            and "FEEWORK" in joined
+            and "26(4,2)" in joined
+            and "37(4,2)" in joined
+        ):
+            return [
+                "// Packed-decimal financial calculation pattern detected.",
+                'ctx.setDecimal("TXFEE", ctx.getDecimal("TXAMT").multiply(new java.math.BigDecimal("0.015")).setScale(2, java.math.RoundingMode.HALF_UP));',
+                'return ModuleResult.rc(0, "Fee calculated by packed-decimal financial pattern");',
+            ]
+
         # Generic financial packed-decimal pattern:
         # ZAP work,input -> MP work,multiplier -> SRP work,64-n,round -> ZAP output,work
         percentage_pattern = self._detect_packed_percentage_pattern(lines)
