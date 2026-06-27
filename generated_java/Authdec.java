@@ -39,6 +39,7 @@ public class Authdec implements AssemblerModule {
         if (AsmRuntime.Branch.isEqual(cc)) {
             AsmRuntime.Memory.mvcLiteral(ctx, "AUTHSTAT", 5, "APPRV");
             // branch target: DEC_DONE
+            return ModuleResult.rc(registers.get(15), "Completed translated branch path");
         }
         // LABEL: SET_REJECT
         // DS declaration: SET_REJECT DS  0H

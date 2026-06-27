@@ -88,27 +88,18 @@ public class Maindrv implements AssemblerModule {
             // TODO L requires memory/address resolution before exact helper call: L     15,=V(AUTHDEC)
             // subroutine call via BALR: BALR  14,15
             // branch target: WRITE_AUDIT
-            // TODO LA requires address/register model integration: LA    1,DECPARM           Process rejection trace logic
-            // TODO L requires memory/address resolution before exact helper call: L     15,=V(AUTHDEC)
-            // subroutine call via BALR: BALR  14,15
-            // TODO LA requires address/register model integration: LA    1,AUDPARM
-            // TODO L requires memory/address resolution before exact helper call: L     15,=V(AUDWRITE)
-            // subroutine call via BALR: BALR  14,15
-            // branch target: TXLOOP
-            // TODO manual review required: CLOSE (INACB,,OUTACB)     Safely terminate VSAM connections
-            registers.clear(15);
-            // branch target: FINAL_RETURN
+            return ModuleResult.rc(registers.get(15), "Completed translated branch path");
         }
         // LABEL: OPEN_ERR
-        // TODO LA requires address/register model integration: OPEN_ERR LA    15,12               Set standard operational error RC=12
+        registers.set(15, 12);
         // branch target: FINAL_RETURN
         // LABEL: IO_ERROR
-        // TODO LA requires address/register model integration: IO_ERROR LA    15,16               Set severe I/O corruption RC=16
+        registers.set(15, 16);
         // LABEL: FINAL_RETURN
         // DS declaration: FINAL_RETURN DS 0H
         // TODO L requires memory/address resolution before exact helper call: L     13,SAVEAREA+4       Restore system backplanes
         // TODO LM already handled by analyzer register_map when possible: LM    14,12,12(13)
-        // branch register / return: BR    14                  Return execution control back to z/OS
+        return ModuleResult.rc(registers.get(15), "Returned by translated BR");
         // LABEL: SAVEAREA
         // DS declaration: SAVEAREA DS    18F
         // LABEL: READPARM
@@ -151,7 +142,7 @@ public class Maindrv implements AssemblerModule {
         // TODO manual review required: LTORG ,
         // TODO manual review required: END   MAINDRV
 
-        return ModuleResult.rc(0, "MAINDRV executed as generated candidate");
+
 
     }
 }

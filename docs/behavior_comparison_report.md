@@ -5,9 +5,9 @@ This report compares expected assembler behavior against actual generated Java e
 ## Summary
 
 - Total test cases: `11`
-- Passed cases: `10`
-- Failed cases: `1`
-- Average behavior match score: `95.45%`
+- Passed cases: `9`
+- Failed cases: `2`
+- Average behavior match score: `90.91%`
 
 ## Validation Flow
 
@@ -397,8 +397,8 @@ No mismatches detected.
 - Mode: `module`
 - Module: `FEECALC`
 - Description: Fee calculation should populate TXFEE.
-- Match score: `100.0%`
-- Fields matched: `2/2`
+- Match score: `50.0%`
+- Fields matched: `1/2`
 
 **Input:**
 
@@ -426,7 +426,7 @@ No mismatches detected.
   "case_id": "FEECALC_BASIC_001",
   "module": "FEECALC",
   "RC": "0",
-  "TXFEE": "1.50",
+  "TXFEE": "0",
   "ERRCODE": "0000",
   "AUTHSTAT": "",
   "TXAMT": "100.00",
@@ -437,7 +437,9 @@ No mismatches detected.
 }
 ```
 
-No mismatches detected.
+**Mismatches:**
+
+- `TXFEE` expected `1.50` but Java produced `0`
 
 ### Test Case: `AUTHDEC_APPROVE_001`
 

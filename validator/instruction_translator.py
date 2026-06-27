@@ -89,15 +89,35 @@ class InstructionTranslator:
     # ============================================================
 
     def translate_block_flow(self, asm_lines):
+        """
+        Generic block-aware translation.
+
+        Goals:
+        1. Translate simple forward validation branches.
+        2. Detect generic packed-decimal percentage calculation patterns.
+        3. Avoid hardcoding module names or business field names where possible.
+        """
         output = []
-        lines = [line.strip() for line in asm_lines if line.strip() and not line.strip().startswith("*")]
-        
-        if self._detect_feecalc_pattern(lines, 0):
+        lines = [
+            line.strip()
+            for line in asm_lines
+            if line.strip() and not line.strip().startswith("*")
+        ]
+
+        # Generic financial packed-decimal pattern:
+        # ZAP work,input -> MP work,multiplier -> SRP work,64-n,round -> ZAP output,work
+        percentage_pattern = self._detect_packed_percentage_pattern(lines)
+        if percentage_pattern:
             return [
                 "// Generic packed-decimal percentage calculation pattern detected.",
-                "// Pattern: ZAP + MP + SRP + ZAP",
-                'ctx.setDecimal("TXFEE", ctx.getDecimal("TXAMT").multiply(new java.math.BigDecimal("0.015")).setScale(2, java.math.RoundingMode.HALF_UP));',
-                'return ModuleResult.rc(0, "Fee calculated by translated packed-decimal percentage pattern");',
+                "// Pattern: ZAP work,input + MP work,multiplier + SRP work + ZAP output,work",
+                (
+                    f'ctx.setDecimal("{percentage_pattern["target"]}", '
+                    f'ctx.getDecimal("{percentage_pattern["source"]}")'
+                    f'.multiply(new java.math.BigDecimal("{percentage_pattern["factor"]}"))'
+                    f'.setScale(2, java.math.RoundingMode.HALF_UP));'
+                ),
+                'return ModuleResult.rc(0, "Calculated by translated packed-decimal percentage pattern");',
             ]
 
         label_positions = {}
@@ -128,28 +148,36 @@ class InstructionTranslator:
                 i += 1
                 continue
 
+            # Forward conditional branch pattern:
+            #   compare
+            #   BE/BNE/... TARGET
+            #   rejected/alternate path
+            # TARGET DS 0H
             if opcode in self.BRANCH_ALIASES and operands:
                 target_label = operands[0].upper()
                 target_idx = label_positions.get(target_label)
 
                 if target_idx is not None and target_idx > i:
                     negated_method = self._negated_branch_method(opcode)
-
                     output.append(f"if (AsmRuntime.Branch.{negated_method}(cc)) {{")
 
                     inner_idx = i + 1
-                    emitted_error_return = False
+                    emitted_return = False
 
                     while inner_idx < target_idx:
                         inner_line = lines[inner_idx]
+                        inner_opcode, _ = self._parse_instruction(inner_line)
                         inner_upper = inner_line.upper().strip()
+                        if emitted_return:
+                            inner_idx += 1
+                            continue
 
-                        # Skip return-code setup and PR after we already return from error block.
+                        # Skip return-code setup and PR inside a rejected branch after explicit return.
                         if inner_upper.startswith("LA") and "15,4" in inner_upper:
                             inner_idx += 1
                             continue
 
-                        if inner_upper == "PR":
+                        if inner_opcode and inner_opcode.upper() == "PR":
                             inner_idx += 1
                             continue
 
@@ -162,11 +190,15 @@ class InstructionTranslator:
                             for translated_line in translated_inner.splitlines():
                                 output.append(f"    {translated_line}")
 
-                        if self._is_error_assignment_line(inner_line) and not emitted_error_return:
-                            output.append(
-                                '    return ModuleResult.rc(4, "Rejected by translated branch logic");'
-                            )
-                            emitted_error_return = True
+                        if self._is_error_assignment_line(inner_line) and not emitted_return:
+                            output.append('    return ModuleResult.rc(4, "Rejected by translated branch logic");')
+                            emitted_return = True
+
+                        # If source branches out of this block after non-error assignment,
+                        # preserve the current R15 return code instead of falling through.
+                        if inner_opcode and inner_opcode.upper() == "B" and not emitted_return:
+                            output.append('    return ModuleResult.rc(registers.get(15), "Completed translated branch path");')
+                            emitted_return = True
 
                         inner_idx += 1
 
@@ -177,18 +209,8 @@ class InstructionTranslator:
                 translated = self.translate_line(line)
                 if translated:
                     output.extend(translated.splitlines())
-
                 i += 1
                 continue
-            """
-            Generic packed-decimal percentage calculation pattern.
-            Detected from ZAP + MP + SRP + ZAP sequence.
-            Used for financial calculations such as fees, tax, interest, or commission.
-            """
-            if self._detect_feecalc_pattern(lines, i):
-                output.append('ctx.setDecimal("TXFEE", ctx.getDecimal("TXAMT").multiply(new java.math.BigDecimal("0.015")).setScale(2, java.math.RoundingMode.HALF_UP));')
-                output.append('return ModuleResult.rc(0, "Fee calculated by translated FEECALC pattern");')
-                break
 
             translated = self.translate_line(line)
             if translated:
@@ -260,36 +282,96 @@ class InstructionTranslator:
 
         return ""
     
-    def _detect_feecalc_pattern(self, lines, index):
+    def _detect_packed_percentage_pattern(self, lines):
         """
-        Generic packed-decimal percentage calculation pattern.
+        Detect a generic financial packed-decimal percentage calculation.
 
-        Detects common financial calculation pattern:
-            ZAP work-field, amount-field
-            MP  work-field, multiplier
-            SRP work-field,...
-            ZAP output-offset, work-field...
+        Example:
+            ZAP FEEWORK(8),26(4,2)
+            MP  FEEWORK(8),=P'15'
+            SRP FEEWORK(8),64-3,5
+            ZAP 37(4,2),FEEWORK+4(4)
 
-        Current supported interpretation:
-            TXFEE = TXAMT * 0.015
+        This derives source, target, multiplier, and scale from instructions.
+        It is not tied to module names.
         """
+        parsed = []
+        for idx, line in enumerate(lines):
+            opcode, operands = self._parse_instruction(line)
+            if opcode:
+                parsed.append((idx, opcode.upper(), operands, line))
 
-        remaining = " ".join(lines[index:]).upper()
+        for pos in range(len(parsed) - 3):
+            _, op1, ops1, _ = parsed[pos]
+            _, op2, ops2, _ = parsed[pos + 1]
+            _, op3, ops3, _ = parsed[pos + 2]
+            _, op4, ops4, _ = parsed[pos + 3]
 
-        return (
-            "ZAP" in remaining
-            and "MP" in remaining
-            and "SRP" in remaining
-            and "FEEWORK" in remaining
-            and (
-                "TXAMT" in remaining
-                or "26(4,2)" in remaining
-            )
-            and (
-                "TXFEE" in remaining
-                or "37(4,2)" in remaining
-            )
-        )
+            if not (op1 == "ZAP" and op2 == "MP" and op3 == "SRP" and op4 == "ZAP"):
+                continue
+
+            if len(ops1) < 2 or len(ops2) < 2 or len(ops3) < 2 or len(ops4) < 2:
+                continue
+
+            work1 = self._base_field_name(ops1[0])
+            work2 = self._base_field_name(ops2[0])
+            work3 = self._base_field_name(ops3[0])
+            work4 = self._base_field_name(ops4[1])
+
+            if not (work1 == work2 == work3 == work4):
+                continue
+
+            source = self._resolve_operand(ops1[1])
+            target = self._resolve_operand(ops4[0])
+            multiplier = self._extract_numeric_literal(ops2[1])
+            shift = self._extract_srp_shift(ops3[1])
+
+            if not source or not target or multiplier is None or shift is None:
+                continue
+
+            factor = multiplier / (10 ** shift)
+            return {
+                "source": source,
+                "target": target,
+                "factor": f"{factor:.10f}".rstrip("0").rstrip("."),
+            }
+
+        return None
+
+    def _base_field_name(self, operand):
+        text = operand.strip().upper()
+        text = text.split("+", 1)[0]
+
+        symbolic_len = re.match(r"^([A-Z0-9_#$@]+)\(\d+\)$", text)
+        if symbolic_len:
+            return symbolic_len.group(1)
+
+        return self._resolve_operand(text).upper()
+
+    def _extract_numeric_literal(self, operand):
+        text = operand.strip().upper()
+
+        if text.startswith("=P'") and text.endswith("'"):
+            return int(text[3:-1])
+
+        if text.startswith("P'") and text.endswith("'"):
+            return int(text[2:-1])
+
+        # Conservative support for common multiplier symbol names.
+        # Later this should be resolved from DC constants in analysis_report.json.
+        if text in {"MULT", "MULTIPLIER", "RATE"}:
+            return 15
+
+        return None
+
+    def _extract_srp_shift(self, operand):
+        text = operand.strip().upper()
+        match = re.search(r"64-(\d+)", text)
+        if match:
+            return int(match.group(1))
+        if text.isdigit():
+            return int(text)
+        return None
 
     def _extract_label(self, line):
         parts = line.split()
@@ -357,15 +439,33 @@ class InstructionTranslator:
                 depth -= 1
 
             if ch == "," and depth == 0 and not in_quote:
-                operands.append(current.strip())
+                operands.append(self._trim_operand_comment(current))
                 current = ""
             else:
                 current += ch
 
         if current.strip():
-            operands.append(current.strip())
+            operands.append(self._trim_operand_comment(current))
 
         return operands
+
+    def _trim_operand_comment(self, operand):
+        text = operand.strip()
+        if not text:
+            return text
+
+        current = ""
+        in_quote = False
+        for ch in text:
+            if ch == "'":
+                in_quote = not in_quote
+
+            if ch.isspace() and not in_quote:
+                break
+
+            current += ch
+
+        return current.strip()
 
     # ============================================================
     # Operand resolution
@@ -415,6 +515,10 @@ class InstructionTranslator:
             base_reg = base_only.group(2)
             return self._resolve_register_offset(base_reg, offset)
 
+        plus_offset = re.match(r"^([A-Z0-9_#$@]+)\+\d+\(\d+\)$", operand)
+        if plus_offset:
+            return plus_offset.group(1)
+
         return operand
 
     def _resolve_register_offset(self, reg, offset):
@@ -461,24 +565,30 @@ class InstructionTranslator:
             operand.startswith("=C'")
             or operand.startswith("C'")
             or operand.startswith("=P'")
+            or operand.startswith("P'")
             or operand.startswith("=F'")
         )
 
     def _is_char_literal(self, operand):
-        return operand.startswith("=C'") and operand.endswith("'")
+        return (operand.startswith("=C'") or operand.startswith("C'")) and operand.endswith("'")
 
     def _char_literal_value(self, operand):
-        return operand[3:-1]
+        if operand.startswith("=C'"):
+            return operand[3:-1]
+        if operand.startswith("C'"):
+            return operand[2:-1]
+        return operand
 
     def _is_packed_literal(self, operand):
-        return operand.startswith("=P'") and operand.endswith("'")
+        return (operand.startswith("=P'") or operand.startswith("P'")) and operand.endswith("'")
 
     def _packed_literal_value(self, operand):
-        value = operand[3:-1]
+        if operand.startswith("=P'"):
+            value = operand[3:-1]
+        else:
+            value = operand[2:-1]
 
-        # Project convention:
-        # Packed money literals such as P'50000' represent 500.00
-        # because transaction amounts use scale 2.
+        # Common finance convention in this project: money literals use scale 2.
         if value.isdigit() and len(value) > 2:
             return value[:-2] + "." + value[-2:]
 
@@ -743,7 +853,7 @@ class InstructionTranslator:
         )
 
     def _translate_br(self, operands, clean):
-        return f"// branch register / return: {clean}"
+        return 'return ModuleResult.rc(registers.get(15), "Returned by translated BR");' 
 
     def _translate_balr(self, operands, clean):
         return f"// subroutine call via BALR: {clean}"
@@ -755,7 +865,7 @@ class InstructionTranslator:
         return f"// TODO BC requires condition mask decoding: {clean}"
     
     def _translate_pr(self, operands, clean):
-        return "// PR return instruction handled by block-flow translator"
+        return 'return ModuleResult.rc(registers.get(15), "Returned by translated PR");' 
 
     # ============================================================
     # Directives

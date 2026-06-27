@@ -285,7 +285,7 @@
       "case_id": "FEECALC_BASIC_001",
       "module": "FEECALC",
       "RC": "0",
-      "TXFEE": "1.50",
+      "TXFEE": "0",
       "ERRCODE": "0000",
       "AUTHSTAT": "",
       "TXAMT": "100.00",
@@ -296,9 +296,15 @@
     },
     "comparison": {
       "total_fields": 2,
-      "matched_fields": 2,
-      "mismatched_fields": [],
-      "match_score": 100.0
+      "matched_fields": 1,
+      "mismatched_fields": [
+        {
+          "field": "TXFEE",
+          "expected": "1.50",
+          "actual": "0"
+        }
+      ],
+      "match_score": 50.0
     }
   },
   {
