@@ -173,7 +173,12 @@ def generate_java_runner(test_cases):
         main_calls.append(f"        results.add({method_name}());")
 
         mode = case.get("mode", "module").lower()
-        module = case.get("module", "")
+
+        if mode == "application":
+            module = case.get("entry_module", "MAINDRV")
+        else:
+            module = case.get("module", "")
+
         class_name = java_class_name(module)
 
         input_lines = []
@@ -214,23 +219,19 @@ def generate_java_runner(test_cases):
                     f'        output.put("{field}", ctx.getString("{field}"));'
                 )
 
-        if mode == "flow":
-            execution_code = """
-        ModernizationRuntime runtime = new ModernizationRuntime();
-        java.util.List<ModuleResult> moduleResults = runtime.execute(ctx);
-
-        int rc = 0;
-        if (!moduleResults.isEmpty()) {
-            rc = moduleResults.get(moduleResults.size() - 1).getReturnCode();
-        }
-"""
+        if mode == "application":
+            execution_code = f"""
+                AssemblerModule application = new {class_name}();
+                ModuleResult result = application.execute(ctx);
+                int rc = result.getReturnCode();
+        """
         else:
             execution_code = f"""
-        AssemblerModule module = new {class_name}();
-        ModuleResult result = module.execute(ctx);
-        int rc = result.getReturnCode();
-"""
-
+                AssemblerModule module = new {class_name}();
+                ModuleResult result = module.execute(ctx);
+                int rc = result.getReturnCode();
+        """
+ 
         method = f"""
     private static java.util.Map<String, String> {method_name}() {{
         ExecutionContext ctx = new ExecutionContext();

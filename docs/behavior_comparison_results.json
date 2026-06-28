@@ -372,5 +372,52 @@
       "mismatched_fields": [],
       "match_score": 100.0
     }
+  },
+  {
+    "case_id": "APP_APPROVAL_FLOW_001",
+    "mode": "application",
+    "module": "UNKNOWN",
+    "description": "End-to-end approval flow through MAINDRV.",
+    "input": {
+      "TXCUST": "CUST000001",
+      "TXSTAT": "A",
+      "TXAMT": "100.00",
+      "TXLIMIT": "500.00",
+      "TXTYPE": "PO",
+      "ERRCODE": "0000",
+      "AUTHSTAT": "",
+      "TXFEE": "0.00"
+    },
+    "expected_asm_output": {
+      "RC": "0",
+      "ERRCODE": "0000",
+      "AUTHSTAT": "APPRV",
+      "TXFEE": "1.50"
+    },
+    "actual_java_output": {
+      "case_id": "APP_APPROVAL_FLOW_001",
+      "module": "MAINDRV",
+      "RC": "0",
+      "ERRCODE": "0000",
+      "AUTHSTAT": "REJCT",
+      "TXFEE": "1.50",
+      "TXAMT": "100.00",
+      "TXLIMIT": "500.00",
+      "TXCUST": "CUST000001",
+      "TXSTAT": "A",
+      "TXTYPE": "PO"
+    },
+    "comparison": {
+      "total_fields": 4,
+      "matched_fields": 3,
+      "mismatched_fields": [
+        {
+          "field": "AUTHSTAT",
+          "expected": "APPRV",
+          "actual": "REJCT"
+        }
+      ],
+      "match_score": 75.0
+    }
   }
 ]

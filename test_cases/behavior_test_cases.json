@@ -157,5 +157,27 @@
       "RC": "0",
       "AUTHSTAT": "REJCT"
     }
+  },
+  {
+    "case_id": "APP_APPROVAL_FLOW_001",
+    "mode": "application",
+    "entry_module": "MAINDRV",
+    "description": "End-to-end approval flow through MAINDRV.",
+    "input": {
+      "TXCUST": "CUST000001",
+      "TXSTAT": "A",
+      "TXAMT": "100.00",
+      "TXLIMIT": "500.00",
+      "TXTYPE": "PO",
+      "ERRCODE": "0000",
+      "AUTHSTAT": "",
+      "TXFEE": "0.00"
+  },
+  "expected_asm_output": {
+    "RC": "0",
+    "ERRCODE": "0000",
+    "AUTHSTAT": "APPRV",
+    "TXFEE": "1.50"
   }
+ }
 ]

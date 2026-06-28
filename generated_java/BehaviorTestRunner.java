@@ -19,6 +19,7 @@ public class BehaviorTestRunner {
         results.add(runCase8());
         results.add(runCase9());
         results.add(runCase10());
+        results.add(runCase11());
 
         writeJson(results);
     }
@@ -73,10 +74,10 @@ public class BehaviorTestRunner {
         ctx.setString("ERRCODE", "0000");
 
 
-        AssemblerModule module = new Custval();
-        ModuleResult result = module.execute(ctx);
-        int rc = result.getReturnCode();
-
+                AssemblerModule module = new Custval();
+                ModuleResult result = module.execute(ctx);
+                int rc = result.getReturnCode();
+        
 
         java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
         output.put("case_id", "CUSTVAL_VALID_001");
@@ -103,10 +104,10 @@ public class BehaviorTestRunner {
         ctx.setString("ERRCODE", "0000");
 
 
-        AssemblerModule module = new Custval();
-        ModuleResult result = module.execute(ctx);
-        int rc = result.getReturnCode();
-
+                AssemblerModule module = new Custval();
+                ModuleResult result = module.execute(ctx);
+                int rc = result.getReturnCode();
+        
 
         java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
         output.put("case_id", "CUSTVAL_INVALID_001");
@@ -133,10 +134,10 @@ public class BehaviorTestRunner {
         ctx.setString("ERRCODE", "0000");
 
 
-        AssemblerModule module = new Cardstat();
-        ModuleResult result = module.execute(ctx);
-        int rc = result.getReturnCode();
-
+                AssemblerModule module = new Cardstat();
+                ModuleResult result = module.execute(ctx);
+                int rc = result.getReturnCode();
+        
 
         java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
         output.put("case_id", "CARDSTAT_ACTIVE_001");
@@ -163,10 +164,10 @@ public class BehaviorTestRunner {
         ctx.setString("ERRCODE", "0000");
 
 
-        AssemblerModule module = new Cardstat();
-        ModuleResult result = module.execute(ctx);
-        int rc = result.getReturnCode();
-
+                AssemblerModule module = new Cardstat();
+                ModuleResult result = module.execute(ctx);
+                int rc = result.getReturnCode();
+        
 
         java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
         output.put("case_id", "CARDSTAT_BLOCKED_001");
@@ -194,10 +195,10 @@ public class BehaviorTestRunner {
         ctx.setString("ERRCODE", "0000");
 
 
-        AssemblerModule module = new Limitchk();
-        ModuleResult result = module.execute(ctx);
-        int rc = result.getReturnCode();
-
+                AssemblerModule module = new Limitchk();
+                ModuleResult result = module.execute(ctx);
+                int rc = result.getReturnCode();
+        
 
         java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
         output.put("case_id", "LIMITCHK_APPROVE_001");
@@ -225,10 +226,10 @@ public class BehaviorTestRunner {
         ctx.setString("ERRCODE", "0000");
 
 
-        AssemblerModule module = new Limitchk();
-        ModuleResult result = module.execute(ctx);
-        int rc = result.getReturnCode();
-
+                AssemblerModule module = new Limitchk();
+                ModuleResult result = module.execute(ctx);
+                int rc = result.getReturnCode();
+        
 
         java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
         output.put("case_id", "LIMITCHK_REJECT_001");
@@ -256,10 +257,10 @@ public class BehaviorTestRunner {
         ctx.setString("ERRCODE", "0000");
 
 
-        AssemblerModule module = new Frdchk();
-        ModuleResult result = module.execute(ctx);
-        int rc = result.getReturnCode();
-
+                AssemblerModule module = new Frdchk();
+                ModuleResult result = module.execute(ctx);
+                int rc = result.getReturnCode();
+        
 
         java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
         output.put("case_id", "FRDCHK_NORMAL_001");
@@ -287,10 +288,10 @@ public class BehaviorTestRunner {
         ctx.setString("ERRCODE", "0000");
 
 
-        AssemblerModule module = new Frdchk();
-        ModuleResult result = module.execute(ctx);
-        int rc = result.getReturnCode();
-
+                AssemblerModule module = new Frdchk();
+                ModuleResult result = module.execute(ctx);
+                int rc = result.getReturnCode();
+        
 
         java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
         output.put("case_id", "FRDCHK_REMOTE_HIGH_001");
@@ -318,10 +319,10 @@ public class BehaviorTestRunner {
         ctx.setString("ERRCODE", "0000");
 
 
-        AssemblerModule module = new Feecalc();
-        ModuleResult result = module.execute(ctx);
-        int rc = result.getReturnCode();
-
+                AssemblerModule module = new Feecalc();
+                ModuleResult result = module.execute(ctx);
+                int rc = result.getReturnCode();
+        
 
         java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
         output.put("case_id", "FEECALC_BASIC_001");
@@ -348,10 +349,10 @@ public class BehaviorTestRunner {
         ctx.setString("AUTHSTAT", "");
 
 
-        AssemblerModule module = new Authdec();
-        ModuleResult result = module.execute(ctx);
-        int rc = result.getReturnCode();
-
+                AssemblerModule module = new Authdec();
+                ModuleResult result = module.execute(ctx);
+                int rc = result.getReturnCode();
+        
 
         java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
         output.put("case_id", "AUTHDEC_APPROVE_001");
@@ -378,10 +379,10 @@ public class BehaviorTestRunner {
         ctx.setString("AUTHSTAT", "");
 
 
-        AssemblerModule module = new Authdec();
-        ModuleResult result = module.execute(ctx);
-        int rc = result.getReturnCode();
-
+                AssemblerModule module = new Authdec();
+                ModuleResult result = module.execute(ctx);
+                int rc = result.getReturnCode();
+        
 
         java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
         output.put("case_id", "AUTHDEC_REJECT_001");
@@ -390,6 +391,42 @@ public class BehaviorTestRunner {
 
         output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
         output.put("ERRCODE", ctx.getString("ERRCODE"));
+        output.put("TXFEE", ctx.getString("TXFEE"));
+        output.put("TXAMT", ctx.getString("TXAMT"));
+        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
+        output.put("TXCUST", ctx.getString("TXCUST"));
+        output.put("TXSTAT", ctx.getString("TXSTAT"));
+        output.put("TXTYPE", ctx.getString("TXTYPE"));
+
+        return output;
+    }
+
+
+    private static java.util.Map<String, String> runCase11() {
+        ExecutionContext ctx = new ExecutionContext();
+
+        ctx.setString("TXCUST", "CUST000001");
+        ctx.setString("TXSTAT", "A");
+        ctx.setDecimal("TXAMT", new java.math.BigDecimal("100.00"));
+        ctx.setDecimal("TXLIMIT", new java.math.BigDecimal("500.00"));
+        ctx.setString("TXTYPE", "PO");
+        ctx.setString("ERRCODE", "0000");
+        ctx.setString("AUTHSTAT", "");
+        ctx.setDecimal("TXFEE", new java.math.BigDecimal("0.00"));
+
+
+                AssemblerModule application = new Maindrv();
+                ModuleResult result = application.execute(ctx);
+                int rc = result.getReturnCode();
+        
+
+        java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
+        output.put("case_id", "APP_APPROVAL_FLOW_001");
+        output.put("module", "MAINDRV");
+        output.put("RC", String.valueOf(rc));
+
+        output.put("ERRCODE", ctx.getString("ERRCODE"));
+        output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
         output.put("TXFEE", ctx.getString("TXFEE"));
         output.put("TXAMT", ctx.getString("TXAMT"));
         output.put("TXLIMIT", ctx.getString("TXLIMIT"));

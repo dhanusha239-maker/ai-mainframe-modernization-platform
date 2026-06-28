@@ -678,7 +678,14 @@ public class ModernizationRuntime {{
         default_rc = "0" if "0" in return_codes else (return_codes[0] if return_codes else "0")
 
         comment = self._module_comment(module, reads, writes, conditions)
-        translated_code = self._translated_module_code(module)
+
+        source_lines = self.module_source_lines.get(module.upper(), [])
+        called_modules = self._discover_called_modules(source_lines)
+
+        if called_modules:
+            translated_code = self._orchestrator_module_code(module, called_modules)
+        else:
+            translated_code = self._translated_module_code(module)
 
         # Always keep a default return unless the translated code clearly ends with an unconditional return.
         # Conditional returns inside if-blocks still need a normal success-path return.
@@ -712,6 +719,78 @@ public class {class_name} implements AssemblerModule {{
     }}
 }}
 """
+
+    def _discover_called_modules(self, lines):
+        """
+        Discover called modules from HLASM source without hardcoding business names.
+
+        This handles the VCON pattern used by the project driver:
+
+            DC A(=V(CUSTVAL))
+            L  15,=V(CUSTVAL)
+            BALR 14,15
+
+        Returns modules in first-seen source order.
+        """
+        called = []
+
+        for line in lines:
+            upper = line.upper()
+
+            for match in re.finditer(r"=V\(([A-Z0-9_#$@]+)\)", upper):
+                module = match.group(1).strip().upper()
+
+                if module and module not in called:
+                    called.append(module)
+
+        return called
+
+    def _orchestrator_module_code(self, module, called_modules):
+        """
+        Generate Java orchestration for driver modules.
+
+        The driver module executes the modules it references through =V(MODULE)
+        in the same order discovered from HLASM source. This supports MAINDRV
+        today and also future driver modules such as PAYROLLDRV or CLAIMDRV.
+        """
+        java_lines = [
+            "        // Application orchestration discovered from HLASM module call references.",
+            f"        // Driver module: {module}",
+            "        ModuleResult result = ModuleResult.rc(0, \"Application orchestration started\");",
+            "",
+        ]
+
+        for called in called_modules:
+            class_name = self._to_class_name(called)
+
+            java_lines.append(f"        // Call discovered module: {called}")
+            java_lines.append(f"        result = new {class_name}().execute(ctx);")
+
+            # Continue through processing/decision modules so final business state is produced.
+            # For validator modules, stop early on rejected return code.
+            if self._is_validation_module(called):
+                java_lines.append("        if (result.getReturnCode() != 0) {")
+                java_lines.append("            return result;")
+                java_lines.append("        }")
+
+            java_lines.append("")
+
+        java_lines.append('        return ModuleResult.rc(result.getReturnCode(), "Application orchestration completed");')
+
+        return "\n".join(java_lines)
+
+    def _is_validation_module(self, module):
+        """
+        Heuristic: modules that write ERRCODE and have non-zero return codes are validation gates.
+
+        This avoids hardcoding a specific application flow while still allowing
+        processing/decision modules such as FEECALC, AUTHDEC, and AUDWRITE to run.
+        """
+        module = module.upper()
+        writes = set(self.report.get("writes", {}).get(module, []))
+        return_codes = set(str(x) for x in self.report.get("return_codes", {}).get(module, []))
+
+        return "ERRCODE" in writes and any(code != "0" for code in return_codes)
 
     def _has_unconditional_terminal_return(self, translated_code):
         meaningful_lines = [

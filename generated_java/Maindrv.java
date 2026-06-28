@@ -29,118 +29,47 @@ public class Maindrv implements AssemblerModule {
          *   - LTR 15, 15
          */
 
-        // Branch-aware translated instruction candidates from HLASM source.
-        // LABEL: MAINDRV
-        // CSECT directive: MAINDRV  CSECT ,                   Main VSAM Orchestration Driver
-        // TODO STM requires multiple-register storage metadata: STM   14,12,12(13)        Save caller's registers
-        // subroutine call via BASR: BASR  12,0                Establish base register
-        // USING directive: USING *,12
-        // TODO ST requires register-to-memory metadata: ST    13,SAVEAREA+4       Forward link save area
-        // TODO LA requires address/register model integration: LA    11,SAVEAREA
-        // TODO ST requires register-to-memory metadata: ST    11,8(,13)           Backward link save area
-        // TODO manual review required: LR    13,11               Point to current save area
-        // TODO manual review required: OPEN  (INACB,INPUT,OUTACB,OUTPUT) Open dynamic datasets
-        AsmRuntime.Register.ltr(registers, 15, 15, cc);
-        if (AsmRuntime.Branch.isEqual(cc)) {
-            // TODO LA requires address/register model integration: LA    1,READPARM          Pass parameters to VSAM Reader module
-            // TODO L requires memory/address resolution before exact helper call: L     15,=V(TXREAD)       V-CON invocation target
-            // subroutine call via BALR: BALR  14,15               Branch and Link
-            AsmRuntime.Register.ltr(registers, 15, 15, cc);
-            // TODO C helper integration needed: AsmCompare.c // C     15,=F'4'            Did we hit End-of-File (EOF)?
-            if (AsmRuntime.Branch.isEqual(cc)) {
-                // branch to CLOSE_EXIT
-            }
-            if (AsmRuntime.Branch.isNotEqual(cc)) {
-                // branch to IO_ERROR
-            }
-            // TODO LA requires address/register model integration: LA    1,BUSPARM           Customer Identity Scan
-            // TODO L requires memory/address resolution before exact helper call: L     15,=V(CUSTVAL)
-            // subroutine call via BALR: BALR  14,15
-            AsmRuntime.Register.ltr(registers, 15, 15, cc);
-            if (AsmRuntime.Branch.isNotEqual(cc)) {
-                // branch to REJECT_PATH
-            }
-            // TODO LA requires address/register model integration: LA    1,BUSPARM           Card Token Check
-            // TODO L requires memory/address resolution before exact helper call: L     15,=V(CARDSTAT)
-            // subroutine call via BALR: BALR  14,15
-            AsmRuntime.Register.ltr(registers, 15, 15, cc);
-            if (AsmRuntime.Branch.isNotEqual(cc)) {
-                // branch to REJECT_PATH
-            }
-            // TODO LA requires address/register model integration: LA    1,BUSPARM           Packed Limit Margin Assessment
-            // TODO L requires memory/address resolution before exact helper call: L     15,=V(LIMITCHK)
-            // subroutine call via BALR: BALR  14,15
-            AsmRuntime.Register.ltr(registers, 15, 15, cc);
-            if (AsmRuntime.Branch.isNotEqual(cc)) {
-                // branch to REJECT_PATH
-            }
-            // TODO LA requires address/register model integration: LA    1,BUSPARM           Fraud Risk Verification
-            // TODO L requires memory/address resolution before exact helper call: L     15,=V(FRDCHK)
-            // subroutine call via BALR: BALR  14,15
-            AsmRuntime.Register.ltr(registers, 15, 15, cc);
-            if (AsmRuntime.Branch.isNotEqual(cc)) {
-                // branch to REJECT_PATH
-            }
-            // TODO LA requires address/register model integration: LA    1,BUSPARM           Financial Cost Pipeline Execution
-            // TODO L requires memory/address resolution before exact helper call: L     15,=V(FEECALC)
-            // subroutine call via BALR: BALR  14,15
-            // TODO LA requires address/register model integration: LA    1,DECPARM
-            // TODO L requires memory/address resolution before exact helper call: L     15,=V(AUTHDEC)
-            // subroutine call via BALR: BALR  14,15
-            // branch target: WRITE_AUDIT
-            return ModuleResult.rc(registers.get(15), "Completed translated branch path");
+        // Application orchestration discovered from HLASM module call references.
+        // Driver module: MAINDRV
+        ModuleResult result = ModuleResult.rc(0, "Application orchestration started");
+
+        // Call discovered module: TXREAD
+        result = new Txread().execute(ctx);
+
+        // Call discovered module: CUSTVAL
+        result = new Custval().execute(ctx);
+        if (result.getReturnCode() != 0) {
+            return result;
         }
-        // LABEL: OPEN_ERR
-        registers.set(15, 12);
-        // branch target: FINAL_RETURN
-        // LABEL: IO_ERROR
-        registers.set(15, 16);
-        // LABEL: FINAL_RETURN
-        // DS declaration: FINAL_RETURN DS 0H
-        // TODO L requires memory/address resolution before exact helper call: L     13,SAVEAREA+4       Restore system backplanes
-        // TODO LM already handled by analyzer register_map when possible: LM    14,12,12(13)
-        return ModuleResult.rc(registers.get(15), "Returned by translated BR");
-        // LABEL: SAVEAREA
-        // DS declaration: SAVEAREA DS    18F
-        // LABEL: READPARM
-        // DC declaration: READPARM DC    A(INRPL)            Addr of input VSAM Request Parameter List
-        // DC declaration: DC    A(CURRTX)           Addr of data target work matrix
-        // LABEL: BUSPARM
-        // DC declaration: BUSPARM  DC    A(CURRTX),A(ERRCODE)
-        // LABEL: DECPARM
-        // DC declaration: DECPARM  DC    A(CURRTX),A(ERRCODE),A(AUTHSTAT)
-        // LABEL: AUDPARM
-        // DC declaration: AUDPARM  DC    A(OUTRPL)           Addr of output VSAM Request Parameter List
-        // DC declaration: DC    A(CURRTX)           Addr of transaction line
-        // DC declaration: DC    A(AUTHSTAT)         Addr of authorization calculation
-        // LABEL: CURRTX
-        // DS declaration: CURRTX   DS    0CL64
-        // LABEL: TXCARD
-        // DS declaration: TXCARD   DS    CL16
-        // LABEL: TXCUST
-        // DS declaration: TXCUST   DS    CL10
-        // LABEL: TXAMT
-        // DS declaration: TXAMT    DS    PL4
-        // LABEL: TXTYPE
-        // DS declaration: TXTYPE   DS    CL2
-        // LABEL: TXSTAT
-        // DS declaration: TXSTAT   DS    CL1
-        // LABEL: TXLIMIT
-        // DS declaration: TXLIMIT  DS    PL4
-        // LABEL: TXFEE
-        // DS declaration: TXFEE    DS    PL4
-        // DS declaration: DS    CL23
-        // LABEL: ERRCODE
-        // DC declaration: ERRCODE  DC    CL4'0000'
-        // LABEL: AUTHSTAT
-        // DC declaration: AUTHSTAT DC    CL5'     '
-        // DS declaration: DS    0D                  Enforce strict doubleword boundaries
-        // TODO manual review required: INACB    ACB   AM=VSAM,DDNAME=INVSAM,MACRF=(KEY,SEQ,IN) Input Cluster
-        // TODO manual review required: OUTACB   ACB   AM=VSAM,DDNAME=OUTVSAM,MACRF=(ADR,SEQ,OUT) Output Trace
-        // TODO manual review required: INRPL    RPL   AM=VSAM,ACB=INACB,AREA=CURRTX,AREALEN=64,OPTCD=(KEY,SEQ,NUP)
-        // TODO manual review required: OUTRPL   RPL   AM=VSAM,ACB=OUTACB,OPTCD=(ADR,SEQ) Record Storage Request
-        // TODO manual review required: LTORG ,
-        // TODO manual review required: END   MAINDRV
+
+        // Call discovered module: CARDSTAT
+        result = new Cardstat().execute(ctx);
+        if (result.getReturnCode() != 0) {
+            return result;
+        }
+
+        // Call discovered module: LIMITCHK
+        result = new Limitchk().execute(ctx);
+        if (result.getReturnCode() != 0) {
+            return result;
+        }
+
+        // Call discovered module: FRDCHK
+        result = new Frdchk().execute(ctx);
+        if (result.getReturnCode() != 0) {
+            return result;
+        }
+
+        // Call discovered module: FEECALC
+        result = new Feecalc().execute(ctx);
+
+        // Call discovered module: AUTHDEC
+        result = new Authdec().execute(ctx);
+
+        // Call discovered module: AUDWRITE
+        result = new Audwrite().execute(ctx);
+
+        return ModuleResult.rc(result.getReturnCode(), "Application orchestration completed");
 
 
 

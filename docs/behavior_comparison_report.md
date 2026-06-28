@@ -4,10 +4,10 @@ This report compares expected assembler behavior against actual generated Java e
 
 ## Summary
 
-- Total test cases: `11`
+- Total test cases: `12`
 - Passed cases: `10`
-- Failed cases: `1`
-- Average behavior match score: `95.45%`
+- Failed cases: `2`
+- Average behavior match score: `93.75%`
 
 ## Validation Flow
 
@@ -532,3 +532,59 @@ No mismatches detected.
 ```
 
 No mismatches detected.
+
+### Test Case: `APP_APPROVAL_FLOW_001`
+
+- Mode: `application`
+- Module: `UNKNOWN`
+- Description: End-to-end approval flow through MAINDRV.
+- Match score: `75.0%`
+- Fields matched: `3/4`
+
+**Input:**
+
+```json
+{
+  "TXCUST": "CUST000001",
+  "TXSTAT": "A",
+  "TXAMT": "100.00",
+  "TXLIMIT": "500.00",
+  "TXTYPE": "PO",
+  "ERRCODE": "0000",
+  "AUTHSTAT": "",
+  "TXFEE": "0.00"
+}
+```
+
+**Expected ASM Output:**
+
+```json
+{
+  "RC": "0",
+  "ERRCODE": "0000",
+  "AUTHSTAT": "APPRV",
+  "TXFEE": "1.50"
+}
+```
+
+**Actual Java Output:**
+
+```json
+{
+  "case_id": "APP_APPROVAL_FLOW_001",
+  "module": "MAINDRV",
+  "RC": "0",
+  "ERRCODE": "0000",
+  "AUTHSTAT": "REJCT",
+  "TXFEE": "1.50",
+  "TXAMT": "100.00",
+  "TXLIMIT": "500.00",
+  "TXCUST": "CUST000001",
+  "TXSTAT": "A",
+  "TXTYPE": "PO"
+}
+```
+
+**Mismatches:**
+
+- `AUTHSTAT` expected `APPRV` but Java produced `REJCT`

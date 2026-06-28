@@ -141,5 +141,18 @@
     "TXCUST": "",
     "TXSTAT": "",
     "TXTYPE": ""
+  },
+  {
+    "case_id": "APP_APPROVAL_FLOW_001",
+    "module": "MAINDRV",
+    "RC": "0",
+    "ERRCODE": "0000",
+    "AUTHSTAT": "REJCT",
+    "TXFEE": "1.50",
+    "TXAMT": "100.00",
+    "TXLIMIT": "500.00",
+    "TXCUST": "CUST000001",
+    "TXSTAT": "A",
+    "TXTYPE": "PO"
   }
 ]
