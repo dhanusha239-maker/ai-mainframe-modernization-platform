@@ -1,3 +1,4 @@
+import csv
 import json
 import subprocess
 from pathlib import Path
@@ -5,6 +6,7 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 TEST_CASES_DIR = PROJECT_ROOT / "test_cases"
+BATCH_DIR = TEST_CASES_DIR / "batch"
 JAVA_DIR = PROJECT_ROOT / "generated_java"
 DOCS_DIR = PROJECT_ROOT / "docs"
 
@@ -60,6 +62,7 @@ RESULT_JSON_FILE = DOCS_DIR / "behavior_comparison_results.json"
 
 def ensure_dirs():
     TEST_CASES_DIR.mkdir(parents=True, exist_ok=True)
+    BATCH_DIR.mkdir(parents=True, exist_ok=True)
     DOCS_DIR.mkdir(parents=True, exist_ok=True)
     JAVA_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -132,6 +135,74 @@ def load_test_cases():
 
     with open(TEST_CASE_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
+
+
+def load_batch_file(csv_file):
+    """
+    Load a batch transaction CSV file into a list of dictionaries.
+
+    This is Step 1 of the batch validation engine.
+
+    Expected CSV example:
+        CASE_ID,TXCUST,TXSTAT,TXAMT,TXLIMIT,TXTYPE,
+        EXPECTED_RC,EXPECTED_ERRCODE,EXPECTED_AUTHSTAT,EXPECTED_TXFEE
+
+    Returns:
+        [
+            {
+                "CASE_ID": "TX001",
+                "TXCUST": "CUST000001",
+                "TXSTAT": "A",
+                ...
+            }
+        ]
+
+    Notes:
+        - This function only reads CSV data.
+        - It does not run Java.
+        - It does not compare expected vs actual output.
+        - Later steps will use these rows for batch execution.
+    """
+
+    csv_path = Path(csv_file)
+
+    if not csv_path.is_absolute():
+        csv_path = PROJECT_ROOT / csv_path
+
+    if not csv_path.exists():
+        raise FileNotFoundError(f"Batch CSV file not found: {csv_path}")
+
+    rows = []
+
+    with open(csv_path, "r", encoding="utf-8-sig", newline="") as f:
+        reader = csv.DictReader(f)
+
+        if not reader.fieldnames:
+            raise ValueError(f"Batch CSV file has no header row: {csv_path}")
+
+        for row_number, row in enumerate(reader, start=2):
+            cleaned = {}
+
+            for key, value in row.items():
+                if key is None:
+                    continue
+
+                clean_key = str(key).strip()
+                clean_value = "" if value is None else str(value).strip()
+
+                cleaned[clean_key] = clean_value
+
+            if not any(cleaned.values()):
+                continue
+
+            if not cleaned.get("CASE_ID"):
+                raise ValueError(
+                    f"Missing CASE_ID in batch CSV file {csv_path} at row {row_number}"
+                )
+
+            rows.append(cleaned)
+
+    return rows
 
 
 def java_class_name(module_name):
