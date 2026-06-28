@@ -4,10 +4,17 @@ This report compares expected assembler behavior against actual generated Java e
 
 ## Summary
 
-- Total test cases: `12`
-- Passed cases: `10`
-- Failed cases: `2`
+- Total test cases: `16`
+- Passed cases: `13`
+- Failed cases: `3`
 - Average behavior match score: `93.75%`
+
+## Batch Validation Summary
+
+- Batch records processed: `4`
+- Batch passed: `3`
+- Batch failed: `1`
+- Failure customer IDs: `CUST000001`
 
 ## Validation Flow
 
@@ -536,7 +543,7 @@ No mismatches detected.
 ### Test Case: `APP_APPROVAL_FLOW_001`
 
 - Mode: `application`
-- Module: `UNKNOWN`
+- Module: `MAINDRV`
 - Description: End-to-end approval flow through MAINDRV.
 - Match score: `75.0%`
 - Fields matched: `3/4`
@@ -588,3 +595,223 @@ No mismatches detected.
 **Mismatches:**
 
 - `AUTHSTAT` expected `APPRV` but Java produced `REJCT`
+
+### Test Case: `TX001`
+
+- Mode: `application`
+- Module: `MAINDRV`
+- Description: Batch transaction validation for TX001
+- Match score: `75.0%`
+- Fields matched: `3/4`
+
+**Input:**
+
+```json
+{
+  "TXCUST": "CUST000001",
+  "TXSTAT": "A",
+  "TXAMT": "100.00",
+  "TXLIMIT": "500.00",
+  "TXTYPE": "PO",
+  "ERRCODE": "0000",
+  "AUTHSTAT": "",
+  "TXFEE": "0.00"
+}
+```
+
+**Expected ASM Output:**
+
+```json
+{
+  "RC": "0",
+  "ERRCODE": "0000",
+  "AUTHSTAT": "APPRV",
+  "TXFEE": "1.50"
+}
+```
+
+**Actual Java Output:**
+
+```json
+{
+  "case_id": "TX001",
+  "module": "MAINDRV",
+  "RC": "0",
+  "ERRCODE": "0000",
+  "AUTHSTAT": "REJCT",
+  "TXFEE": "1.50",
+  "TXAMT": "100.00",
+  "TXLIMIT": "500.00",
+  "TXCUST": "CUST000001",
+  "TXSTAT": "A",
+  "TXTYPE": "PO"
+}
+```
+
+**Mismatches:**
+
+**Failure customer ID:** `CUST000001`
+
+- `AUTHSTAT` expected `APPRV` but Java produced `REJCT`
+
+### Test Case: `TX002`
+
+- Mode: `application`
+- Module: `MAINDRV`
+- Description: Batch transaction validation for TX002
+- Match score: `100.0%`
+- Fields matched: `4/4`
+
+**Input:**
+
+```json
+{
+  "TXCUST": "CUST000002",
+  "TXSTAT": "A",
+  "TXAMT": "700.00",
+  "TXLIMIT": "500.00",
+  "TXTYPE": "PO",
+  "ERRCODE": "0000",
+  "AUTHSTAT": "",
+  "TXFEE": "0.00"
+}
+```
+
+**Expected ASM Output:**
+
+```json
+{
+  "RC": "4",
+  "ERRCODE": "E003",
+  "AUTHSTAT": "REJCT",
+  "TXFEE": "0.00"
+}
+```
+
+**Actual Java Output:**
+
+```json
+{
+  "case_id": "TX002",
+  "module": "MAINDRV",
+  "RC": "4",
+  "ERRCODE": "E003",
+  "AUTHSTAT": "REJCT",
+  "TXFEE": "0.00",
+  "TXAMT": "700.00",
+  "TXLIMIT": "500.00",
+  "TXCUST": "CUST000002",
+  "TXSTAT": "A",
+  "TXTYPE": "PO"
+}
+```
+
+No mismatches detected.
+
+### Test Case: `TX003`
+
+- Mode: `application`
+- Module: `MAINDRV`
+- Description: Batch transaction validation for TX003
+- Match score: `100.0%`
+- Fields matched: `4/4`
+
+**Input:**
+
+```json
+{
+  "TXCUST": "CUST000003",
+  "TXSTAT": "B",
+  "TXAMT": "100.00",
+  "TXLIMIT": "500.00",
+  "TXTYPE": "PO",
+  "ERRCODE": "0000",
+  "AUTHSTAT": "",
+  "TXFEE": "0.00"
+}
+```
+
+**Expected ASM Output:**
+
+```json
+{
+  "RC": "4",
+  "ERRCODE": "E002",
+  "AUTHSTAT": "REJCT",
+  "TXFEE": "0.00"
+}
+```
+
+**Actual Java Output:**
+
+```json
+{
+  "case_id": "TX003",
+  "module": "MAINDRV",
+  "RC": "4",
+  "ERRCODE": "E002",
+  "AUTHSTAT": "REJCT",
+  "TXFEE": "0.00",
+  "TXAMT": "100.00",
+  "TXLIMIT": "500.00",
+  "TXCUST": "CUST000003",
+  "TXSTAT": "B",
+  "TXTYPE": "PO"
+}
+```
+
+No mismatches detected.
+
+### Test Case: `TX004`
+
+- Mode: `application`
+- Module: `MAINDRV`
+- Description: Batch transaction validation for TX004
+- Match score: `100.0%`
+- Fields matched: `4/4`
+
+**Input:**
+
+```json
+{
+  "TXCUST": "CUST000004",
+  "TXSTAT": "A",
+  "TXAMT": "600.00",
+  "TXLIMIT": "700.00",
+  "TXTYPE": "RE",
+  "ERRCODE": "0000",
+  "AUTHSTAT": "",
+  "TXFEE": "0.00"
+}
+```
+
+**Expected ASM Output:**
+
+```json
+{
+  "RC": "4",
+  "ERRCODE": "E004",
+  "AUTHSTAT": "REJCT",
+  "TXFEE": "0.00"
+}
+```
+
+**Actual Java Output:**
+
+```json
+{
+  "case_id": "TX004",
+  "module": "MAINDRV",
+  "RC": "4",
+  "ERRCODE": "E004",
+  "AUTHSTAT": "REJCT",
+  "TXFEE": "0.00",
+  "TXAMT": "600.00",
+  "TXLIMIT": "700.00",
+  "TXCUST": "CUST000004",
+  "TXSTAT": "A",
+  "TXTYPE": "RE"
+}
+```
+
+No mismatches detected.

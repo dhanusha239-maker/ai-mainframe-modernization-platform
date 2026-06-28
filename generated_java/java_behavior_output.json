@@ -154,5 +154,57 @@
     "TXCUST": "CUST000001",
     "TXSTAT": "A",
     "TXTYPE": "PO"
+  },
+  {
+    "case_id": "TX001",
+    "module": "MAINDRV",
+    "RC": "0",
+    "ERRCODE": "0000",
+    "AUTHSTAT": "REJCT",
+    "TXFEE": "1.50",
+    "TXAMT": "100.00",
+    "TXLIMIT": "500.00",
+    "TXCUST": "CUST000001",
+    "TXSTAT": "A",
+    "TXTYPE": "PO"
+  },
+  {
+    "case_id": "TX002",
+    "module": "MAINDRV",
+    "RC": "4",
+    "ERRCODE": "E003",
+    "AUTHSTAT": "REJCT",
+    "TXFEE": "0.00",
+    "TXAMT": "700.00",
+    "TXLIMIT": "500.00",
+    "TXCUST": "CUST000002",
+    "TXSTAT": "A",
+    "TXTYPE": "PO"
+  },
+  {
+    "case_id": "TX003",
+    "module": "MAINDRV",
+    "RC": "4",
+    "ERRCODE": "E002",
+    "AUTHSTAT": "REJCT",
+    "TXFEE": "0.00",
+    "TXAMT": "100.00",
+    "TXLIMIT": "500.00",
+    "TXCUST": "CUST000003",
+    "TXSTAT": "B",
+    "TXTYPE": "PO"
+  },
+  {
+    "case_id": "TX004",
+    "module": "MAINDRV",
+    "RC": "4",
+    "ERRCODE": "E004",
+    "AUTHSTAT": "REJCT",
+    "TXFEE": "0.00",
+    "TXAMT": "600.00",
+    "TXLIMIT": "700.00",
+    "TXCUST": "CUST000004",
+    "TXSTAT": "A",
+    "TXTYPE": "RE"
   }
 ]

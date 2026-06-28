@@ -32,44 +32,69 @@ public class Maindrv implements AssemblerModule {
         // Application orchestration discovered from HLASM module call references.
         // Driver module: MAINDRV
         ModuleResult result = ModuleResult.rc(0, "Application orchestration started");
+        int overallRc = 0;
 
-        // Call discovered module: TXREAD
+        // Execute translated module: TXREAD
         result = new Txread().execute(ctx);
+        if (!result.isOk()) {
+            overallRc = result.getReturnCode();
+            // Reject-path module discovered from HLASM: AUTHDEC
+            new Authdec().execute(ctx);
+            return ModuleResult.rc(overallRc, "MAINDRV rejected by translated validation path");
+        }
 
-        // Call discovered module: CUSTVAL
+        // Execute translated module: CUSTVAL
         result = new Custval().execute(ctx);
-        if (result.getReturnCode() != 0) {
-            return result;
+        if (!result.isOk()) {
+            overallRc = result.getReturnCode();
+            // Reject-path module discovered from HLASM: AUTHDEC
+            new Authdec().execute(ctx);
+            return ModuleResult.rc(overallRc, "MAINDRV rejected by translated validation path");
         }
 
-        // Call discovered module: CARDSTAT
+        // Execute translated module: CARDSTAT
         result = new Cardstat().execute(ctx);
-        if (result.getReturnCode() != 0) {
-            return result;
+        if (!result.isOk()) {
+            overallRc = result.getReturnCode();
+            // Reject-path module discovered from HLASM: AUTHDEC
+            new Authdec().execute(ctx);
+            return ModuleResult.rc(overallRc, "MAINDRV rejected by translated validation path");
         }
 
-        // Call discovered module: LIMITCHK
+        // Execute translated module: LIMITCHK
         result = new Limitchk().execute(ctx);
-        if (result.getReturnCode() != 0) {
-            return result;
+        if (!result.isOk()) {
+            overallRc = result.getReturnCode();
+            // Reject-path module discovered from HLASM: AUTHDEC
+            new Authdec().execute(ctx);
+            return ModuleResult.rc(overallRc, "MAINDRV rejected by translated validation path");
         }
 
-        // Call discovered module: FRDCHK
+        // Execute translated module: FRDCHK
         result = new Frdchk().execute(ctx);
-        if (result.getReturnCode() != 0) {
-            return result;
+        if (!result.isOk()) {
+            overallRc = result.getReturnCode();
+            // Reject-path module discovered from HLASM: AUTHDEC
+            new Authdec().execute(ctx);
+            return ModuleResult.rc(overallRc, "MAINDRV rejected by translated validation path");
         }
 
-        // Call discovered module: FEECALC
+        // Execute translated module: FEECALC
         result = new Feecalc().execute(ctx);
+        if (overallRc == 0 && result.getReturnCode() != 0) {
+            overallRc = result.getReturnCode();
+        }
 
-        // Call discovered module: AUTHDEC
-        result = new Authdec().execute(ctx);
-
-        // Call discovered module: AUDWRITE
+        // Execute translated module: AUDWRITE
         result = new Audwrite().execute(ctx);
+        if (overallRc == 0 && result.getReturnCode() != 0) {
+            overallRc = result.getReturnCode();
+        }
 
-        return ModuleResult.rc(result.getReturnCode(), "Application orchestration completed");
+        // Final decision module discovered from HLASM: AUTHDEC
+        new Authdec().execute(ctx);
+
+        return ModuleResult.rc(overallRc, "MAINDRV orchestration completed");
 
 
 

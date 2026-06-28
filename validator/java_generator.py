@@ -687,8 +687,6 @@ public class ModernizationRuntime {{
         else:
             translated_code = self._translated_module_code(module)
 
-        # Always keep a default return unless the translated code clearly ends with an unconditional return.
-        # Conditional returns inside if-blocks still need a normal success-path return.
         default_return = (
             f'        return ModuleResult.rc({default_rc}, "{module} executed as generated candidate");'
         )
@@ -724,73 +722,219 @@ public class {class_name} implements AssemblerModule {{
         """
         Discover called modules from HLASM source without hardcoding business names.
 
-        This handles the VCON pattern used by the project driver:
-
+        This handles VCON/call-reference patterns such as:
             DC A(=V(CUSTVAL))
             L  15,=V(CUSTVAL)
-            BALR 14,15
+            LOAD EP=CUSTVAL
+            CALL CUSTVAL
 
         Returns modules in first-seen source order.
         """
+        known_modules = {name.upper() for name in self._discover_modules()}
         called = []
+
+        def add_candidate(name):
+            candidate = str(name).strip().upper()
+            candidate = re.sub(r"[^A-Z0-9_#$@].*$", "", candidate)
+
+            if not candidate:
+                return
+
+            if candidate not in known_modules:
+                return
+
+            if candidate not in called:
+                called.append(candidate)
 
         for line in lines:
             upper = line.upper()
 
-            for match in re.finditer(r"=V\(([A-Z0-9_#$@]+)\)", upper):
-                module = match.group(1).strip().upper()
+            for match in re.finditer(r"(?:=)?V\(([A-Z0-9_#$@]+)\)", upper):
+                add_candidate(match.group(1))
 
-                if module and module not in called:
-                    called.append(module)
+            match = re.search(r"\bLOAD\b.*\bEP=([A-Z0-9_#$@]+)", upper)
+            if match:
+                add_candidate(match.group(1))
+
+            match = re.search(r"\bCALL\s+\(?([A-Z0-9_#$@]+)\)?", upper)
+            if match:
+                add_candidate(match.group(1))
 
         return called
+
+    def _discover_reject_path_calls(self, lines):
+        """
+        Discover modules called inside REJECT_PATH or similar reject labels.
+
+        This keeps the orchestration mostly generic. If the HLASM contains:
+            BNZ REJECT_PATH
+            ...
+            REJECT_PATH DS 0H
+               L 15,=V(AUTHDEC)
+               BALR 14,15
+
+        this returns the module called from that reject path.
+        """
+        reject_labels = set()
+
+        for line in lines:
+            upper = line.upper().strip()
+            match = re.search(r"\bB(?:NZ|NE)\s+([A-Z0-9_#$@]+)", upper)
+            if match:
+                reject_labels.add(match.group(1))
+
+        if not reject_labels:
+            return []
+
+        called = []
+        inside_reject_block = False
+        known_modules = {name.upper() for name in self._discover_modules()}
+
+        for line in lines:
+            stripped = line.strip()
+            upper = stripped.upper()
+            parts = stripped.split()
+
+            if parts and parts[0].upper() in reject_labels:
+                inside_reject_block = True
+                continue
+
+            if inside_reject_block and len(parts) >= 2:
+                first = parts[0].upper()
+                second = parts[1].upper()
+
+                if first not in reject_labels and second in {"DS", "CSECT", "EQU"}:
+                    inside_reject_block = False
+
+            if not inside_reject_block:
+                continue
+
+            for match in re.finditer(r"(?:=)?V\(([A-Z0-9_#$@]+)\)", upper):
+                candidate = match.group(1).strip().upper()
+                if candidate in known_modules and candidate not in called:
+                    called.append(candidate)
+
+            match = re.search(r"\bLOAD\b.*\bEP=([A-Z0-9_#$@]+)", upper)
+            if match:
+                candidate = match.group(1).strip().upper()
+                if candidate in known_modules and candidate not in called:
+                    called.append(candidate)
+
+            match = re.search(r"\bCALL\s+\(?([A-Z0-9_#$@]+)\)?", upper)
+            if match:
+                candidate = match.group(1).strip().upper()
+                if candidate in known_modules and candidate not in called:
+                    called.append(candidate)
+
+        return called
+
+    def _module_has_reject_branch_after_call(self, lines, called_module):
+        """
+        Detect whether a called module is followed by an LTR/BNZ-style reject check.
+
+        Example:
+            L 15,=V(MODULE)
+            BALR 14,15
+            LTR 15,15
+            BNZ REJECT_PATH
+        """
+        module = called_module.upper()
+
+        for idx, line in enumerate(lines):
+            upper = line.upper()
+
+            if f"=V({module})" not in upper and f"V({module})" not in upper:
+                continue
+
+            lookahead = " ".join(
+                candidate.upper().strip()
+                for candidate in lines[idx + 1 : idx + 7]
+            )
+
+            if "LTR" in lookahead and re.search(r"\bB(?:NZ|NE)\b", lookahead):
+                return True
+
+        return False
 
     def _orchestrator_module_code(self, module, called_modules):
         """
         Generate Java orchestration for driver modules.
 
-        The driver module executes the modules it references through =V(MODULE)
-        in the same order discovered from HLASM source. This supports MAINDRV
-        today and also future driver modules such as PAYROLLDRV or CLAIMDRV.
+        This method avoids hardcoding CUSTVAL/LIMITCHK/AUTHDEC names.
+        It uses HLASM source clues:
+          - called_modules comes from =V(MODULE)/CALL references.
+          - reject path calls are discovered from labels reached by BNZ/BNE.
+          - modules followed by LTR/BNZ are treated as validation-gated calls.
         """
+        source_lines = self.module_source_lines.get(module.upper(), [])
+        reject_modules = self._discover_reject_path_calls(source_lines)
+        reject_set = set(reject_modules)
+
+        normal_called_modules = [
+            called for called in called_modules
+            if called.upper() not in reject_set
+        ]
+
         java_lines = [
             "        // Application orchestration discovered from HLASM module call references.",
             f"        // Driver module: {module}",
             "        ModuleResult result = ModuleResult.rc(0, \"Application orchestration started\");",
+            "        int overallRc = 0;",
             "",
         ]
 
-        for called in called_modules:
-            class_name = self._to_class_name(called)
+        for called_module in normal_called_modules:
+            class_name = self._to_class_name(called_module)
+            is_reject_checked = self._module_has_reject_branch_after_call(
+                source_lines,
+                called_module,
+            )
 
-            java_lines.append(f"        // Call discovered module: {called}")
+            java_lines.append(f"        // Execute translated module: {called_module}")
             java_lines.append(f"        result = new {class_name}().execute(ctx);")
 
-            # Continue through processing/decision modules so final business state is produced.
-            # For validator modules, stop early on rejected return code.
-            if self._is_validation_module(called):
-                java_lines.append("        if (result.getReturnCode() != 0) {")
-                java_lines.append("            return result;")
+            if is_reject_checked:
+                java_lines.append("        if (!result.isOk()) {")
+                java_lines.append("            overallRc = result.getReturnCode();")
+
+                if reject_modules:
+                    for reject_module in reject_modules:
+                        reject_class = self._to_class_name(reject_module)
+                        java_lines.append(
+                            f"            // Reject-path module discovered from HLASM: {reject_module}"
+                        )
+                        java_lines.append(f"            new {reject_class}().execute(ctx);")
+                else:
+                    java_lines.append(
+                        "            // No reject-path module discovered in HLASM source."
+                    )
+
+                java_lines.append(
+                    f'            return ModuleResult.rc(overallRc, "{module} rejected by translated validation path");'
+                )
+                java_lines.append("        }")
+            else:
+                java_lines.append("        if (overallRc == 0 && result.getReturnCode() != 0) {")
+                java_lines.append("            overallRc = result.getReturnCode();")
                 java_lines.append("        }")
 
             java_lines.append("")
 
-        java_lines.append('        return ModuleResult.rc(result.getReturnCode(), "Application orchestration completed");')
+        # Success path final decision.
+        # Example: after FEECALC, AUTHDEC should still run to populate AUTHSTAT=APPRV.
+        for reject_module in reject_modules:
+            reject_class = self._to_class_name(reject_module)
+            java_lines.append(
+                f"        // Final decision module discovered from HLASM: {reject_module}"
+            )
+            java_lines.append(f"        new {reject_class}().execute(ctx);")
+            java_lines.append("")
+
+        java_lines.append(
+            f'        return ModuleResult.rc(overallRc, "{module} orchestration completed");'
+        )
 
         return "\n".join(java_lines)
-
-    def _is_validation_module(self, module):
-        """
-        Heuristic: modules that write ERRCODE and have non-zero return codes are validation gates.
-
-        This avoids hardcoding a specific application flow while still allowing
-        processing/decision modules such as FEECALC, AUTHDEC, and AUDWRITE to run.
-        """
-        module = module.upper()
-        writes = set(self.report.get("writes", {}).get(module, []))
-        return_codes = set(str(x) for x in self.report.get("return_codes", {}).get(module, []))
-
-        return "ERRCODE" in writes and any(code != "0" for code in return_codes)
 
     def _has_unconditional_terminal_return(self, translated_code):
         meaningful_lines = [

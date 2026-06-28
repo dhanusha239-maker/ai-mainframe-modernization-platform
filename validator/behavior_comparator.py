@@ -17,6 +17,8 @@ JAVA_OUTPUT_FILE = JAVA_DIR / "java_behavior_output.json"
 REPORT_FILE = DOCS_DIR / "behavior_comparison_report.md"
 RESULT_JSON_FILE = DOCS_DIR / "behavior_comparison_results.json"
 
+DEFAULT_BATCH_FILE = BATCH_DIR / "approval_transactions.csv"
+
 
 # -------------------------------------------------------------------
 # IMPORTANT FOR FUTURE DOMAINS / TEST CASES
@@ -203,6 +205,77 @@ def load_batch_file(csv_file):
             rows.append(cleaned)
 
     return rows
+
+
+def convert_batch_row_to_test_case(row, entry_module="MAINDRV"):
+    """
+    Convert one CSV batch row into the same test-case structure used by
+    behavior_test_cases.json.
+
+    This keeps batch validation generic:
+      CSV row -> standard behavior test case -> existing Java runner/comparator.
+
+    Required CSV columns:
+      CASE_ID, TXCUST, TXSTAT, TXAMT, TXLIMIT, TXTYPE,
+      EXPECTED_RC, EXPECTED_ERRCODE, EXPECTED_AUTHSTAT, EXPECTED_TXFEE
+    """
+
+    case_id = row.get("CASE_ID", "").strip()
+
+    if not case_id:
+        raise ValueError("Batch row is missing CASE_ID")
+
+    return {
+        "case_id": case_id,
+        "mode": "application",
+        "entry_module": entry_module,
+        "description": f"Batch transaction validation for {case_id}",
+        "input": {
+            "TXCUST": row.get("TXCUST", ""),
+            "TXSTAT": row.get("TXSTAT", ""),
+            "TXAMT": row.get("TXAMT", "0.00"),
+            "TXLIMIT": row.get("TXLIMIT", "0.00"),
+            "TXTYPE": row.get("TXTYPE", ""),
+            "ERRCODE": row.get("ERRCODE", "0000"),
+            "AUTHSTAT": row.get("AUTHSTAT", ""),
+            "TXFEE": row.get("TXFEE", "0.00"),
+        },
+        "expected_asm_output": {
+            "RC": row.get("EXPECTED_RC", ""),
+            "ERRCODE": row.get("EXPECTED_ERRCODE", ""),
+            "AUTHSTAT": row.get("EXPECTED_AUTHSTAT", ""),
+            "TXFEE": row.get("EXPECTED_TXFEE", ""),
+        },
+        "source": "batch_csv",
+        "customer_id": row.get("TXCUST", ""),
+        "batch_row": row,
+    }
+
+
+def load_batch_test_cases(csv_file=DEFAULT_BATCH_FILE, entry_module="MAINDRV"):
+    """
+    Load a CSV file and convert every transaction row into an application-mode
+    behavior test case.
+    """
+
+    rows = load_batch_file(csv_file)
+
+    return [
+        convert_batch_row_to_test_case(row, entry_module=entry_module)
+        for row in rows
+    ]
+
+
+def should_include_default_batch():
+    """
+    For Version 1, automatically include the default batch CSV when it exists.
+
+    If you want to disable batch validation temporarily, rename or remove:
+        test_cases/batch/approval_transactions.csv
+    """
+
+    return DEFAULT_BATCH_FILE.exists()
+
 
 
 def java_class_name(module_name):
@@ -503,12 +576,14 @@ def compare_all(test_cases, java_outputs):
             {
                 "case_id": case_id,
                 "mode": case.get("mode", "module"),
-                "module": case.get("module", "UNKNOWN"),
+                "module": case.get("module", case.get("entry_module", "UNKNOWN")),
                 "description": case.get("description", ""),
                 "input": case.get("input", {}),
                 "expected_asm_output": case.get("expected_asm_output", {}),
                 "actual_java_output": actual_java_output,
                 "comparison": comparison,
+                "source": case.get("source", ""),
+                "customer_id": case.get("customer_id", case.get("input", {}).get("TXCUST", "")),
             }
         )
 
@@ -544,6 +619,37 @@ def generate_markdown_report(results):
     lines.append(f"- Failed cases: `{failed_cases}`")
     lines.append(f"- Average behavior match score: `{average_score}%`")
     lines.append("")
+    batch_results = [
+        item for item in results
+        if item.get("source") == "batch_csv" or str(item.get("case_id", "")).startswith("TX")
+    ]
+
+    if batch_results:
+        batch_total = len(batch_results)
+        batch_passed = sum(
+            1 for item in batch_results
+            if item["comparison"]["match_score"] == 100.0
+        )
+        batch_failed = batch_total - batch_passed
+
+        failed_customers = [
+            item.get("customer_id") or item.get("input", {}).get("TXCUST", "")
+            for item in batch_results
+            if item["comparison"]["match_score"] != 100.0
+        ]
+
+        lines.append("## Batch Validation Summary")
+        lines.append("")
+        lines.append(f"- Batch records processed: `{batch_total}`")
+        lines.append(f"- Batch passed: `{batch_passed}`")
+        lines.append(f"- Batch failed: `{batch_failed}`")
+
+        if failed_customers:
+            lines.append(f"- Failure customer IDs: `{', '.join(failed_customers)}`")
+        else:
+            lines.append("- Failure customer IDs: `None`")
+
+        lines.append("")
 
     lines.append("## Validation Flow")
     lines.append("")
@@ -594,6 +700,11 @@ def generate_markdown_report(results):
         if comparison["mismatched_fields"]:
             lines.append("**Mismatches:**")
             lines.append("")
+            if item.get("source") == "batch_csv" or str(item.get("case_id", "")).startswith("TX"):
+                lines.append(
+                    f"**Failure customer ID:** `{item.get('customer_id') or item.get('input', {}).get('TXCUST', '')}`"
+                )
+                lines.append("")
             for mismatch in comparison["mismatched_fields"]:
                 lines.append(
                     f"- `{mismatch['field']}` expected `{mismatch['expected']}` "
@@ -652,6 +763,11 @@ def main():
     ensure_dirs()
 
     test_cases = load_test_cases()
+
+    if should_include_default_batch():
+        batch_cases = load_batch_test_cases(DEFAULT_BATCH_FILE, entry_module="MAINDRV")
+        test_cases.extend(batch_cases)
+        print(f"Loaded batch test cases: {len(batch_cases)} from {DEFAULT_BATCH_FILE}")
 
     generate_java_runner(test_cases)
     compile_java()

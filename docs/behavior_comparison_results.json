@@ -30,7 +30,9 @@
       "matched_fields": 2,
       "mismatched_fields": [],
       "match_score": 100.0
-    }
+    },
+    "source": "",
+    "customer_id": "CUST000001"
   },
   {
     "case_id": "CUSTVAL_INVALID_001",
@@ -63,7 +65,9 @@
       "matched_fields": 2,
       "mismatched_fields": [],
       "match_score": 100.0
-    }
+    },
+    "source": "",
+    "customer_id": "BAD000001"
   },
   {
     "case_id": "CARDSTAT_ACTIVE_001",
@@ -96,7 +100,9 @@
       "matched_fields": 2,
       "mismatched_fields": [],
       "match_score": 100.0
-    }
+    },
+    "source": "",
+    "customer_id": ""
   },
   {
     "case_id": "CARDSTAT_BLOCKED_001",
@@ -129,7 +135,9 @@
       "matched_fields": 2,
       "mismatched_fields": [],
       "match_score": 100.0
-    }
+    },
+    "source": "",
+    "customer_id": ""
   },
   {
     "case_id": "LIMITCHK_APPROVE_001",
@@ -163,7 +171,9 @@
       "matched_fields": 2,
       "mismatched_fields": [],
       "match_score": 100.0
-    }
+    },
+    "source": "",
+    "customer_id": ""
   },
   {
     "case_id": "LIMITCHK_REJECT_001",
@@ -197,7 +207,9 @@
       "matched_fields": 2,
       "mismatched_fields": [],
       "match_score": 100.0
-    }
+    },
+    "source": "",
+    "customer_id": ""
   },
   {
     "case_id": "FRDCHK_NORMAL_001",
@@ -231,7 +243,9 @@
       "matched_fields": 2,
       "mismatched_fields": [],
       "match_score": 100.0
-    }
+    },
+    "source": "",
+    "customer_id": ""
   },
   {
     "case_id": "FRDCHK_REMOTE_HIGH_001",
@@ -265,7 +279,9 @@
       "matched_fields": 2,
       "mismatched_fields": [],
       "match_score": 100.0
-    }
+    },
+    "source": "",
+    "customer_id": ""
   },
   {
     "case_id": "FEECALC_BASIC_001",
@@ -299,7 +315,9 @@
       "matched_fields": 2,
       "mismatched_fields": [],
       "match_score": 100.0
-    }
+    },
+    "source": "",
+    "customer_id": ""
   },
   {
     "case_id": "AUTHDEC_APPROVE_001",
@@ -338,7 +356,9 @@
         }
       ],
       "match_score": 50.0
-    }
+    },
+    "source": "",
+    "customer_id": ""
   },
   {
     "case_id": "AUTHDEC_REJECT_001",
@@ -371,12 +391,14 @@
       "matched_fields": 2,
       "mismatched_fields": [],
       "match_score": 100.0
-    }
+    },
+    "source": "",
+    "customer_id": ""
   },
   {
     "case_id": "APP_APPROVAL_FLOW_001",
     "mode": "application",
-    "module": "UNKNOWN",
+    "module": "MAINDRV",
     "description": "End-to-end approval flow through MAINDRV.",
     "input": {
       "TXCUST": "CUST000001",
@@ -418,6 +440,186 @@
         }
       ],
       "match_score": 75.0
-    }
+    },
+    "source": "",
+    "customer_id": "CUST000001"
+  },
+  {
+    "case_id": "TX001",
+    "mode": "application",
+    "module": "MAINDRV",
+    "description": "Batch transaction validation for TX001",
+    "input": {
+      "TXCUST": "CUST000001",
+      "TXSTAT": "A",
+      "TXAMT": "100.00",
+      "TXLIMIT": "500.00",
+      "TXTYPE": "PO",
+      "ERRCODE": "0000",
+      "AUTHSTAT": "",
+      "TXFEE": "0.00"
+    },
+    "expected_asm_output": {
+      "RC": "0",
+      "ERRCODE": "0000",
+      "AUTHSTAT": "APPRV",
+      "TXFEE": "1.50"
+    },
+    "actual_java_output": {
+      "case_id": "TX001",
+      "module": "MAINDRV",
+      "RC": "0",
+      "ERRCODE": "0000",
+      "AUTHSTAT": "REJCT",
+      "TXFEE": "1.50",
+      "TXAMT": "100.00",
+      "TXLIMIT": "500.00",
+      "TXCUST": "CUST000001",
+      "TXSTAT": "A",
+      "TXTYPE": "PO"
+    },
+    "comparison": {
+      "total_fields": 4,
+      "matched_fields": 3,
+      "mismatched_fields": [
+        {
+          "field": "AUTHSTAT",
+          "expected": "APPRV",
+          "actual": "REJCT"
+        }
+      ],
+      "match_score": 75.0
+    },
+    "source": "batch_csv",
+    "customer_id": "CUST000001"
+  },
+  {
+    "case_id": "TX002",
+    "mode": "application",
+    "module": "MAINDRV",
+    "description": "Batch transaction validation for TX002",
+    "input": {
+      "TXCUST": "CUST000002",
+      "TXSTAT": "A",
+      "TXAMT": "700.00",
+      "TXLIMIT": "500.00",
+      "TXTYPE": "PO",
+      "ERRCODE": "0000",
+      "AUTHSTAT": "",
+      "TXFEE": "0.00"
+    },
+    "expected_asm_output": {
+      "RC": "4",
+      "ERRCODE": "E003",
+      "AUTHSTAT": "REJCT",
+      "TXFEE": "0.00"
+    },
+    "actual_java_output": {
+      "case_id": "TX002",
+      "module": "MAINDRV",
+      "RC": "4",
+      "ERRCODE": "E003",
+      "AUTHSTAT": "REJCT",
+      "TXFEE": "0.00",
+      "TXAMT": "700.00",
+      "TXLIMIT": "500.00",
+      "TXCUST": "CUST000002",
+      "TXSTAT": "A",
+      "TXTYPE": "PO"
+    },
+    "comparison": {
+      "total_fields": 4,
+      "matched_fields": 4,
+      "mismatched_fields": [],
+      "match_score": 100.0
+    },
+    "source": "batch_csv",
+    "customer_id": "CUST000002"
+  },
+  {
+    "case_id": "TX003",
+    "mode": "application",
+    "module": "MAINDRV",
+    "description": "Batch transaction validation for TX003",
+    "input": {
+      "TXCUST": "CUST000003",
+      "TXSTAT": "B",
+      "TXAMT": "100.00",
+      "TXLIMIT": "500.00",
+      "TXTYPE": "PO",
+      "ERRCODE": "0000",
+      "AUTHSTAT": "",
+      "TXFEE": "0.00"
+    },
+    "expected_asm_output": {
+      "RC": "4",
+      "ERRCODE": "E002",
+      "AUTHSTAT": "REJCT",
+      "TXFEE": "0.00"
+    },
+    "actual_java_output": {
+      "case_id": "TX003",
+      "module": "MAINDRV",
+      "RC": "4",
+      "ERRCODE": "E002",
+      "AUTHSTAT": "REJCT",
+      "TXFEE": "0.00",
+      "TXAMT": "100.00",
+      "TXLIMIT": "500.00",
+      "TXCUST": "CUST000003",
+      "TXSTAT": "B",
+      "TXTYPE": "PO"
+    },
+    "comparison": {
+      "total_fields": 4,
+      "matched_fields": 4,
+      "mismatched_fields": [],
+      "match_score": 100.0
+    },
+    "source": "batch_csv",
+    "customer_id": "CUST000003"
+  },
+  {
+    "case_id": "TX004",
+    "mode": "application",
+    "module": "MAINDRV",
+    "description": "Batch transaction validation for TX004",
+    "input": {
+      "TXCUST": "CUST000004",
+      "TXSTAT": "A",
+      "TXAMT": "600.00",
+      "TXLIMIT": "700.00",
+      "TXTYPE": "RE",
+      "ERRCODE": "0000",
+      "AUTHSTAT": "",
+      "TXFEE": "0.00"
+    },
+    "expected_asm_output": {
+      "RC": "4",
+      "ERRCODE": "E004",
+      "AUTHSTAT": "REJCT",
+      "TXFEE": "0.00"
+    },
+    "actual_java_output": {
+      "case_id": "TX004",
+      "module": "MAINDRV",
+      "RC": "4",
+      "ERRCODE": "E004",
+      "AUTHSTAT": "REJCT",
+      "TXFEE": "0.00",
+      "TXAMT": "600.00",
+      "TXLIMIT": "700.00",
+      "TXCUST": "CUST000004",
+      "TXSTAT": "A",
+      "TXTYPE": "RE"
+    },
+    "comparison": {
+      "total_fields": 4,
+      "matched_fields": 4,
+      "mismatched_fields": [],
+      "match_score": 100.0
+    },
+    "source": "batch_csv",
+    "customer_id": "CUST000004"
   }
 ]

@@ -20,6 +20,10 @@ public class BehaviorTestRunner {
         results.add(runCase9());
         results.add(runCase10());
         results.add(runCase11());
+        results.add(runCase12());
+        results.add(runCase13());
+        results.add(runCase14());
+        results.add(runCase15());
 
         writeJson(results);
     }
@@ -422,6 +426,150 @@ public class BehaviorTestRunner {
 
         java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
         output.put("case_id", "APP_APPROVAL_FLOW_001");
+        output.put("module", "MAINDRV");
+        output.put("RC", String.valueOf(rc));
+
+        output.put("ERRCODE", ctx.getString("ERRCODE"));
+        output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
+        output.put("TXFEE", ctx.getString("TXFEE"));
+        output.put("TXAMT", ctx.getString("TXAMT"));
+        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
+        output.put("TXCUST", ctx.getString("TXCUST"));
+        output.put("TXSTAT", ctx.getString("TXSTAT"));
+        output.put("TXTYPE", ctx.getString("TXTYPE"));
+
+        return output;
+    }
+
+
+    private static java.util.Map<String, String> runCase12() {
+        ExecutionContext ctx = new ExecutionContext();
+
+        ctx.setString("TXCUST", "CUST000001");
+        ctx.setString("TXSTAT", "A");
+        ctx.setDecimal("TXAMT", new java.math.BigDecimal("100.00"));
+        ctx.setDecimal("TXLIMIT", new java.math.BigDecimal("500.00"));
+        ctx.setString("TXTYPE", "PO");
+        ctx.setString("ERRCODE", "0000");
+        ctx.setString("AUTHSTAT", "");
+        ctx.setDecimal("TXFEE", new java.math.BigDecimal("0.00"));
+
+
+                AssemblerModule application = new Maindrv();
+                ModuleResult result = application.execute(ctx);
+                int rc = result.getReturnCode();
+        
+
+        java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
+        output.put("case_id", "TX001");
+        output.put("module", "MAINDRV");
+        output.put("RC", String.valueOf(rc));
+
+        output.put("ERRCODE", ctx.getString("ERRCODE"));
+        output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
+        output.put("TXFEE", ctx.getString("TXFEE"));
+        output.put("TXAMT", ctx.getString("TXAMT"));
+        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
+        output.put("TXCUST", ctx.getString("TXCUST"));
+        output.put("TXSTAT", ctx.getString("TXSTAT"));
+        output.put("TXTYPE", ctx.getString("TXTYPE"));
+
+        return output;
+    }
+
+
+    private static java.util.Map<String, String> runCase13() {
+        ExecutionContext ctx = new ExecutionContext();
+
+        ctx.setString("TXCUST", "CUST000002");
+        ctx.setString("TXSTAT", "A");
+        ctx.setDecimal("TXAMT", new java.math.BigDecimal("700.00"));
+        ctx.setDecimal("TXLIMIT", new java.math.BigDecimal("500.00"));
+        ctx.setString("TXTYPE", "PO");
+        ctx.setString("ERRCODE", "0000");
+        ctx.setString("AUTHSTAT", "");
+        ctx.setDecimal("TXFEE", new java.math.BigDecimal("0.00"));
+
+
+                AssemblerModule application = new Maindrv();
+                ModuleResult result = application.execute(ctx);
+                int rc = result.getReturnCode();
+        
+
+        java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
+        output.put("case_id", "TX002");
+        output.put("module", "MAINDRV");
+        output.put("RC", String.valueOf(rc));
+
+        output.put("ERRCODE", ctx.getString("ERRCODE"));
+        output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
+        output.put("TXFEE", ctx.getString("TXFEE"));
+        output.put("TXAMT", ctx.getString("TXAMT"));
+        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
+        output.put("TXCUST", ctx.getString("TXCUST"));
+        output.put("TXSTAT", ctx.getString("TXSTAT"));
+        output.put("TXTYPE", ctx.getString("TXTYPE"));
+
+        return output;
+    }
+
+
+    private static java.util.Map<String, String> runCase14() {
+        ExecutionContext ctx = new ExecutionContext();
+
+        ctx.setString("TXCUST", "CUST000003");
+        ctx.setString("TXSTAT", "B");
+        ctx.setDecimal("TXAMT", new java.math.BigDecimal("100.00"));
+        ctx.setDecimal("TXLIMIT", new java.math.BigDecimal("500.00"));
+        ctx.setString("TXTYPE", "PO");
+        ctx.setString("ERRCODE", "0000");
+        ctx.setString("AUTHSTAT", "");
+        ctx.setDecimal("TXFEE", new java.math.BigDecimal("0.00"));
+
+
+                AssemblerModule application = new Maindrv();
+                ModuleResult result = application.execute(ctx);
+                int rc = result.getReturnCode();
+        
+
+        java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
+        output.put("case_id", "TX003");
+        output.put("module", "MAINDRV");
+        output.put("RC", String.valueOf(rc));
+
+        output.put("ERRCODE", ctx.getString("ERRCODE"));
+        output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
+        output.put("TXFEE", ctx.getString("TXFEE"));
+        output.put("TXAMT", ctx.getString("TXAMT"));
+        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
+        output.put("TXCUST", ctx.getString("TXCUST"));
+        output.put("TXSTAT", ctx.getString("TXSTAT"));
+        output.put("TXTYPE", ctx.getString("TXTYPE"));
+
+        return output;
+    }
+
+
+    private static java.util.Map<String, String> runCase15() {
+        ExecutionContext ctx = new ExecutionContext();
+
+        ctx.setString("TXCUST", "CUST000004");
+        ctx.setString("TXSTAT", "A");
+        ctx.setDecimal("TXAMT", new java.math.BigDecimal("600.00"));
+        ctx.setDecimal("TXLIMIT", new java.math.BigDecimal("700.00"));
+        ctx.setString("TXTYPE", "RE");
+        ctx.setString("ERRCODE", "0000");
+        ctx.setString("AUTHSTAT", "");
+        ctx.setDecimal("TXFEE", new java.math.BigDecimal("0.00"));
+
+
+                AssemblerModule application = new Maindrv();
+                ModuleResult result = application.execute(ctx);
+                int rc = result.getReturnCode();
+        
+
+        java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
+        output.put("case_id", "TX004");
         output.put("module", "MAINDRV");
         output.put("RC", String.valueOf(rc));
 
