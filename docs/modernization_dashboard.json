@@ -1,0 +1,490 @@
+{
+  "generated_on": "2026-06-28 19:41:33",
+  "project": "AI-Powered Legacy Software Intelligence & Modernization Platform",
+  "version": "Week 2 Modernization Dashboard",
+  "summary": {
+    "module_count": 9,
+    "behavior_match_score": 93.75,
+    "total_behavior_tests": 16,
+    "passed_tests": 13,
+    "failed_tests": 3,
+    "batch_records": 4,
+    "batch_passed": 3,
+    "batch_failed": 1
+  },
+  "cfg_pdg_summary": {
+    "cfg_available": false,
+    "pdg_available": false,
+    "cfg_module_count": 0,
+    "pdg_module_count": 0
+  },
+  "module_summary": [
+    {
+      "module": "AUDWRITE",
+      "fields_read": [
+        "TXCUST",
+        "AUTHSTAT",
+        "TXCARD",
+        "TXAMT",
+        "LOGBUFF"
+      ],
+      "fields_written": [
+        "LOGBUFF",
+        "LOGCUST",
+        "LOGSTAT",
+        "LOGPAN",
+        "LOGMASK"
+      ],
+      "return_codes": [
+        "0"
+      ],
+      "condition_count": 0,
+      "behavior_test_count": 0,
+      "average_behavior_match": null
+    },
+    {
+      "module": "AUTHDEC",
+      "fields_read": [
+        "AUTHSTAT"
+      ],
+      "fields_written": [
+        "AUTHSTAT"
+      ],
+      "return_codes": [
+        "0"
+      ],
+      "condition_count": 1,
+      "behavior_test_count": 2,
+      "average_behavior_match": 75.0
+    },
+    {
+      "module": "CARDSTAT",
+      "fields_read": [
+        "TXSTAT"
+      ],
+      "fields_written": [
+        "ERRCODE"
+      ],
+      "return_codes": [
+        "4",
+        "0"
+      ],
+      "condition_count": 1,
+      "behavior_test_count": 2,
+      "average_behavior_match": 100.0
+    },
+    {
+      "module": "CUSTVAL",
+      "fields_read": [
+        "TXCUST"
+      ],
+      "fields_written": [
+        "ERRCODE"
+      ],
+      "return_codes": [
+        "4",
+        "0"
+      ],
+      "condition_count": 1,
+      "behavior_test_count": 2,
+      "average_behavior_match": 100.0
+    },
+    {
+      "module": "FEECALC",
+      "fields_read": [
+        "TXAMT",
+        "FEEWORK"
+      ],
+      "fields_written": [
+        "FEEWORK",
+        "TXFEE"
+      ],
+      "return_codes": [
+        "0"
+      ],
+      "condition_count": 0,
+      "behavior_test_count": 1,
+      "average_behavior_match": 100.0
+    },
+    {
+      "module": "FRDCHK",
+      "fields_read": [
+        "TXAMT",
+        "TXTYPE"
+      ],
+      "fields_written": [
+        "ERRCODE"
+      ],
+      "return_codes": [
+        "4",
+        "0"
+      ],
+      "condition_count": 2,
+      "behavior_test_count": 2,
+      "average_behavior_match": 100.0
+    },
+    {
+      "module": "LIMITCHK",
+      "fields_read": [
+        "TXAMT",
+        "TXLIMIT"
+      ],
+      "fields_written": [
+        "ERRCODE"
+      ],
+      "return_codes": [
+        "4",
+        "0"
+      ],
+      "condition_count": 1,
+      "behavior_test_count": 2,
+      "average_behavior_match": 100.0
+    },
+    {
+      "module": "MAINDRV",
+      "fields_read": [],
+      "fields_written": [],
+      "return_codes": [
+        "0",
+        "12",
+        "16"
+      ],
+      "condition_count": 7,
+      "behavior_test_count": 5,
+      "average_behavior_match": 90.0
+    },
+    {
+      "module": "TXREAD",
+      "fields_read": [
+        "INRPL"
+      ],
+      "fields_written": [
+        "CURRTX"
+      ],
+      "return_codes": [
+        "8",
+        "4",
+        "0"
+      ],
+      "condition_count": 1,
+      "behavior_test_count": 0,
+      "average_behavior_match": null
+    }
+  ],
+  "behavior_summary": {
+    "total_test_cases": 16,
+    "passed": 13,
+    "failed": 3,
+    "average_behavior_match": 93.75,
+    "failed_cases": [
+      {
+        "case_id": "AUTHDEC_APPROVE_001",
+        "module": "AUTHDEC",
+        "customer_id": "",
+        "match_score": 50.0,
+        "mismatches": [
+          {
+            "field": "AUTHSTAT",
+            "expected": "APPRV",
+            "actual": "REJCT"
+          }
+        ]
+      },
+      {
+        "case_id": "APP_APPROVAL_FLOW_001",
+        "module": "MAINDRV",
+        "customer_id": "CUST000001",
+        "match_score": 75.0,
+        "mismatches": [
+          {
+            "field": "AUTHSTAT",
+            "expected": "APPRV",
+            "actual": "REJCT"
+          }
+        ]
+      },
+      {
+        "case_id": "TX001",
+        "module": "MAINDRV",
+        "customer_id": "CUST000001",
+        "match_score": 75.0,
+        "mismatches": [
+          {
+            "field": "AUTHSTAT",
+            "expected": "APPRV",
+            "actual": "REJCT"
+          }
+        ]
+      }
+    ]
+  },
+  "batch_summary": {
+    "batch_records": 4,
+    "batch_passed": 3,
+    "batch_failed": 1,
+    "failed_customers": [
+      {
+        "case_id": "TX001",
+        "customer_id": "CUST000001",
+        "module": "MAINDRV",
+        "mismatches": [
+          {
+            "field": "AUTHSTAT",
+            "expected": "APPRV",
+            "actual": "REJCT"
+          }
+        ]
+      }
+    ]
+  },
+  "change_impact_analysis": [
+    {
+      "symbol": "ERRCODE",
+      "written_by": [
+        "CARDSTAT",
+        "CUSTVAL",
+        "FRDCHK",
+        "LIMITCHK"
+      ],
+      "read_by": [],
+      "impacted_modules": [
+        "CARDSTAT",
+        "CUSTVAL",
+        "FRDCHK",
+        "LIMITCHK"
+      ],
+      "impact_count": 4,
+      "impact_level": "Medium",
+      "recommendation": "Changing ERRCODE has moderate impact. Run module and application behavior validation after modification."
+    },
+    {
+      "symbol": "TXAMT",
+      "written_by": [],
+      "read_by": [
+        "AUDWRITE",
+        "FEECALC",
+        "FRDCHK",
+        "LIMITCHK"
+      ],
+      "impacted_modules": [
+        "AUDWRITE",
+        "FEECALC",
+        "FRDCHK",
+        "LIMITCHK"
+      ],
+      "impact_count": 4,
+      "impact_level": "Medium",
+      "recommendation": "Changing TXAMT has moderate impact. Run module and application behavior validation after modification."
+    },
+    {
+      "symbol": "AUTHSTAT",
+      "written_by": [
+        "AUTHDEC"
+      ],
+      "read_by": [
+        "AUDWRITE",
+        "AUTHDEC"
+      ],
+      "impacted_modules": [
+        "AUTHDEC",
+        "AUDWRITE"
+      ],
+      "impact_count": 2,
+      "impact_level": "Low",
+      "recommendation": "Changing AUTHSTAT appears low impact, but regression validation is still recommended."
+    },
+    {
+      "symbol": "TXCUST",
+      "written_by": [],
+      "read_by": [
+        "AUDWRITE",
+        "CUSTVAL"
+      ],
+      "impacted_modules": [
+        "AUDWRITE",
+        "CUSTVAL"
+      ],
+      "impact_count": 2,
+      "impact_level": "Low",
+      "recommendation": "Changing TXCUST appears low impact, but regression validation is still recommended."
+    },
+    {
+      "symbol": "CURRTX",
+      "written_by": [
+        "TXREAD"
+      ],
+      "read_by": [],
+      "impacted_modules": [
+        "TXREAD"
+      ],
+      "impact_count": 1,
+      "impact_level": "Low",
+      "recommendation": "Changing CURRTX appears low impact, but regression validation is still recommended."
+    },
+    {
+      "symbol": "FEEWORK",
+      "written_by": [
+        "FEECALC"
+      ],
+      "read_by": [
+        "FEECALC"
+      ],
+      "impacted_modules": [
+        "FEECALC"
+      ],
+      "impact_count": 1,
+      "impact_level": "Low",
+      "recommendation": "Changing FEEWORK appears low impact, but regression validation is still recommended."
+    },
+    {
+      "symbol": "INRPL",
+      "written_by": [],
+      "read_by": [
+        "TXREAD"
+      ],
+      "impacted_modules": [
+        "TXREAD"
+      ],
+      "impact_count": 1,
+      "impact_level": "Low",
+      "recommendation": "Changing INRPL appears low impact, but regression validation is still recommended."
+    },
+    {
+      "symbol": "LOGBUFF",
+      "written_by": [
+        "AUDWRITE"
+      ],
+      "read_by": [
+        "AUDWRITE"
+      ],
+      "impacted_modules": [
+        "AUDWRITE"
+      ],
+      "impact_count": 1,
+      "impact_level": "Low",
+      "recommendation": "Changing LOGBUFF appears low impact, but regression validation is still recommended."
+    },
+    {
+      "symbol": "LOGCUST",
+      "written_by": [
+        "AUDWRITE"
+      ],
+      "read_by": [],
+      "impacted_modules": [
+        "AUDWRITE"
+      ],
+      "impact_count": 1,
+      "impact_level": "Low",
+      "recommendation": "Changing LOGCUST appears low impact, but regression validation is still recommended."
+    },
+    {
+      "symbol": "LOGMASK",
+      "written_by": [
+        "AUDWRITE"
+      ],
+      "read_by": [],
+      "impacted_modules": [
+        "AUDWRITE"
+      ],
+      "impact_count": 1,
+      "impact_level": "Low",
+      "recommendation": "Changing LOGMASK appears low impact, but regression validation is still recommended."
+    },
+    {
+      "symbol": "LOGPAN",
+      "written_by": [
+        "AUDWRITE"
+      ],
+      "read_by": [],
+      "impacted_modules": [
+        "AUDWRITE"
+      ],
+      "impact_count": 1,
+      "impact_level": "Low",
+      "recommendation": "Changing LOGPAN appears low impact, but regression validation is still recommended."
+    },
+    {
+      "symbol": "LOGSTAT",
+      "written_by": [
+        "AUDWRITE"
+      ],
+      "read_by": [],
+      "impacted_modules": [
+        "AUDWRITE"
+      ],
+      "impact_count": 1,
+      "impact_level": "Low",
+      "recommendation": "Changing LOGSTAT appears low impact, but regression validation is still recommended."
+    },
+    {
+      "symbol": "TXCARD",
+      "written_by": [],
+      "read_by": [
+        "AUDWRITE"
+      ],
+      "impacted_modules": [
+        "AUDWRITE"
+      ],
+      "impact_count": 1,
+      "impact_level": "Low",
+      "recommendation": "Changing TXCARD appears low impact, but regression validation is still recommended."
+    },
+    {
+      "symbol": "TXFEE",
+      "written_by": [
+        "FEECALC"
+      ],
+      "read_by": [],
+      "impacted_modules": [
+        "FEECALC"
+      ],
+      "impact_count": 1,
+      "impact_level": "Low",
+      "recommendation": "Changing TXFEE appears low impact, but regression validation is still recommended."
+    },
+    {
+      "symbol": "TXLIMIT",
+      "written_by": [],
+      "read_by": [
+        "LIMITCHK"
+      ],
+      "impacted_modules": [
+        "LIMITCHK"
+      ],
+      "impact_count": 1,
+      "impact_level": "Low",
+      "recommendation": "Changing TXLIMIT appears low impact, but regression validation is still recommended."
+    },
+    {
+      "symbol": "TXSTAT",
+      "written_by": [],
+      "read_by": [
+        "CARDSTAT"
+      ],
+      "impacted_modules": [
+        "CARDSTAT"
+      ],
+      "impact_count": 1,
+      "impact_level": "Low",
+      "recommendation": "Changing TXSTAT appears low impact, but regression validation is still recommended."
+    },
+    {
+      "symbol": "TXTYPE",
+      "written_by": [],
+      "read_by": [
+        "FRDCHK"
+      ],
+      "impacted_modules": [
+        "FRDCHK"
+      ],
+      "impact_count": 1,
+      "impact_level": "Low",
+      "recommendation": "Changing TXTYPE appears low impact, but regression validation is still recommended."
+    }
+  ],
+  "recommendations": [
+    "Review failed behavior comparison cases and update translator rules or document known limitations.",
+    "Review failed batch customer IDs and confirm whether expected ASM behavior or generated Java behavior should be adjusted.",
+    "Use this dashboard with the Week 1 ML risk predictor output to create a combined modernization intelligence report."
+  ]
+}
