@@ -1,5 +1,5 @@
 {
-  "generated_on": "2026-06-28 19:41:33",
+  "generated_on": "2026-06-28 22:34:28",
   "project": "AI-Powered Legacy Software Intelligence & Modernization Platform",
   "version": "Week 2 Modernization Dashboard",
   "summary": {
@@ -13,10 +13,17 @@
     "batch_failed": 1
   },
   "cfg_pdg_summary": {
-    "cfg_available": false,
-    "pdg_available": false,
-    "cfg_module_count": 0,
-    "pdg_module_count": 0
+    "cfg_available": true,
+    "pdg_available": true,
+    "cfg_source_key": "derived_from_conditions_and_branches",
+    "pdg_source_key": "derived_from_reads_writes_and_symbol_dependencies",
+    "cfg_module_count": 7,
+    "pdg_module_count": 8,
+    "cfg_condition_count": 14,
+    "cfg_branch_count": 13,
+    "pdg_read_edges": 15,
+    "pdg_write_edges": 13,
+    "pdg_symbol_dependency_edges": 28
   },
   "module_summary": [
     {
@@ -188,7 +195,25 @@
             "expected": "APPRV",
             "actual": "REJCT"
           }
-        ]
+        ],
+        "expected": {
+          "RC": "0",
+          "AUTHSTAT": "APPRV"
+        },
+        "actual": {
+          "case_id": "AUTHDEC_APPROVE_001",
+          "module": "AUTHDEC",
+          "RC": "0",
+          "AUTHSTAT": "REJCT",
+          "ERRCODE": "0000",
+          "TXFEE": "",
+          "TXAMT": "",
+          "TXLIMIT": "",
+          "TXCUST": "",
+          "TXSTAT": "",
+          "TXTYPE": ""
+        },
+        "diagnosis": "AUTHDEC approval-path mismatch. When ERRCODE is 0000, expected AUTHSTAT is APPRV, but generated Java did not produce APPRV. Suggested review: approval branch translation in AUTHDEC."
       },
       {
         "case_id": "APP_APPROVAL_FLOW_001",
@@ -201,7 +226,27 @@
             "expected": "APPRV",
             "actual": "REJCT"
           }
-        ]
+        ],
+        "expected": {
+          "RC": "0",
+          "ERRCODE": "0000",
+          "AUTHSTAT": "APPRV",
+          "TXFEE": "1.50"
+        },
+        "actual": {
+          "case_id": "APP_APPROVAL_FLOW_001",
+          "module": "MAINDRV",
+          "RC": "0",
+          "ERRCODE": "0000",
+          "AUTHSTAT": "REJCT",
+          "TXFEE": "1.50",
+          "TXAMT": "100.00",
+          "TXLIMIT": "500.00",
+          "TXCUST": "CUST000001",
+          "TXSTAT": "A",
+          "TXTYPE": "PO"
+        },
+        "diagnosis": "AUTHDEC approval-path mismatch. When ERRCODE is 0000, expected AUTHSTAT is APPRV, but generated Java did not produce APPRV. Suggested review: approval branch translation in AUTHDEC."
       },
       {
         "case_id": "TX001",
@@ -214,7 +259,27 @@
             "expected": "APPRV",
             "actual": "REJCT"
           }
-        ]
+        ],
+        "expected": {
+          "RC": "0",
+          "ERRCODE": "0000",
+          "AUTHSTAT": "APPRV",
+          "TXFEE": "1.50"
+        },
+        "actual": {
+          "case_id": "TX001",
+          "module": "MAINDRV",
+          "RC": "0",
+          "ERRCODE": "0000",
+          "AUTHSTAT": "REJCT",
+          "TXFEE": "1.50",
+          "TXAMT": "100.00",
+          "TXLIMIT": "500.00",
+          "TXCUST": "CUST000001",
+          "TXSTAT": "A",
+          "TXTYPE": "PO"
+        },
+        "diagnosis": "AUTHDEC approval-path mismatch. When ERRCODE is 0000, expected AUTHSTAT is APPRV, but generated Java did not produce APPRV. Suggested review: approval branch translation in AUTHDEC."
       }
     ]
   },
@@ -233,7 +298,8 @@
             "expected": "APPRV",
             "actual": "REJCT"
           }
-        ]
+        ],
+        "diagnosis": "AUTHDEC approval-path mismatch. When ERRCODE is 0000, expected AUTHSTAT is APPRV, but generated Java did not produce APPRV. Suggested review: approval branch translation in AUTHDEC."
       }
     ]
   },
@@ -483,8 +549,9 @@
     }
   ],
   "recommendations": [
+    "AUTHDEC approval path requires review: when ERRCODE = 0000, expected AUTHSTAT is APPRV. The validation engine detected this as the main remaining behavior gap.",
     "Review failed behavior comparison cases and update translator rules or document known limitations.",
-    "Review failed batch customer IDs and confirm whether expected ASM behavior or generated Java behavior should be adjusted.",
+    "Review failed batch customer IDs. The current failed batch case is linked to the same AUTHDEC approval-path behavior.",
     "Use this dashboard with the Week 1 ML risk predictor output to create a combined modernization intelligence report."
   ]
 }

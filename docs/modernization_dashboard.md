@@ -1,6 +1,6 @@
 # Modernization Dashboard
 
-Generated on: `2026-06-28 19:41:33`
+Generated on: `2026-06-28 22:34:28`
 
 ## 1. Executive Summary
 
@@ -15,10 +15,17 @@ Generated on: `2026-06-28 19:41:33`
 
 ## 2. CFG / PDG Summary
 
-- CFG available: `False`
-- PDG available: `False`
-- CFG module count: `0`
-- PDG module count: `0`
+- CFG available: `True`
+- PDG available: `True`
+- CFG source key: `derived_from_conditions_and_branches`
+- PDG source key: `derived_from_reads_writes_and_symbol_dependencies`
+- CFG module count: `7`
+- PDG module count: `8`
+- CFG condition count: `14`
+- CFG branch count: `13`
+- PDG read edges: `15`
+- PDG write edges: `13`
+- PDG symbol dependency edges: `28`
 
 ## 3. Module Summary
 
@@ -45,12 +52,15 @@ Generated on: `2026-06-28 19:41:33`
 
 - `AUTHDEC_APPROVE_001` in module `AUTHDEC`
   - Match score: `50.0%`
+  - Diagnosis: AUTHDEC approval-path mismatch. When ERRCODE is 0000, expected AUTHSTAT is APPRV, but generated Java did not produce APPRV. Suggested review: approval branch translation in AUTHDEC.
 - `APP_APPROVAL_FLOW_001` in module `MAINDRV`
   - Customer ID: `CUST000001`
   - Match score: `75.0%`
+  - Diagnosis: AUTHDEC approval-path mismatch. When ERRCODE is 0000, expected AUTHSTAT is APPRV, but generated Java did not produce APPRV. Suggested review: approval branch translation in AUTHDEC.
 - `TX001` in module `MAINDRV`
   - Customer ID: `CUST000001`
   - Match score: `75.0%`
+  - Diagnosis: AUTHDEC approval-path mismatch. When ERRCODE is 0000, expected AUTHSTAT is APPRV, but generated Java did not produce APPRV. Suggested review: approval branch translation in AUTHDEC.
 
 ## 5. Batch Validation Summary
 
@@ -61,6 +71,7 @@ Generated on: `2026-06-28 19:41:33`
 ### Failed Batch Customers
 
 - Case `TX001` / Customer `CUST000001` / Module `MAINDRV`
+  - Diagnosis: AUTHDEC approval-path mismatch. When ERRCODE is 0000, expected AUTHSTAT is APPRV, but generated Java did not produce APPRV. Suggested review: approval branch translation in AUTHDEC.
 
 ## 6. Change Impact Analysis
 
@@ -82,10 +93,11 @@ Generated on: `2026-06-28 19:41:33`
 | `TXFEE` | `FEECALC` | None | 1 | `Low` |
 | `TXLIMIT` | None | `LIMITCHK` | 1 | `Low` |
 
-## 7. Recommendations
+## 7. AI-Style Modernization Recommendations
 
+- AUTHDEC approval path requires review: when ERRCODE = 0000, expected AUTHSTAT is APPRV. The validation engine detected this as the main remaining behavior gap.
 - Review failed behavior comparison cases and update translator rules or document known limitations.
-- Review failed batch customer IDs and confirm whether expected ASM behavior or generated Java behavior should be adjusted.
+- Review failed batch customer IDs. The current failed batch case is linked to the same AUTHDEC approval-path behavior.
 - Use this dashboard with the Week 1 ML risk predictor output to create a combined modernization intelligence report.
 
 ## 8. Week 1 ML Integration Placeholder
