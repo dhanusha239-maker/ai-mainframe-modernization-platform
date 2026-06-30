@@ -491,14 +491,6 @@ def save_markdown(dashboard):
     lines.append(f"- PDG symbol dependency edges: `{cfg_pdg['pdg_symbol_dependency_edges']}`")
     lines.append("")
 
-    if not cfg_pdg["cfg_available"] and not cfg_pdg["pdg_available"]:
-        lines.append(
-            "> Note: CFG/PDG builders are part of the analyzer pipeline, but this dashboard "
-            "did not find CFG/PDG keys in `analysis_report.json`. If needed, export CFG/PDG "
-            "summaries from `impact_analyzer.py` using keys such as `cfg` and `pdg`."
-        )
-        lines.append("")
-
     lines.append("## 3. Module Summary")
     lines.append("")
     lines.append("| Module | Reads | Writes | Conditions | Behavior Match |")

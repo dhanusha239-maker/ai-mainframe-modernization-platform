@@ -490,6 +490,7 @@ No mismatches detected.
 }
 ```
 
+
 **Mismatches:**
 
 - `AUTHSTAT` expected `APPRV` but Java produced `REJCT`
