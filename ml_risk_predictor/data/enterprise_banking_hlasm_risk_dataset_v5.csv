@@ -1,0 +1,1001 @@
+application_name,business_process,module_name,module_role,lines_of_code,branch_instruction_count,called_module_count,calling_module_count,file_io_count,database_access_count,macro_call_count,packed_decimal_instruction_count,historical_defect_count,change_count_last_12_months,comment_ratio,unsupported_instruction_count,risk_level
+Savings Accounts,Withdrawal Processing,BALI92,Interface,262,47,6,10,1,4,10,45,5,10,0.57,1,Low
+Loans,Interest Calculation,CALCI66,Interface,4420,9,4,6,0,1,4,37,1,6,0.43,2,Medium
+Reporting,Month End Reporting,GLMR06,ReportWriter,8605,189,21,20,11,5,34,18,18,19,0.09,8,High
+Customer Management,Profile Maintenance,CUSTI95,Interface,4877,104,11,14,1,9,4,37,3,21,0.16,0,Medium
+Customer Management,Customer Onboarding,ONBRU89,Utility,3908,171,6,21,18,6,9,72,27,38,0.08,12,High
+Current Accounts,Balance Maintenance,BALC87,Calculation,5064,59,2,11,8,7,8,55,18,9,0.39,4,Medium
+Current Accounts,Overdraft Control,AUTHP15,BatchProcessor,3051,46,1,18,10,6,21,38,6,25,0.3,1,Medium
+Compliance,Audit Logging,HISTA18,Audit,2381,79,10,29,6,2,29,26,24,35,0.11,10,High
+Savings Accounts,Withdrawal Processing,LIMM13,Compliance,6452,27,5,12,5,5,15,53,9,19,0.15,2,High
+Current Accounts,Charge Calculation,CALCA50,Audit,1090,102,7,6,8,8,10,37,12,18,0.1,3,Medium
+Loans,EMI Processing,BALR35,ReportWriter,8850,99,8,6,14,6,20,90,14,10,0.07,4,High
+Savings Accounts,Deposit Posting,POSTU59,Utility,1112,63,2,30,11,6,10,46,21,10,0.0,5,High
+Compliance,Sanction Screening,RULEM82,Compliance,2864,201,15,4,3,16,7,6,8,10,0.19,9,High
+Credit Cards,Limit Management,CARDC69,Calculation,5586,119,13,6,9,10,21,51,17,19,0.09,2,Medium
+Compliance,AML Monitoring,RULEA90,Audit,3537,39,1,14,12,10,16,42,5,20,0.42,6,Low
+Loans,Loan Origination,DOCC85,Calculation,8103,13,4,6,3,1,6,61,1,6,0.37,1,Low
+Loans,Loan Origination,LOANC29,Calculation,2946,68,7,10,4,6,6,44,14,13,0.4,0,Medium
+Payments,Standing Instruction,STNDP06,BatchProcessor,1834,9,5,8,0,4,12,13,1,2,0.21,3,Low
+Current Accounts,Overdraft Control,LIMP00,BatchProcessor,3821,99,12,10,6,8,7,60,9,8,0.1,6,Medium
+Current Accounts,Balance Maintenance,BALR47,ReportWriter,6512,86,7,11,11,7,13,12,18,22,0.14,0,Medium
+Payments,Standing Instruction,SCHDV97,Validation,6874,120,4,15,6,3,6,14,9,14,0.35,2,Medium
+Savings Accounts,Deposit Posting,POSTU01,Utility,1214,16,0,10,4,0,8,36,0,2,0.42,0,Low
+Reporting,Year End Reporting,GLMC37,Calculation,8001,92,17,21,10,10,13,66,14,24,0.15,5,High
+Loans,Interest Calculation,POSTC52,Calculation,3373,47,4,8,5,4,6,51,6,1,0.38,1,Low
+Loans,Loan Closure,PAYU38,Utility,1608,81,1,22,7,2,17,79,10,10,0.05,2,High
+Fixed Deposits,FD Creation,CUSTA11,Audit,8332,101,5,22,9,3,16,8,28,9,0.16,7,High
+Payments,Internal Transfer,XFERA16,Audit,4005,220,24,5,5,12,30,49,23,25,0.13,9,High
+Payments,Internal Transfer,AUTHD67,Driver,2605,59,12,3,6,2,3,25,5,11,0.19,3,Low
+Savings Accounts,Deposit Posting,ACCTP31,BatchProcessor,4276,51,3,4,6,1,11,16,6,9,0.31,0,Low
+Loans,Interest Calculation,POSTV58,Validation,732,88,10,13,6,8,10,64,16,22,0.4,1,Medium
+Customer Management,Profile Maintenance,UPDTD62,Driver,769,112,22,30,3,12,31,65,18,26,0.01,4,High
+Shared Utilities,Error Handling,ABNDC57,Calculation,6419,165,14,8,8,16,13,75,16,30,0.09,5,High
+Reporting,Management MIS,RPTP11,BatchProcessor,1668,112,14,6,16,2,17,4,10,4,0.1,1,Low
+Payments,Standing Instruction,PAYM28,Compliance,8627,8,7,5,4,1,3,4,2,4,0.45,2,Low
+Reporting,Month End Reporting,RPTP30,BatchProcessor,5870,57,7,20,14,0,16,2,10,20,0.41,5,Medium
+Reporting,Management MIS,FILEM85,Compliance,7489,25,4,11,14,4,5,17,0,3,0.6,2,Low
+Credit Cards,Fee Calculation,POSTC96,Calculation,2844,59,4,9,1,3,6,52,8,6,0.56,3,Medium
+Savings Accounts,Account Opening,CUSTA74,Audit,3558,27,8,13,9,3,7,25,18,12,0.19,6,Medium
+Savings Accounts,Deposit Posting,DEPC38,Calculation,1213,74,6,29,12,2,18,36,9,17,0.13,11,High
+Payments,Internal Transfer,XFERC74,Calculation,3665,26,9,10,3,7,4,46,8,11,0.09,1,Medium
+Reporting,Management MIS,FILER33,ReportWriter,4146,97,13,14,15,7,10,11,12,19,0.13,1,Low
+Shared Utilities,Date Utility,DATEM72,Compliance,1638,22,6,5,2,0,6,16,7,11,0.29,1,Low
+Current Accounts,Overdraft Control,BALV00,Validation,2030,130,13,18,9,16,33,66,20,30,0.11,11,High
+Reporting,Management MIS,DASHP18,BatchProcessor,8167,99,10,14,12,5,15,22,4,5,0.17,3,Medium
+Compliance,Sanction Screening,RULEM75,Compliance,2718,35,3,14,2,2,1,3,1,11,0.4,3,Low
+Shared Utilities,Date Utility,UTILU28,Utility,2527,102,6,16,7,2,4,42,5,14,0.17,5,Medium
+Reporting,Daily Reporting,EXTRR76,ReportWriter,8589,17,6,5,12,3,11,14,3,1,0.53,0,Low
+Compliance,Audit Logging,LOGC39,Calculation,1439,197,8,19,8,4,13,77,23,38,0.15,5,High
+Payments,External Transfer,ACHM88,Compliance,5500,17,5,5,3,1,10,25,2,2,0.23,3,Low
+Loans,Loan Closure,DOCD54,Driver,4287,81,20,29,18,7,16,58,10,23,0.19,9,High
+Savings Accounts,Withdrawal Processing,CASHI63,Interface,603,150,11,24,9,5,13,48,14,13,0.12,3,High
+Shared Utilities,Format Utility,FMTA55,Audit,5644,29,4,14,7,2,3,3,3,2,0.6,1,Low
+Savings Accounts,Interest Posting,BALR54,ReportWriter,8578,66,13,7,13,2,5,78,11,8,0.33,0,Medium
+Credit Cards,Fraud Detection,CARDB60,DatabaseAccess,1427,112,11,8,4,9,4,36,13,8,0.24,3,Medium
+Credit Cards,Fee Calculation,FEEP23,BatchProcessor,3738,22,4,13,1,2,11,32,8,0,0.16,0,Medium
+Savings Accounts,Account Opening,ACCTR90,ReportWriter,4829,78,19,11,7,4,13,38,13,15,0.0,7,High
+Shared Utilities,Format Utility,MASKV59,Validation,1237,49,3,8,1,3,9,6,8,4,0.57,3,Low
+Current Accounts,Balance Maintenance,BALM46,Compliance,488,109,5,5,10,12,17,75,17,25,0.06,12,High
+Customer Management,Profile Maintenance,ADDRD52,Driver,1333,72,22,10,7,6,13,8,3,12,0.41,2,Medium
+Customer Management,KYC Verification,IDCHKU26,Utility,3064,59,1,13,6,1,7,4,2,6,0.17,1,Medium
+Payments,External Transfer,AUTHC77,Calculation,6547,53,12,6,7,10,5,68,7,5,0.28,3,Medium
+Reporting,Management MIS,RPTR90,ReportWriter,2168,91,20,24,14,8,7,66,11,24,0.06,8,High
+Loans,Loan Closure,CLOSEC88,Calculation,598,44,7,8,7,0,5,61,2,8,0.37,2,Low
+Customer Management,KYC Verification,KYCP92,BatchProcessor,5212,88,6,3,11,6,13,47,18,14,0.12,4,Medium
+Savings Accounts,Deposit Posting,POSTP32,BatchProcessor,3841,84,8,10,7,1,3,75,12,15,0.12,1,Medium
+Shared Utilities,Packed Decimal Utility,NUMU49,Utility,4550,93,0,14,18,16,33,42,31,21,0.27,11,High
+Customer Management,Customer Onboarding,ONBRV95,Validation,1740,131,21,14,3,8,34,38,22,17,0.1,5,High
+Fixed Deposits,FD Creation,DOCV83,Validation,3139,100,9,18,8,1,13,29,11,15,0.17,0,Medium
+Shared Utilities,Format Utility,MASKU47,Utility,4659,51,2,19,1,2,11,44,10,11,0.17,1,Medium
+Shared Utilities,Packed Decimal Utility,DECU95,Utility,4638,48,2,15,1,0,4,19,0,8,0.46,3,Low
+Reporting,Daily Reporting,DAYA56,Audit,8363,87,14,5,15,9,7,7,13,13,0.17,6,Low
+Compliance,Regulatory Reporting,MISM21,Compliance,2724,65,6,4,1,7,8,6,11,4,0.18,7,Medium
+Current Accounts,Balance Maintenance,LEDGD76,Driver,5107,23,13,10,1,1,12,67,4,0,0.57,2,Low
+Savings Accounts,Interest Posting,INTC82,Calculation,686,116,2,20,12,4,14,71,17,17,0.25,3,Medium
+Credit Cards,Fraud Detection,RULED14,Driver,765,214,8,24,14,11,25,43,21,20,0.01,5,High
+Compliance,Audit Logging,TRACEA01,Audit,5701,58,3,20,8,3,16,6,15,21,0.33,7,Low
+Payments,Bill Payment,SCHDM86,Compliance,640,115,20,23,4,3,17,72,17,29,0.06,4,High
+Credit Cards,Authorization,CARDSTAT,Validation,6923,86,3,5,9,3,3,80,14,14,0.27,6,Medium
+Credit Cards,Authorization,FRDC59,Calculation,1537,27,4,8,3,5,5,17,4,10,0.18,2,Low
+Compliance,Audit Logging,AUDP68,BatchProcessor,5655,45,0,6,2,1,2,17,6,5,0.52,9,Low
+Customer Management,Profile Maintenance,HISTP49,BatchProcessor,7028,100,8,4,9,8,9,42,16,20,0.15,3,Medium
+Current Accounts,Balance Maintenance,LEDGM61,Compliance,8727,86,10,9,3,5,11,80,23,12,0.08,6,High
+Payments,Bill Payment,PAYB95,DatabaseAccess,6542,31,9,9,4,8,15,51,8,7,0.16,6,Medium
+Reporting,Year End Reporting,GLMR91,ReportWriter,8514,123,5,19,12,8,17,34,26,38,0.21,3,High
+Fixed Deposits,FD Renewal,RATEV12,Validation,3510,179,5,13,7,13,14,20,25,34,0.21,9,High
+Payments,External Transfer,AUTHB77,DatabaseAccess,7446,108,20,27,15,12,35,28,26,29,0.17,11,High
+Savings Accounts,Interest Posting,STMTV34,Validation,5906,179,9,14,4,16,27,79,10,37,0.18,12,High
+Loans,Loan Origination,DOCD95,Driver,3902,59,21,10,7,3,10,53,7,4,0.48,2,Low
+Shared Utilities,Format Utility,UTILU66,Utility,3205,41,4,19,2,3,1,22,5,0,0.24,2,Low
+Customer Management,Customer Onboarding,KYCV61,Validation,8506,130,8,11,15,5,20,68,11,38,0.07,10,High
+Compliance,Regulatory Reporting,RPTM73,Compliance,2661,55,14,10,9,7,10,11,16,13,0.31,8,Medium
+Compliance,Audit Logging,HISTM85,Compliance,4709,4,7,10,0,3,3,13,8,2,0.26,3,Medium
+Savings Accounts,Withdrawal Processing,CASHR48,ReportWriter,5070,18,2,13,5,0,9,12,4,0,0.47,1,Low
+Payments,Bill Payment,BILLM39,Compliance,1371,77,6,17,18,7,17,81,20,10,0.28,2,Medium
+Current Accounts,Overdraft Control,BALV60,Validation,4569,78,6,17,3,9,13,71,4,24,0.32,4,Medium
+Fixed Deposits,Interest Posting,FDINTP64,BatchProcessor,7015,30,4,2,0,0,1,22,1,0,0.32,1,Low
+Compliance,Sanction Screening,NAMEM17,Compliance,5675,157,12,21,7,14,27,37,16,13,0.25,10,High
+Credit Cards,Authorization,FRDV08,Validation,5482,131,6,9,5,3,6,38,7,14,0.29,5,Medium
+Shared Utilities,Date Utility,CHKU18,Utility,2857,81,5,24,1,5,15,0,18,8,0.21,4,Medium
+Savings Accounts,Deposit Posting,LEDGU42,Utility,6506,109,4,19,13,7,15,29,10,13,0.2,12,High
+Payments,Internal Transfer,PAYB83,DatabaseAccess,1182,14,5,13,6,13,10,21,8,10,0.16,2,Low
+Shared Utilities,Packed Decimal Utility,NUMA84,Audit,166,17,3,1,0,5,9,2,8,8,0.21,2,Low
+Fixed Deposits,Interest Posting,FDINTB20,DatabaseAccess,6510,6,0,13,7,11,6,14,4,2,0.36,2,Low
+Loans,Loan Origination,APPRV04,Validation,1265,138,9,8,17,2,22,62,29,17,0.12,11,High
+Current Accounts,Balance Maintenance,ACCTC90,Calculation,272,60,22,19,8,5,21,44,8,30,0.03,12,Medium
+Fixed Deposits,Interest Posting,ACCRI44,Interface,4204,98,22,24,12,13,22,89,21,31,0.24,11,High
+Compliance,Audit Logging,ERRD48,Driver,3913,65,22,17,12,1,15,17,18,6,0.13,9,Medium
+Compliance,Audit Logging,ERRV67,Validation,5648,63,8,17,5,6,8,7,16,5,0.34,4,Medium
+Compliance,AML Monitoring,SCANP44,BatchProcessor,2744,56,12,12,7,7,9,28,4,8,0.17,10,Medium
+Compliance,Sanction Screening,KYCM77,Compliance,501,212,8,3,11,15,31,52,32,10,0.08,10,High
+Customer Management,Customer Onboarding,ADDRR96,ReportWriter,5674,201,6,7,11,16,15,11,32,22,0.1,6,High
+Fixed Deposits,Interest Posting,GLMB17,DatabaseAccess,6588,212,19,21,8,11,31,41,11,12,0.22,3,High
+Current Accounts,Overdraft Control,RISKM10,Compliance,301,201,4,8,12,5,7,56,22,16,0.13,2,High
+Compliance,AML Monitoring,RISKM05,Compliance,5945,43,4,14,6,5,8,14,3,3,0.23,4,Low
+Customer Management,KYC Verification,IDCHKM96,Compliance,3061,104,12,19,1,10,16,55,4,17,0.27,5,Medium
+Savings Accounts,Account Opening,ACCTC53,Calculation,6991,69,5,19,7,3,18,73,7,25,0.07,4,Medium
+Savings Accounts,Deposit Posting,BALP02,BatchProcessor,4131,56,2,2,0,5,4,19,0,7,0.5,2,Low
+Shared Utilities,Packed Decimal Utility,DECU82,Utility,141,39,0,22,6,2,6,4,0,2,0.19,3,Low
+Credit Cards,Limit Management,CRLIMI78,Interface,5918,186,9,14,15,16,28,66,29,19,0.13,4,High
+Credit Cards,Limit Management,CRLIMV45,Validation,832,76,2,5,6,4,6,48,18,13,0.2,4,High
+Payments,External Transfer,SWFTC40,Calculation,3633,4,3,4,0,3,8,23,3,7,0.59,1,Low
+Reporting,Management MIS,FILEA07,Audit,651,98,10,20,16,10,10,54,20,22,0.07,4,High
+Reporting,Year End Reporting,GLMB33,DatabaseAccess,856,114,24,5,16,15,28,72,32,20,0.1,6,High
+Payments,External Transfer,SWFTV36,Validation,1137,178,11,8,12,3,14,35,10,37,0.06,7,High
+Payments,Bill Payment,AUTHB78,DatabaseAccess,2899,97,16,18,9,15,31,20,33,9,0.01,11,High
+Credit Cards,Authorization,LIMD84,Driver,6700,81,23,18,16,16,15,16,23,9,0.22,6,High
+Credit Cards,Fraud Detection,CARDV44,Validation,715,120,11,5,5,5,5,44,5,14,0.08,2,Medium
+Loans,Loan Origination,CREDB62,DatabaseAccess,6758,24,3,11,4,11,19,46,4,12,0.31,6,Medium
+Shared Utilities,Error Handling,MSGA18,Audit,1988,85,12,6,3,9,9,39,9,12,0.28,0,Medium
+Loans,Loan Origination,LNORC72,Calculation,225,116,11,1,8,0,14,16,7,3,0.23,2,Medium
+Fixed Deposits,FD Closure,TAXR41,ReportWriter,6332,30,2,6,11,4,11,18,6,1,0.2,3,Low
+Fixed Deposits,FD Renewal,RENWD08,Driver,7910,91,11,7,15,14,7,67,28,8,0.13,12,High
+Credit Cards,Limit Management,CRLIMB43,DatabaseAccess,792,79,7,1,7,10,21,70,7,21,0.2,3,Medium
+Customer Management,KYC Verification,NAMED93,Driver,6968,115,20,13,10,7,32,85,15,35,0.01,3,High
+Current Accounts,Balance Maintenance,LEDGP93,BatchProcessor,462,197,16,12,15,8,32,60,35,25,0.0,4,High
+Savings Accounts,Deposit Posting,ACCTA39,Audit,3857,189,24,9,8,9,15,47,18,23,0.15,6,High
+Loans,Loan Closure,CLOSEV43,Validation,6151,150,4,7,3,0,15,16,4,16,0.12,2,Medium
+Shared Utilities,Error Handling,UTILU91,Utility,5864,29,2,11,6,4,8,10,4,5,0.47,2,Low
+Reporting,Year End Reporting,RPTR79,ReportWriter,1326,83,24,9,17,12,18,13,8,38,0.01,5,High
+Customer Management,Customer Onboarding,KYCU81,Utility,2589,35,1,14,5,0,5,3,1,6,0.58,1,Low
+Reporting,Management MIS,DASHU28,Utility,3766,42,0,13,10,4,7,22,5,24,0.34,1,Medium
+Fixed Deposits,FD Closure,TAXC29,Calculation,1082,108,4,16,2,5,13,67,12,21,0.22,1,Medium
+Shared Utilities,Error Handling,ABNDR23,ReportWriter,2421,114,5,2,12,1,20,49,16,25,0.39,2,Medium
+Customer Management,Customer Onboarding,ONBRC47,Calculation,5930,72,5,1,6,8,21,21,12,22,0.42,6,Medium
+Fixed Deposits,FD Creation,CUSTP60,BatchProcessor,6558,119,20,4,14,5,7,76,25,16,0.17,4,High
+Payments,Standing Instruction,PAYD59,Driver,1648,67,14,18,8,2,9,45,4,7,0.36,3,Medium
+Current Accounts,Balance Maintenance,BALR20,ReportWriter,5648,91,9,22,13,14,33,90,15,11,0.04,3,High
+Loans,Loan Closure,PAYM71,Compliance,2606,40,3,7,0,2,9,71,3,2,0.23,1,Low
+Payments,Bill Payment,SCHDP86,BatchProcessor,8201,59,14,19,10,14,8,6,22,11,0.11,3,High
+Payments,Bill Payment,POSTD93,Driver,6253,62,16,16,10,10,21,45,3,23,0.22,2,Medium
+Credit Cards,Settlement,ACQC54,Calculation,3711,97,14,6,2,3,33,68,30,33,0.24,8,High
+Payments,Bill Payment,SCHDC05,Calculation,6054,99,8,28,5,3,31,76,11,14,0.21,9,High
+Loans,Loan Origination,DOCI31,Interface,6203,91,8,19,7,2,3,78,6,8,0.06,4,Medium
+Customer Management,Customer Onboarding,DOCD07,Driver,8558,48,21,29,15,3,10,90,12,37,0.24,10,High
+Fixed Deposits,FD Creation,OPEND29,Driver,3149,50,16,1,4,6,7,46,16,8,0.37,6,Medium
+Savings Accounts,Withdrawal Processing,CASHA58,Audit,4496,53,2,9,1,0,5,26,8,1,0.42,3,Low
+Fixed Deposits,FD Creation,DOCV91,Validation,6641,142,11,11,17,13,30,80,10,9,0.16,6,High
+Reporting,Month End Reporting,RPTR13,ReportWriter,2682,43,6,9,7,2,4,23,5,10,0.33,1,Low
+Current Accounts,Overdraft Control,RISKV87,Validation,3481,149,5,14,3,4,18,54,14,21,0.22,3,Medium
+Compliance,Sanction Screening,NAMEV18,Validation,1034,143,1,12,3,0,10,11,6,2,0.43,1,Medium
+Payments,Standing Instruction,POSTC63,Calculation,8761,183,13,23,5,4,10,74,10,31,0.17,4,High
+Loans,Loan Origination,APPRD69,Driver,8787,10,22,10,1,1,10,68,4,6,0.3,0,Low
+Loans,Collections,DUEV12,Validation,5109,58,11,3,11,5,4,80,5,14,0.08,3,Medium
+Current Accounts,Overdraft Control,ODMC35,Calculation,483,37,12,7,8,1,10,57,6,24,0.39,3,Medium
+Customer Management,Profile Maintenance,UPDTV66,Validation,5593,40,5,11,4,0,10,13,0,6,0.59,1,Low
+Credit Cards,Limit Management,BALV50,Validation,1673,65,1,4,6,4,7,8,3,0,0.29,2,Low
+Payments,Standing Instruction,POSTD41,Driver,2398,4,22,10,3,3,4,8,1,5,0.38,0,Low
+Shared Utilities,Format Utility,MASKA74,Audit,661,14,3,14,4,4,2,5,3,9,0.48,2,Low
+Customer Management,Customer Onboarding,DOCR46,ReportWriter,3723,59,4,4,3,5,8,17,8,8,0.16,2,Low
+Savings Accounts,Interest Posting,STMTC56,Calculation,4649,210,13,24,8,4,27,68,11,24,0.22,2,High
+Savings Accounts,Withdrawal Processing,LIMC05,Calculation,885,115,19,19,7,13,33,55,34,30,0.1,7,High
+Reporting,Daily Reporting,EXTRR52,ReportWriter,4949,11,5,7,7,4,9,25,0,0,0.22,0,Low
+Loans,Loan Closure,DOCC40,Calculation,6092,22,4,14,2,4,5,52,0,3,0.3,0,Low
+Savings Accounts,Withdrawal Processing,WDRC37,Calculation,286,92,5,18,10,2,18,30,13,9,0.17,0,Medium
+Loans,Loan Origination,LOANB70,DatabaseAccess,4957,32,1,0,5,9,6,53,2,7,0.27,0,Low
+Reporting,Year End Reporting,GLMR23,ReportWriter,477,172,20,28,8,13,21,65,19,22,0.05,12,High
+Shared Utilities,Error Handling,ERRM34,Compliance,4425,83,8,16,10,11,11,47,11,23,0.15,4,High
+Payments,External Transfer,AUTHV45,Validation,387,96,8,4,11,4,21,24,7,3,0.41,5,Medium
+Credit Cards,Fee Calculation,CALCC45,Calculation,2422,40,2,6,3,2,10,50,4,0,0.52,1,Low
+Fixed Deposits,Interest Posting,ACCRM57,Compliance,7574,28,6,5,7,4,12,20,0,5,0.44,1,Low
+Payments,External Transfer,SWFTI30,Interface,8346,15,5,11,6,0,9,7,1,0,0.49,0,Low
+Shared Utilities,Packed Decimal Utility,DECU65,Utility,521,69,5,24,15,5,11,32,11,38,0.19,6,High
+Payments,External Transfer,ACHD38,Driver,514,220,11,13,6,12,17,21,33,17,0.23,2,High
+Customer Management,Profile Maintenance,PROFP38,BatchProcessor,5817,100,8,11,6,10,4,54,11,7,0.21,4,Low
+Current Accounts,Charge Calculation,GLMC61,Calculation,3874,19,2,2,0,3,12,55,1,10,0.57,1,Low
+Payments,External Transfer,EXTM19,Compliance,1253,35,3,20,6,1,15,19,3,14,0.28,5,Medium
+Payments,Bill Payment,AUTHB29,DatabaseAccess,1421,66,1,20,12,16,7,9,4,22,0.2,1,Medium
+Shared Utilities,Error Handling,ABNDU84,Utility,2451,30,4,24,6,8,15,18,9,22,0.3,2,Medium
+Compliance,AML Monitoring,AMLA71,Audit,1832,183,6,19,10,11,17,15,10,22,0.21,9,High
+Loans,Collections,COLLP92,BatchProcessor,4166,54,3,11,4,1,4,24,3,5,0.18,2,Low
+Credit Cards,Limit Management,LIMC78,Calculation,5639,11,0,10,2,1,6,60,5,7,0.35,3,Low
+Credit Cards,Fee Calculation,CARDI36,Interface,2729,54,4,10,5,3,2,28,3,6,0.56,3,Low
+Compliance,Audit Logging,ERRA65,Audit,6014,195,13,12,9,11,15,4,30,13,0.27,4,High
+Savings Accounts,Account Opening,KYCVM40,Compliance,2521,59,10,8,6,7,19,50,14,38,0.13,6,Medium
+Savings Accounts,Withdrawal Processing,BALV46,Validation,8511,87,18,28,9,4,14,81,22,8,0.13,8,High
+Savings Accounts,Account Opening,OPENM78,Compliance,3128,41,3,1,0,5,7,42,8,2,0.18,1,Low
+Compliance,Sanction Screening,RULEC02,Calculation,7482,156,16,17,8,16,29,57,30,10,0.17,8,High
+Loans,Loan Closure,PAYD12,Driver,5817,172,19,5,17,2,30,90,27,34,0.25,10,High
+Savings Accounts,Account Opening,ACCTA15,Audit,4959,33,0,8,6,1,10,22,0,6,0.59,2,Low
+Shared Utilities,Error Handling,MSGU16,Utility,1668,60,1,11,5,5,3,12,0,4,0.29,0,Low
+Savings Accounts,Interest Posting,ACCRB98,DatabaseAccess,8911,19,3,6,5,6,11,23,0,4,0.34,1,Low
+Savings Accounts,Withdrawal Processing,BALV67,Validation,5898,150,6,9,5,5,5,40,15,10,0.12,5,Medium
+Credit Cards,Fraud Detection,RISKV11,Validation,3782,148,13,6,4,0,3,33,10,21,0.28,2,Medium
+Reporting,Year End Reporting,YEARR36,ReportWriter,6791,98,13,13,9,1,16,48,13,20,0.21,4,Medium
+Credit Cards,Authorization,TXREAD,BatchProcessor,5209,55,4,13,6,0,4,37,0,11,0.45,0,Low
+Payments,Standing Instruction,DATEM69,Compliance,1419,93,5,7,12,6,19,30,6,12,0.15,3,Medium
+Reporting,Month End Reporting,RECONR61,ReportWriter,7891,26,4,7,11,5,12,25,5,5,0.31,0,Low
+Shared Utilities,Packed Decimal Utility,FMTC29,Calculation,5479,155,7,16,7,8,34,21,28,16,0.28,7,High
+Reporting,Month End Reporting,MONR80,ReportWriter,4551,45,2,6,7,4,12,13,0,0,0.24,3,Low
+Customer Management,Customer Onboarding,KYCP35,BatchProcessor,1195,170,23,14,12,8,30,8,25,34,0.23,4,High
+Payments,Internal Transfer,POSTA71,Audit,6620,54,4,8,10,7,19,21,18,18,0.4,1,Medium
+Savings Accounts,Deposit Posting,ACCTA32,Audit,2132,213,6,12,13,14,33,53,22,18,0.14,10,High
+Savings Accounts,Account Opening,CUSTR75,ReportWriter,2428,54,1,0,7,2,3,39,8,6,0.2,3,Low
+Reporting,Month End Reporting,RPTC33,Calculation,5085,65,20,3,15,8,31,86,15,28,0.19,11,High
+Customer Management,Customer Onboarding,DOCP92,BatchProcessor,6375,205,5,16,14,3,23,63,33,34,0.15,3,High
+Credit Cards,Authorization,AUTHV49,Validation,3986,112,14,19,1,6,17,55,12,17,0.39,0,Medium
+Customer Management,Profile Maintenance,ADDRB39,DatabaseAccess,3755,41,7,1,2,6,6,11,5,3,0.23,1,Low
+Payments,Internal Transfer,PAYM18,Compliance,8260,176,23,8,7,5,19,5,10,36,0.2,6,High
+Current Accounts,Overdraft Control,AUTHA43,Audit,5867,7,3,12,5,5,5,47,2,3,0.34,1,Low
+Reporting,Year End Reporting,AUDP74,BatchProcessor,2251,130,22,17,10,3,12,68,10,36,0.14,6,High
+Savings Accounts,Account Opening,KYCVR20,ReportWriter,7203,23,5,19,15,1,13,56,7,21,0.07,3,Medium
+Current Accounts,Balance Maintenance,BALV71,Validation,633,70,6,4,10,12,22,23,22,28,0.21,5,Medium
+Customer Management,KYC Verification,DOCA77,Audit,6170,136,15,15,7,6,9,83,11,37,0.26,9,High
+Shared Utilities,Date Utility,CALA94,Audit,1442,29,1,3,7,1,12,15,8,5,0.18,3,Low
+Savings Accounts,Deposit Posting,LEDGU66,Utility,4444,64,2,24,2,4,9,68,4,24,0.24,3,Medium
+Compliance,AML Monitoring,RULEV50,Validation,7007,11,0,10,0,0,10,19,1,3,0.39,0,Low
+Compliance,Audit Logging,HISTM62,Compliance,1328,184,11,3,13,14,30,47,35,19,0.14,9,High
+Credit Cards,Limit Management,CRLIMR71,ReportWriter,8980,101,13,2,10,4,7,43,16,24,0.31,4,Medium
+Savings Accounts,Interest Posting,INTU88,Utility,3184,39,4,14,6,7,8,44,9,23,0.15,6,Medium
+Customer Management,Customer Onboarding,ADDRR57,ReportWriter,5335,106,6,8,8,5,10,10,17,11,0.3,2,Medium
+Reporting,Management MIS,RPTR14,ReportWriter,6420,199,11,23,11,13,34,29,15,34,0.14,3,High
+Shared Utilities,Format Utility,OUTU98,Utility,5591,66,3,27,14,6,25,78,14,38,0.0,10,High
+Current Accounts,Charge Calculation,CHGR63,ReportWriter,5162,49,6,8,4,2,3,38,1,4,0.25,1,Low
+Shared Utilities,Format Utility,UTILU04,Utility,3769,93,4,17,11,9,3,41,12,8,0.3,1,Medium
+Loans,Loan Closure,LNCLSV84,Validation,5539,105,4,7,6,2,15,29,11,23,0.07,3,Medium
+Shared Utilities,Packed Decimal Utility,PACKU86,Utility,5878,27,1,9,12,3,10,48,17,10,0.18,3,Medium
+Shared Utilities,Format Utility,FMTM56,Compliance,1964,52,6,3,8,8,21,35,17,8,0.27,2,Medium
+Payments,External Transfer,PAYM61,Compliance,4529,120,21,30,3,9,13,67,16,17,0.1,7,High
+Payments,Standing Instruction,DATEB72,DatabaseAccess,5739,43,5,4,4,8,9,4,3,10,0.16,1,Medium
+Reporting,Year End Reporting,GLMR37,ReportWriter,4593,28,6,4,9,3,6,24,5,2,0.15,0,Low
+Fixed Deposits,Interest Posting,ACCRA11,Audit,1114,16,0,2,4,4,12,9,3,4,0.17,1,Low
+Fixed Deposits,FD Renewal,RENWU17,Utility,3367,56,2,17,4,3,20,32,9,17,0.31,5,Medium
+Current Accounts,Balance Maintenance,BALV13,Validation,6827,182,6,16,6,14,9,29,15,21,0.0,8,High
+Shared Utilities,Packed Decimal Utility,PACKA03,Audit,4892,9,5,11,0,2,10,24,5,5,0.31,1,Low
+Credit Cards,Authorization,CARDC32,Calculation,743,109,13,12,16,2,23,28,28,22,0.06,8,High
+Fixed Deposits,FD Closure,GLMM33,Compliance,3337,59,7,2,10,0,3,19,14,19,0.24,4,Medium
+Loans,Loan Closure,BALD62,Driver,5360,124,9,21,16,12,20,77,30,32,0.24,4,High
+Credit Cards,Settlement,POSTD35,Driver,1020,30,20,10,5,3,4,63,0,7,0.53,2,Low
+Compliance,AML Monitoring,RISKM32,Compliance,2075,43,0,1,3,4,6,4,6,7,0.32,10,Low
+Fixed Deposits,FD Closure,CLOSEI54,Interface,5114,27,8,16,6,7,21,8,4,6,0.25,4,High
+Savings Accounts,Interest Posting,POSTP88,BatchProcessor,2249,53,5,8,6,1,5,55,8,5,0.4,0,Low
+Fixed Deposits,Interest Posting,ACCRD19,Driver,5599,113,18,19,9,9,17,32,8,10,0.16,1,Medium
+Shared Utilities,Format Utility,FMTU73,Utility,1470,27,0,13,2,4,7,11,8,1,0.44,3,Low
+Reporting,Management MIS,FILER09,ReportWriter,8618,17,3,12,13,5,10,12,3,11,0.25,0,Low
+Loans,Interest Calculation,LNINTM05,Compliance,5090,9,5,3,4,4,9,63,7,11,0.39,2,Low
+Loans,Collections,PAYI89,Interface,463,153,8,28,3,10,11,82,24,38,0.15,7,High
+Shared Utilities,Packed Decimal Utility,UTILU29,Utility,4746,206,1,9,17,11,11,52,15,15,0.06,2,High
+Savings Accounts,Interest Posting,POSTI66,Interface,6033,47,24,24,10,10,10,66,23,8,0.22,7,High
+Fixed Deposits,FD Creation,DOCC23,Calculation,1872,49,6,10,4,3,12,60,0,0,0.27,0,Low
+Customer Management,Customer Onboarding,ADDRR41,ReportWriter,7190,62,4,10,14,10,7,20,7,20,0.41,3,Medium
+Shared Utilities,Packed Decimal Utility,FMTU70,Utility,5011,25,2,17,4,4,7,11,7,8,0.3,3,Medium
+Loans,Loan Origination,CREDV57,Validation,3267,141,1,1,6,4,9,74,8,6,0.61,3,Low
+Current Accounts,Charge Calculation,GLMU27,Utility,1632,38,1,25,3,2,7,40,2,10,0.27,3,Low
+Loans,Interest Calculation,ACCRP96,BatchProcessor,5469,107,11,2,6,0,9,45,9,10,0.4,4,Medium
+Reporting,Month End Reporting,GLMB82,DatabaseAccess,8295,71,6,6,13,10,11,6,4,5,0.09,6,Medium
+Fixed Deposits,FD Closure,TAXP94,BatchProcessor,6001,23,2,10,2,9,5,44,11,22,0.29,3,Medium
+Current Accounts,Charge Calculation,GLMM75,Compliance,836,29,3,4,0,4,1,52,4,6,0.26,1,Medium
+Loans,Loan Closure,PAYD28,Driver,1550,117,18,14,7,4,14,45,11,24,0.4,3,Medium
+Customer Management,Profile Maintenance,ADDRC80,Calculation,2042,6,6,0,2,2,10,51,4,6,0.35,0,Low
+Credit Cards,Fraud Detection,RISKC26,Calculation,4533,31,0,12,4,2,10,51,5,2,0.3,0,Low
+Customer Management,Customer Onboarding,ADDRM13,Compliance,6570,114,14,9,10,3,16,44,18,13,0.26,6,Medium
+Payments,Bill Payment,PAYP37,BatchProcessor,6016,25,3,15,1,3,11,21,16,23,0.09,2,Medium
+Reporting,Daily Reporting,EXTRA58,Audit,4086,17,2,11,7,3,2,10,2,10,0.51,1,Low
+Savings Accounts,Deposit Posting,DEPB65,DatabaseAccess,407,6,7,13,5,14,1,72,0,2,0.53,1,Low
+Compliance,Sanction Screening,KYCC21,Calculation,6822,37,5,15,9,4,8,55,8,18,0.21,4,Medium
+Fixed Deposits,FD Closure,TAXA18,Audit,5417,69,21,5,15,14,21,19,23,16,0.15,6,High
+Reporting,Management MIS,MISP63,BatchProcessor,2631,52,8,13,8,5,22,4,10,15,0.38,2,Medium
+Loans,Interest Calculation,CALCR20,ReportWriter,4647,177,15,12,14,12,29,76,23,32,0.04,5,High
+Reporting,Daily Reporting,FILEC51,Calculation,4207,20,5,0,5,3,12,51,2,2,0.29,1,Low
+Fixed Deposits,FD Creation,DOCP79,BatchProcessor,4030,212,19,11,13,12,26,9,31,38,0.2,6,High
+Credit Cards,Authorization,CARDB06,DatabaseAccess,2935,15,3,6,7,11,9,11,5,0,0.28,3,Low
+Compliance,Audit Logging,HISTV08,Validation,4299,105,3,3,9,8,19,18,8,13,0.09,7,Medium
+Current Accounts,Overdraft Control,AUTHU21,Utility,4260,41,5,23,4,9,7,45,18,3,0.24,0,Medium
+Customer Management,KYC Verification,NAMEB63,DatabaseAccess,1657,142,6,12,4,14,33,55,30,27,0.07,5,High
+Customer Management,Customer Onboarding,CUSTC24,Calculation,3372,151,16,21,14,7,18,46,14,38,0.14,4,High
+Payments,Standing Instruction,PAYC42,Calculation,4509,184,24,19,2,2,28,66,19,22,0.06,5,High
+Credit Cards,Fee Calculation,FEEB54,DatabaseAccess,8736,5,0,12,1,8,2,11,1,3,0.58,1,Medium
+Fixed Deposits,Interest Posting,POSTC34,Calculation,413,21,4,3,4,1,12,29,0,11,0.18,2,Low
+Fixed Deposits,FD Creation,FDMD51,Driver,5233,96,14,2,11,0,10,40,16,19,0.34,3,Medium
+Fixed Deposits,Interest Posting,INTD15,Driver,1185,41,7,10,3,1,2,23,6,1,0.25,1,Low
+Reporting,Daily Reporting,EXTRV17,Validation,3350,114,1,7,11,4,9,13,2,8,0.24,0,Low
+Shared Utilities,Date Utility,CALU92,Utility,2202,64,1,7,12,2,21,9,13,18,0.38,0,Medium
+Fixed Deposits,FD Closure,PAYV77,Validation,4797,131,2,4,0,4,12,19,0,3,0.34,1,Low
+Credit Cards,Limit Management,AUTHI23,Interface,385,213,7,16,2,12,15,39,13,30,0.0,11,High
+Savings Accounts,Interest Posting,STMTB10,DatabaseAccess,2424,120,12,12,2,7,18,74,10,19,0.32,0,Medium
+Payments,Bill Payment,PAYC00,Calculation,472,59,4,9,1,1,4,31,4,10,0.49,2,Low
+Reporting,Management MIS,SUMC75,Calculation,5245,23,2,9,5,0,7,45,5,8,0.27,2,Low
+Payments,Internal Transfer,XFERR66,ReportWriter,4835,33,5,11,6,1,7,18,2,7,0.28,3,Low
+Shared Utilities,Packed Decimal Utility,PACKC23,Calculation,899,63,7,12,12,1,4,31,9,19,0.22,0,Medium
+Savings Accounts,Withdrawal Processing,POSTC54,Calculation,2809,71,11,8,1,6,20,41,14,16,0.09,6,Medium
+Credit Cards,Fee Calculation,FEER30,ReportWriter,6317,97,7,15,16,4,19,71,9,14,0.2,4,Medium
+Customer Management,Customer Onboarding,DOCV48,Validation,576,128,3,11,4,0,12,12,6,10,0.32,0,Low
+Savings Accounts,Withdrawal Processing,POSTV17,Validation,3735,161,14,9,2,11,14,78,34,33,0.07,10,Medium
+Loans,Interest Calculation,INTB01,DatabaseAccess,382,208,21,20,3,11,31,67,23,22,0.02,3,High
+Fixed Deposits,FD Creation,OPENI85,Interface,3186,178,11,27,2,14,8,67,26,23,0.2,9,High
+Savings Accounts,Withdrawal Processing,LIMA59,Audit,7472,185,22,24,12,4,12,17,17,37,0.04,12,High
+Current Accounts,Overdraft Control,BALU48,Utility,5890,13,0,14,6,2,1,32,5,5,0.18,1,Low
+Compliance,Sanction Screening,NAMEV36,Validation,3952,142,8,15,2,5,7,42,6,23,0.25,10,High
+Loans,Loan Closure,LNCLSV69,Validation,6722,134,17,15,15,2,12,67,15,26,0.01,9,High
+Payments,Standing Instruction,SCHDB88,DatabaseAccess,6969,34,14,12,8,16,15,31,3,15,0.06,0,Medium
+Current Accounts,Balance Maintenance,BALI38,Interface,4279,13,6,9,1,4,6,60,6,1,0.42,0,Low
+Shared Utilities,Error Handling,ABNDU79,Utility,3579,43,2,8,11,1,4,45,16,5,0.21,0,Medium
+Savings Accounts,Interest Posting,ACCRI25,Interface,403,154,9,27,3,2,31,28,20,33,0.1,2,High
+Reporting,Year End Reporting,TAXA11,Audit,7933,166,5,10,5,7,24,58,16,23,0.01,7,High
+Savings Accounts,Account Opening,OPENA14,Audit,6301,138,13,4,8,11,14,77,35,34,0.12,10,High
+Current Accounts,Overdraft Control,AUTHD09,Driver,4341,22,18,5,0,5,6,22,1,7,0.52,1,Low
+Reporting,Year End Reporting,TAXD12,Driver,4778,5,17,8,14,1,11,5,0,10,0.49,0,Low
+Loans,Collections,DUED68,Driver,1290,62,21,10,5,10,14,42,16,6,0.31,6,High
+Customer Management,Profile Maintenance,CUSTP09,BatchProcessor,777,183,7,13,18,15,31,56,29,22,0.02,9,High
+Current Accounts,Overdraft Control,AUTHC57,Calculation,4222,92,10,16,1,1,12,72,18,18,0.31,2,Medium
+Payments,Internal Transfer,ACCTC94,Calculation,5901,6,1,14,3,4,12,16,6,0,0.6,3,Low
+Compliance,Regulatory Reporting,RECONM51,Compliance,8381,196,8,28,18,5,32,25,27,15,0.09,6,High
+Credit Cards,Limit Management,BALA40,Audit,1912,31,8,6,9,3,18,49,3,25,0.26,6,Medium
+Reporting,Month End Reporting,RPTR22,ReportWriter,7969,33,0,12,6,5,2,16,5,5,0.61,0,Low
+Savings Accounts,Deposit Posting,LEDGI00,Interface,3203,45,13,7,10,6,30,65,29,15,0.24,12,High
+Reporting,Management MIS,MISV88,Validation,8726,120,14,13,8,7,4,11,17,17,0.39,4,Medium
+Fixed Deposits,FD Closure,TAXC34,Calculation,3180,40,7,7,6,5,2,36,2,8,0.18,1,Low
+Credit Cards,Authorization,CARDV35,Validation,3364,104,1,9,2,1,5,48,3,5,0.48,3,Low
+Current Accounts,Balance Maintenance,LEDGA37,Audit,2215,94,15,8,2,11,21,35,30,9,0.14,8,High
+Current Accounts,Overdraft Control,AUTHM57,Compliance,2731,50,5,18,10,8,21,75,13,18,0.03,5,High
+Credit Cards,Authorization,CCMA88,Audit,2927,70,7,19,7,7,18,51,8,8,0.14,6,Medium
+Savings Accounts,Account Opening,ACCTA22,Audit,8954,158,22,6,16,9,20,47,23,31,0.08,4,High
+Payments,Bill Payment,AUTHB86,DatabaseAccess,1383,11,1,1,6,14,2,13,4,0,0.23,3,Low
+Credit Cards,Fee Calculation,FEED88,Driver,3329,45,21,9,9,7,22,84,28,28,0.22,4,High
+Customer Management,KYC Verification,NAMEU69,Utility,3418,114,1,10,7,5,4,53,5,3,0.28,6,Medium
+Shared Utilities,Format Utility,MASKC56,Calculation,7019,211,14,27,13,13,9,18,33,15,0.23,11,High
+Loans,EMI Processing,BALC47,Calculation,8299,62,4,12,16,2,22,68,31,10,0.21,8,High
+Payments,Internal Transfer,POSTV87,Validation,1528,93,13,1,5,9,14,33,13,18,0.25,6,Medium
+Credit Cards,Fraud Detection,RULEM55,Compliance,5849,45,2,2,0,4,3,32,5,9,0.18,1,Low
+Shared Utilities,Error Handling,ABNDU40,Utility,8029,83,3,20,11,10,27,23,21,14,0.17,5,High
+Payments,Internal Transfer,ACCTB17,DatabaseAccess,4937,37,2,13,8,9,11,36,14,21,0.29,3,Medium
+Loans,Loan Closure,CLOSEC16,Calculation,2184,41,3,12,3,1,5,75,0,4,0.6,2,Low
+Reporting,Year End Reporting,AUDP24,BatchProcessor,8020,29,5,8,5,3,9,11,0,9,0.29,3,Medium
+Payments,Internal Transfer,ACCTC95,Calculation,3137,49,4,4,6,1,1,17,6,0,0.48,0,Low
+Fixed Deposits,FD Closure,TAXV94,Validation,4212,60,5,1,7,4,11,18,4,1,0.2,1,Low
+Fixed Deposits,FD Renewal,DATED67,Driver,8711,70,20,7,13,7,25,7,31,24,0.24,2,High
+Current Accounts,Overdraft Control,LIMR93,ReportWriter,5456,15,0,0,5,4,9,44,2,0,0.43,2,Low
+Loans,Collections,NTCEC35,Calculation,1011,90,5,12,5,1,5,67,14,24,0.25,0,Medium
+Compliance,Audit Logging,LOGV22,Validation,8747,13,7,2,3,1,9,9,1,4,0.46,2,Low
+Loans,Loan Origination,CREDA12,Audit,7042,54,1,3,3,5,6,63,12,15,0.14,3,Medium
+Loans,EMI Processing,INSTB03,DatabaseAccess,5635,58,5,13,6,11,2,67,7,10,0.32,1,Low
+Customer Management,KYC Verification,AMLM28,Compliance,3188,50,3,1,7,4,9,18,0,5,0.52,2,Low
+Payments,Internal Transfer,AUTHB62,DatabaseAccess,5403,19,2,7,7,13,10,24,8,0,0.57,3,Low
+Shared Utilities,Format Utility,TEXTU21,Utility,4508,33,1,16,7,1,5,19,6,8,0.43,2,Low
+Shared Utilities,Error Handling,MSGC69,Calculation,5644,58,13,17,1,9,9,49,3,5,0.42,1,Medium
+Loans,Collections,PAYB99,DatabaseAccess,6782,31,1,7,2,15,8,60,1,1,0.45,2,Low
+Shared Utilities,Error Handling,LOGU58,Utility,4409,43,1,18,12,2,22,34,7,22,0.12,6,Medium
+Fixed Deposits,FD Closure,FDCM60,Compliance,2082,24,6,4,5,3,7,15,6,1,0.33,1,Low
+Savings Accounts,Deposit Posting,ACCTI72,Interface,2847,24,6,5,2,0,1,24,6,2,0.45,0,Low
+Current Accounts,Overdraft Control,AUTHI78,Interface,3332,159,15,3,7,10,32,64,11,14,0.15,6,High
+Compliance,Audit Logging,ERRV32,Validation,5182,86,11,18,1,9,5,48,10,17,0.17,5,Medium
+Customer Management,KYC Verification,IDCHKC29,Calculation,3694,37,12,19,8,7,15,42,3,18,0.11,4,Medium
+Fixed Deposits,FD Renewal,DATEV17,Validation,398,115,3,6,0,0,10,6,4,0,0.47,2,Low
+Loans,Interest Calculation,INTB56,DatabaseAccess,3962,46,5,14,1,5,9,69,3,6,0.34,3,Low
+Savings Accounts,Interest Posting,STMTV76,Validation,3014,163,5,9,15,11,11,71,14,21,0.17,5,High
+Shared Utilities,Date Utility,UTILU35,Utility,2701,53,1,27,0,4,9,13,6,7,0.17,0,Medium
+Credit Cards,Fee Calculation,FEEV80,Validation,488,25,6,6,5,5,6,65,3,11,0.58,2,Low
+Customer Management,KYC Verification,IDCHKD30,Driver,3285,35,16,3,4,5,7,17,3,6,0.4,3,Low
+Loans,Loan Origination,LNORB01,DatabaseAccess,1431,20,6,11,3,9,9,21,6,0,0.5,1,Low
+Current Accounts,Charge Calculation,GLMP29,BatchProcessor,8471,105,22,22,11,10,14,52,27,28,0.13,8,High
+Shared Utilities,Date Utility,CALM75,Compliance,7470,48,17,5,4,2,24,22,13,11,0.21,4,High
+Customer Management,KYC Verification,NAMEP16,BatchProcessor,3801,47,1,9,4,2,1,22,0,11,0.35,0,Low
+Shared Utilities,Format Utility,TEXTU44,Utility,6843,113,3,23,1,0,13,30,11,22,0.28,4,Medium
+Payments,Internal Transfer,PAYV04,Validation,442,95,6,17,7,6,4,31,15,7,0.22,3,Medium
+Current Accounts,Balance Maintenance,CURU62,Utility,5586,117,4,18,8,8,33,24,24,13,0.25,5,High
+Fixed Deposits,FD Closure,FDCP24,BatchProcessor,4610,85,6,13,11,8,10,43,7,6,0.33,6,Medium
+Credit Cards,Authorization,AUTHR42,ReportWriter,4581,59,1,19,15,8,11,50,11,7,0.19,5,Medium
+Savings Accounts,Withdrawal Processing,WDRR63,ReportWriter,5476,147,6,16,12,5,31,85,22,13,0.1,3,High
+Credit Cards,Settlement,RECONA21,Audit,4491,46,14,19,11,10,14,79,28,19,0.06,8,Medium
+Shared Utilities,Format Utility,FMTU26,Utility,3361,58,0,9,5,2,1,8,8,7,0.17,3,Low
+Fixed Deposits,FD Creation,FDMB61,DatabaseAccess,5774,41,10,10,2,10,7,11,18,9,0.21,6,Medium
+Shared Utilities,Format Utility,MASKC02,Calculation,4898,40,6,1,1,0,9,49,2,7,0.38,2,Low
+Current Accounts,Overdraft Control,LIMI07,Interface,1204,88,17,28,15,14,7,19,8,35,0.27,4,High
+Shared Utilities,Error Handling,MSGU04,Utility,4354,201,3,16,10,6,11,84,25,27,0.2,12,High
+Compliance,AML Monitoring,RULEB85,DatabaseAccess,6854,37,2,7,2,8,14,1,17,17,0.22,7,Medium
+Loans,Loan Origination,LOANV84,Validation,224,189,13,23,8,4,20,83,18,14,0.11,12,High
+Current Accounts,Balance Maintenance,LEDGA24,Audit,3611,103,6,18,4,7,15,59,9,21,0.19,0,Medium
+Reporting,Management MIS,FILEP72,BatchProcessor,4596,8,7,13,6,5,1,12,8,6,0.39,0,Low
+Current Accounts,Balance Maintenance,UPDTU89,Utility,2052,34,1,22,7,2,9,63,2,1,0.21,1,Low
+Payments,Bill Payment,SCHDC56,Calculation,7770,19,6,0,6,3,3,66,0,6,0.55,0,Low
+Reporting,Year End Reporting,TAXB87,DatabaseAccess,8910,116,1,9,12,10,13,28,5,4,0.19,3,Medium
+Reporting,Month End Reporting,SUMR08,ReportWriter,4316,122,22,18,14,13,31,61,24,28,0.09,11,High
+Fixed Deposits,FD Closure,TAXB27,DatabaseAccess,1003,75,7,20,5,7,21,48,18,17,0.26,2,High
+Loans,Loan Origination,APPRA49,Audit,5512,60,2,10,7,1,1,18,6,3,0.23,2,Low
+Credit Cards,Authorization,AUTHDEC,Validation,2525,50,6,8,4,0,21,49,13,5,0.12,1,Medium
+Shared Utilities,Date Utility,DATEC30,Calculation,1001,115,9,5,7,2,19,69,13,9,0.24,6,Medium
+Customer Management,KYC Verification,IDCHKD27,Driver,5473,51,7,7,6,5,2,22,2,8,0.54,1,Low
+Compliance,Audit Logging,TRACEM07,Compliance,953,49,7,6,1,1,11,16,8,9,0.18,2,Low
+Loans,Loan Closure,DOCP01,BatchProcessor,8065,148,8,28,4,7,23,53,31,11,0.13,6,High
+Current Accounts,Charge Calculation,CALCP41,BatchProcessor,1115,55,0,0,1,3,8,12,8,2,0.26,2,Low
+Compliance,Sanction Screening,SANCR26,ReportWriter,4107,42,3,6,8,4,4,9,4,1,0.21,6,Low
+Reporting,Management MIS,RPTR19,ReportWriter,8697,55,10,1,12,4,7,0,17,6,0.25,5,Medium
+Shared Utilities,Date Utility,DATEC19,Calculation,6708,101,4,19,4,2,3,45,16,6,0.26,4,Medium
+Savings Accounts,Account Opening,OPENC69,Calculation,7010,157,10,3,10,11,34,37,29,19,0.03,2,High
+Credit Cards,Fraud Detection,RULEM80,Compliance,5766,33,2,9,6,1,4,63,4,6,0.48,1,Low
+Loans,Interest Calculation,INTD83,Driver,610,61,16,2,8,8,13,52,7,25,0.14,3,Medium
+Loans,Collections,PAYD92,Driver,5598,83,18,8,8,3,21,77,11,12,0.24,3,High
+Compliance,Audit Logging,TRACEU84,Utility,720,166,2,23,17,16,26,15,22,8,0.22,10,High
+Shared Utilities,Format Utility,UTILU39,Utility,4918,4,6,28,2,1,7,20,7,0,0.39,0,Low
+Current Accounts,Balance Maintenance,UPDTV19,Validation,4696,134,4,8,4,5,10,17,18,13,0.28,1,High
+Reporting,Management MIS,SUMR98,ReportWriter,3840,53,13,17,15,2,19,4,16,14,0.37,1,Medium
+Current Accounts,Balance Maintenance,BALP81,BatchProcessor,747,18,1,14,3,1,12,63,7,1,0.6,1,Low
+Customer Management,Profile Maintenance,UPDTD68,Driver,4457,194,11,27,13,2,12,59,13,8,0.07,12,High
+Loans,Loan Closure,DOCI69,Interface,525,109,9,7,15,12,32,36,29,21,0.15,7,High
+Payments,Bill Payment,BILLA78,Audit,4728,18,6,2,5,0,7,0,6,7,0.36,0,Low
+Credit Cards,Settlement,GLMV38,Validation,2822,76,6,6,10,8,22,49,13,14,0.07,2,Medium
+Reporting,Year End Reporting,YEARC45,Calculation,7726,5,0,10,15,2,2,35,3,6,0.47,2,Low
+Savings Accounts,Withdrawal Processing,LIMC96,Calculation,2381,190,9,3,13,14,16,44,35,35,0.07,11,Medium
+Customer Management,KYC Verification,NAMEB02,DatabaseAccess,7801,65,20,26,13,13,18,58,13,10,0.06,8,High
+Reporting,Management MIS,MISD91,Driver,4875,65,13,4,10,8,10,4,12,19,0.24,0,Medium
+Customer Management,KYC Verification,DOCB74,DatabaseAccess,8136,123,9,17,16,15,26,36,30,16,0.03,2,High
+Fixed Deposits,FD Closure,FDCR44,ReportWriter,5357,23,6,19,4,1,16,45,4,24,0.14,3,Low
+Customer Management,Customer Onboarding,CUSTD80,Driver,6946,38,7,2,7,0,13,52,8,10,0.07,0,Medium
+Credit Cards,Settlement,GLMC35,Calculation,3483,33,13,19,12,8,6,18,12,21,0.17,5,Medium
+Payments,External Transfer,SWFTC75,Calculation,4424,8,4,14,1,3,12,43,4,4,0.53,3,Low
+Credit Cards,Limit Management,CARDV40,Validation,4674,122,7,17,3,14,15,40,20,32,0.01,11,High
+Credit Cards,Fee Calculation,CALCM33,Compliance,3915,69,4,13,2,2,21,38,4,14,0.16,2,Low
+Shared Utilities,Packed Decimal Utility,UTILC41,Calculation,1573,37,5,4,7,2,11,42,4,0,0.22,1,Low
+Credit Cards,Settlement,SETLM12,Compliance,2372,26,5,5,2,5,8,23,0,8,0.24,3,Low
+Credit Cards,Authorization,CCMV58,Validation,5799,70,14,2,12,3,21,56,17,12,0.37,0,Medium
+Current Accounts,Charge Calculation,CHGD35,Driver,753,141,21,4,8,2,14,49,27,14,0.1,3,High
+Loans,Loan Closure,DOCP81,BatchProcessor,430,47,11,18,10,0,13,54,14,13,0.29,2,Medium
+Customer Management,Profile Maintenance,UPDTP73,BatchProcessor,1746,58,3,5,7,2,4,7,1,11,0.6,1,Low
+Credit Cards,Fraud Detection,FRDB89,DatabaseAccess,525,194,5,23,16,6,27,74,23,22,0.14,3,High
+Compliance,Sanction Screening,NAMER60,ReportWriter,6777,105,11,15,12,3,14,13,8,5,0.29,9,Medium
+Compliance,Audit Logging,AUDM58,Compliance,6756,193,8,15,12,15,16,84,26,34,0.21,8,High
+Fixed Deposits,Interest Posting,POSTC13,Calculation,1295,43,4,8,3,3,5,22,7,4,0.28,3,Low
+Credit Cards,Authorization,AUDWRITE,Audit,1079,6,0,11,2,5,10,68,6,2,0.57,0,Low
+Savings Accounts,Account Opening,CUSTA25,Audit,1140,5,3,12,0,4,6,63,4,4,0.28,1,Low
+Savings Accounts,Withdrawal Processing,POSTM07,Compliance,6621,35,2,8,2,3,2,25,1,2,0.32,0,Low
+Shared Utilities,Format Utility,TEXTU10,Utility,3521,33,5,22,3,4,7,13,4,5,0.6,0,Low
+Shared Utilities,Packed Decimal Utility,DECA38,Audit,735,98,22,3,15,7,18,67,19,15,0.03,9,High
+Fixed Deposits,FD Renewal,DATEB52,DatabaseAccess,340,95,9,14,10,15,17,46,5,13,0.13,1,Medium
+Compliance,Sanction Screening,NAMEV48,Validation,1822,54,1,2,5,4,9,21,3,3,0.48,4,Low
+Current Accounts,Overdraft Control,AUTHC42,Calculation,7209,151,12,27,13,10,18,14,28,32,0.1,11,High
+Compliance,Regulatory Reporting,MISA31,Audit,323,87,12,19,11,7,13,44,12,19,0.2,4,Medium
+Savings Accounts,Deposit Posting,ACCTA35,Audit,8936,95,6,4,18,3,25,42,12,30,0.17,12,High
+Shared Utilities,Date Utility,UTILU76,Utility,964,55,4,19,4,8,11,46,7,16,0.13,0,Medium
+Credit Cards,Fee Calculation,POSTI64,Interface,848,50,19,27,13,3,22,87,8,21,0.16,4,High
+Shared Utilities,Error Handling,LOGU67,Utility,3837,22,0,17,3,6,18,42,15,22,0.18,2,Medium
+Savings Accounts,Interest Posting,ACCRM94,Compliance,5139,19,3,4,7,4,12,56,2,2,0.54,0,Low
+Credit Cards,Fraud Detection,RULEB66,DatabaseAccess,6583,97,3,18,7,11,15,45,15,20,0.21,5,Medium
+Credit Cards,Settlement,RECONV82,Validation,6919,205,4,18,14,14,26,70,15,24,0.01,5,High
+Savings Accounts,Deposit Posting,DEPI10,Interface,7872,99,15,13,16,10,25,74,27,25,0.14,12,Medium
+Reporting,Year End Reporting,TAXB61,DatabaseAccess,3550,42,6,4,12,15,8,18,3,9,0.32,2,Low
+Reporting,Daily Reporting,RPTA78,Audit,3448,21,5,5,3,4,20,11,9,3,0.26,4,Medium
+Compliance,Regulatory Reporting,RECOND82,Driver,1641,49,15,5,1,0,10,4,4,10,0.17,8,Low
+Savings Accounts,Interest Posting,INTC64,Calculation,5785,97,6,14,11,6,4,29,12,8,0.36,2,Medium
+Reporting,Month End Reporting,SUMA18,Audit,6167,69,13,19,10,7,8,23,7,13,0.18,1,Medium
+Fixed Deposits,FD Renewal,CUSTM43,Compliance,1331,13,3,12,6,1,1,4,1,9,0.34,3,Medium
+Payments,Internal Transfer,AUTHA97,Audit,3044,60,4,3,3,2,4,3,7,5,0.36,0,Low
+Current Accounts,Charge Calculation,GLMR16,ReportWriter,8290,130,9,9,10,2,35,84,8,17,0.25,5,High
+Current Accounts,Balance Maintenance,CURU23,Utility,2251,56,2,10,2,1,11,37,0,6,0.49,0,Low
+Loans,Loan Closure,LNCLSD26,Driver,2427,21,6,10,5,3,3,32,2,6,0.53,3,Low
+Fixed Deposits,FD Renewal,CUSTV68,Validation,579,142,18,10,10,12,7,8,28,13,0.05,6,High
+Fixed Deposits,FD Creation,DOCR85,ReportWriter,5444,29,6,11,6,0,5,17,5,6,0.16,3,Low
+Reporting,Month End Reporting,RPTP31,BatchProcessor,7161,48,4,8,12,7,20,45,13,3,0.18,2,Medium
+Compliance,Regulatory Reporting,RECONM05,Compliance,7761,216,8,21,4,7,21,73,22,29,0.09,10,High
+Fixed Deposits,FD Renewal,CUSTB83,DatabaseAccess,5153,17,6,2,7,5,3,18,6,4,0.52,2,Medium
+Credit Cards,Authorization,LIMITCHK,Validation,2275,34,14,18,3,7,20,25,13,12,0.34,3,Medium
+Payments,External Transfer,SWFTD00,Driver,2959,103,22,13,3,8,15,1,17,25,0.28,6,Medium
+Current Accounts,Charge Calculation,CALCV52,Validation,1157,52,6,7,4,0,7,30,3,7,0.56,0,Low
+Current Accounts,Charge Calculation,POSTC43,Calculation,5998,185,11,3,14,3,9,77,9,37,0.05,5,High
+Payments,Standing Instruction,SCHDV27,Validation,2336,134,21,27,7,8,28,70,8,24,0.1,9,High
+Fixed Deposits,Interest Posting,FDINTM22,Compliance,3435,41,6,6,5,5,1,8,7,3,0.24,1,Low
+Compliance,Sanction Screening,RULEM07,Compliance,5742,4,2,1,5,0,6,23,0,4,0.3,0,Low
+Current Accounts,Charge Calculation,GLMV70,Validation,7183,147,10,6,15,16,32,37,34,27,0.09,5,Medium
+Fixed Deposits,FD Renewal,CUSTA98,Audit,5088,114,5,16,6,4,15,54,5,4,0.28,0,Medium
+Shared Utilities,Date Utility,CHKU80,Utility,3013,76,0,24,8,14,16,79,31,37,0.21,7,High
+Current Accounts,Balance Maintenance,ACCTM73,Compliance,6812,35,13,4,12,9,15,32,3,23,0.3,5,Medium
+Loans,Interest Calculation,CALCV65,Validation,1462,50,6,19,7,2,4,72,4,16,0.26,1,Medium
+Fixed Deposits,FD Renewal,FDMC53,Calculation,4267,31,2,12,1,2,9,61,14,14,0.25,1,High
+Loans,EMI Processing,POSTC29,Calculation,5221,128,19,21,6,10,26,69,27,38,0.13,10,High
+Payments,Bill Payment,POSTV74,Validation,6042,113,11,10,9,10,34,27,11,14,0.11,7,High
+Customer Management,KYC Verification,AMLV70,Validation,329,149,9,20,3,3,29,22,18,27,0.08,4,High
+Fixed Deposits,FD Renewal,DATEC60,Calculation,4095,36,3,10,2,4,2,78,5,1,0.29,3,Low
+Credit Cards,Limit Management,BALP03,BatchProcessor,3974,190,24,23,2,12,7,63,9,22,0.16,4,High
+Fixed Deposits,Interest Posting,ACCRV08,Validation,8699,167,4,5,15,3,33,21,23,16,0.21,10,High
+Compliance,Audit Logging,AUDM52,Compliance,714,113,6,29,12,12,9,76,13,27,0.06,12,High
+Reporting,Year End Reporting,AUDR49,ReportWriter,4661,119,8,8,15,4,10,52,3,18,0.1,3,High
+Reporting,Management MIS,MISI15,Interface,6721,120,21,7,15,12,19,39,10,30,0.13,7,High
+Reporting,Year End Reporting,AUDV68,Validation,7157,63,3,4,13,1,22,15,9,25,0.08,4,Medium
+Payments,Internal Transfer,POSTM06,Compliance,3914,45,5,11,1,4,7,9,5,10,0.48,1,Low
+Loans,Loan Origination,DOCB53,DatabaseAccess,1911,20,3,5,2,13,6,68,7,4,0.49,3,Low
+Fixed Deposits,FD Creation,FDMR14,ReportWriter,5741,26,13,2,8,7,17,48,14,10,0.38,0,High
+Current Accounts,Overdraft Control,AUTHM06,Compliance,2853,44,1,1,7,0,10,26,0,7,0.26,2,Low
+Fixed Deposits,FD Closure,GLMB22,DatabaseAccess,4876,58,12,20,11,12,19,87,31,36,0.1,6,High
+Fixed Deposits,Interest Posting,FDINTM65,Compliance,5161,3,2,0,5,5,5,23,7,5,0.18,2,Low
+Fixed Deposits,FD Creation,OPENC61,Calculation,869,167,10,12,16,15,24,45,16,18,0.01,7,High
+Savings Accounts,Withdrawal Processing,CASHV33,Validation,1114,94,4,14,1,3,10,17,2,6,0.57,2,Low
+Savings Accounts,Deposit Posting,BALV98,Validation,4646,4,6,7,2,2,10,65,0,6,0.3,2,Low
+Fixed Deposits,Interest Posting,INTB48,DatabaseAccess,8863,173,15,19,8,13,13,42,16,13,0.21,10,High
+Fixed Deposits,FD Creation,DOCC45,Calculation,2020,62,5,5,2,2,22,56,9,6,0.3,4,Medium
+Savings Accounts,Account Opening,CUSTP58,BatchProcessor,2391,34,13,5,11,0,11,26,13,10,0.22,2,Medium
+Current Accounts,Balance Maintenance,UPDTA57,Audit,6356,98,6,1,1,3,12,53,15,18,0.35,0,Medium
+Savings Accounts,Deposit Posting,BALB25,DatabaseAccess,4790,15,3,11,7,16,3,19,0,5,0.29,1,Low
+Customer Management,Profile Maintenance,CUSTI50,Interface,844,165,21,7,7,5,35,35,32,12,0.15,7,High
+Customer Management,Profile Maintenance,UPDTB40,DatabaseAccess,2887,15,7,12,4,16,10,1,2,6,0.32,1,Low
+Current Accounts,Charge Calculation,CHGV33,Validation,6040,64,12,10,7,1,8,42,16,10,0.17,0,Medium
+Loans,Loan Origination,DOCA70,Audit,8217,203,19,16,7,15,35,64,18,13,0.27,11,High
+Compliance,Regulatory Reporting,RPTM63,Compliance,8632,10,1,1,4,2,1,4,2,3,0.53,0,Low
+Payments,Bill Payment,BILLV09,Validation,5126,85,0,1,0,3,3,3,0,9,0.32,3,Low
+Current Accounts,Balance Maintenance,UPDTM45,Compliance,8343,68,9,29,13,7,27,84,35,11,0.28,4,High
+Reporting,Year End Reporting,TAXU10,Utility,4390,55,3,29,7,2,3,13,5,2,0.38,1,Low
+Customer Management,Customer Onboarding,KYCV78,Validation,2203,124,21,4,4,6,34,29,19,25,0.06,3,High
+Payments,Standing Instruction,DATEC31,Calculation,4343,151,11,29,14,11,29,74,17,25,0.0,8,Medium
+Shared Utilities,Packed Decimal Utility,UTILU85,Utility,6608,184,4,27,4,8,16,64,33,28,0.11,8,High
+Fixed Deposits,Interest Posting,GLMD71,Driver,2319,67,19,11,10,10,10,16,18,23,0.33,5,Medium
+Customer Management,Customer Onboarding,KYCA36,Audit,3256,59,2,10,1,4,9,0,6,0,0.32,1,Medium
+Savings Accounts,Withdrawal Processing,CASHA11,Audit,3227,69,24,27,15,11,15,37,34,31,0.18,9,High
+Shared Utilities,Date Utility,HOLR51,ReportWriter,654,133,21,6,10,11,25,52,18,13,0.11,9,High
+Current Accounts,Balance Maintenance,CURU48,Utility,5688,125,1,28,6,2,27,52,11,11,0.19,10,High
+Compliance,Audit Logging,TRACEM62,Compliance,7039,54,9,19,7,4,17,26,5,14,0.18,4,Medium
+Shared Utilities,Format Utility,FMTA70,Audit,273,44,11,20,7,2,18,36,6,16,0.08,5,Medium
+Credit Cards,Authorization,CCMD94,Driver,3509,209,9,20,6,5,22,47,33,25,0.21,10,High
+Loans,Loan Origination,APPRD72,Driver,2413,60,16,0,1,4,7,25,6,4,0.47,3,Low
+Credit Cards,Limit Management,CRLIMV87,Validation,1265,130,8,28,9,5,11,42,12,28,0.24,6,High
+Payments,External Transfer,AUTHI44,Interface,802,33,5,1,6,5,5,16,2,2,0.59,2,Low
+Fixed Deposits,FD Closure,CLOSEU92,Utility,5444,159,5,28,17,13,19,50,29,21,0.03,6,High
+Savings Accounts,Withdrawal Processing,BALR31,ReportWriter,5466,41,5,14,6,1,9,79,5,4,0.36,1,Low
+Loans,Loan Origination,APPRC93,Calculation,5628,79,13,1,5,7,9,67,5,24,0.1,4,Medium
+Loans,Loan Closure,LNCLSC61,Calculation,5925,40,2,8,3,4,12,11,8,6,0.59,0,Low
+Reporting,Management MIS,RPTR20,ReportWriter,7067,188,11,4,10,11,14,13,16,17,0.06,6,High
+Loans,Interest Calculation,POSTM19,Compliance,4976,174,22,20,14,11,17,89,27,31,0.06,4,High
+Current Accounts,Overdraft Control,BALC89,Calculation,2506,24,2,1,5,2,1,20,0,0,0.33,3,Low
+Fixed Deposits,Interest Posting,GLMC27,Calculation,1118,51,20,13,8,12,28,64,15,22,0.05,12,High
+Shared Utilities,Date Utility,CALU78,Utility,1617,212,1,6,15,9,19,66,18,28,0.12,8,High
+Shared Utilities,Date Utility,UTILU74,Utility,2282,44,3,24,5,1,10,40,14,6,0.12,1,Medium
+Reporting,Management MIS,DASHP81,BatchProcessor,5046,102,12,26,7,11,32,8,17,11,0.12,2,High
+Customer Management,Profile Maintenance,CUSTC09,Calculation,1344,37,7,15,3,6,19,74,18,6,0.19,3,Medium
+Current Accounts,Overdraft Control,ODMP60,BatchProcessor,3529,10,4,8,6,1,9,36,8,10,0.62,3,Low
+Fixed Deposits,Interest Posting,ACCRC04,Calculation,318,95,7,28,3,3,26,62,18,36,0.11,12,Medium
+Loans,EMI Processing,POSTC27,Calculation,8747,179,19,5,10,6,24,51,20,13,0.23,12,High
+Fixed Deposits,Interest Posting,ACCRB84,DatabaseAccess,732,52,7,11,4,7,1,10,3,11,0.27,3,Low
+Compliance,AML Monitoring,TXNM67,Compliance,668,26,6,10,6,5,9,6,5,4,0.25,5,Low
+Current Accounts,Balance Maintenance,LEDGR70,ReportWriter,4805,78,6,8,14,6,7,32,11,16,0.08,5,Medium
+Current Accounts,Charge Calculation,FEEP14,BatchProcessor,4038,113,14,20,10,3,15,24,11,3,0.39,2,Medium
+Shared Utilities,Date Utility,DATEM30,Compliance,3143,28,1,5,2,3,11,12,1,3,0.4,3,Low
+Compliance,Audit Logging,LOGR97,ReportWriter,8227,27,7,7,12,1,3,23,4,4,0.51,1,Low
+Credit Cards,Fraud Detection,FRDD11,Driver,6990,17,20,12,6,1,1,55,4,1,0.45,0,Low
+Current Accounts,Charge Calculation,GLMM31,Compliance,5269,103,4,17,4,8,21,64,31,19,0.03,7,High
+Compliance,AML Monitoring,TXNA10,Audit,7148,22,13,1,1,6,13,53,5,10,0.26,6,Medium
+Reporting,Month End Reporting,RPTD36,Driver,2494,63,9,18,14,8,14,42,15,16,0.21,0,Medium
+Reporting,Month End Reporting,SUMR86,ReportWriter,2794,108,10,12,16,9,12,11,14,17,0.23,5,Medium
+Fixed Deposits,FD Creation,ACCTV00,Validation,8737,180,13,17,4,7,32,27,24,38,0.11,6,High
+Shared Utilities,Packed Decimal Utility,NUMU46,Utility,2164,54,0,24,6,4,4,9,2,6,0.27,0,Low
+Savings Accounts,Deposit Posting,BALU45,Utility,2072,197,2,30,13,8,31,45,13,37,0.1,11,Medium
+Compliance,AML Monitoring,AMLA48,Audit,3443,156,11,13,7,5,19,61,21,13,0.12,7,High
+Loans,Loan Origination,APPRA95,Audit,4761,48,2,11,0,0,1,59,5,3,0.23,3,Low
+Compliance,Sanction Screening,KYCB66,DatabaseAccess,5561,34,5,11,4,5,12,11,8,8,0.4,10,Low
+Savings Accounts,Interest Posting,BALA39,Audit,5658,117,7,3,8,10,9,30,4,4,0.27,6,Medium
+Compliance,Sanction Screening,NAMEA53,Audit,5283,152,11,23,4,8,32,42,13,23,0.06,5,High
+Payments,External Transfer,ACHM34,Compliance,1189,103,6,14,3,3,16,49,9,21,0.24,2,Medium
+Savings Accounts,Account Opening,ACCTU85,Utility,4385,73,1,23,11,9,7,76,17,14,0.25,5,Medium
+Current Accounts,Overdraft Control,RISKV86,Validation,4659,136,9,16,8,1,12,58,16,4,0.2,3,Medium
+Current Accounts,Overdraft Control,RISKC55,Calculation,6781,80,22,12,17,10,20,55,27,29,0.06,6,High
+Reporting,Management MIS,RPTA98,Audit,3989,31,2,13,14,0,5,8,4,10,0.45,3,Medium
+Compliance,Regulatory Reporting,RECONU33,Utility,992,54,5,13,3,4,5,49,6,16,0.32,8,Medium
+Reporting,Daily Reporting,DAYR63,ReportWriter,8963,29,6,13,7,2,3,25,0,5,0.33,2,Low
+Customer Management,Customer Onboarding,ONBRC88,Calculation,4826,40,3,12,2,0,12,77,7,11,0.55,2,Low
+Reporting,Daily Reporting,SUMU47,Utility,5446,21,0,16,10,8,9,17,9,11,0.14,2,Medium
+Payments,Standing Instruction,DATEI22,Interface,7049,116,9,3,17,7,25,88,29,17,0.26,10,High
+Loans,Collections,COLLM08,Compliance,5365,58,8,8,8,4,22,36,6,5,0.28,0,Medium
+Compliance,AML Monitoring,SCANM18,Compliance,4171,60,11,14,1,2,13,53,4,21,0.2,2,Medium
+Current Accounts,Balance Maintenance,UPDTU97,Utility,8192,198,0,26,2,12,9,60,24,26,0.22,7,High
+Savings Accounts,Deposit Posting,ACCTC14,Calculation,232,47,2,0,6,5,10,76,4,9,0.54,3,Low
+Credit Cards,Fee Calculation,CALCB42,DatabaseAccess,5262,200,20,24,14,11,14,21,20,25,0.12,8,High
+Reporting,Daily Reporting,FILEU17,Utility,7563,198,5,26,14,8,30,83,12,38,0.21,4,High
+Current Accounts,Overdraft Control,ODMM01,Compliance,243,120,20,13,6,2,26,41,24,36,0.01,5,Medium
+Fixed Deposits,FD Closure,GLMP14,BatchProcessor,462,89,12,20,3,2,18,50,14,10,0.4,0,Medium
+Savings Accounts,Account Opening,OPENU06,Utility,626,107,3,30,16,4,7,13,27,11,0.09,6,High
+Shared Utilities,Error Handling,ERRU44,Utility,4073,74,2,20,8,8,6,34,8,18,0.32,0,Medium
+Compliance,Regulatory Reporting,REGA24,Audit,1105,47,6,13,10,10,18,46,6,9,0.25,3,High
+Loans,Loan Closure,BALB03,DatabaseAccess,621,85,8,10,12,8,19,39,13,12,0.34,4,Medium
+Fixed Deposits,Interest Posting,ACCRB75,DatabaseAccess,1719,38,5,1,0,8,7,5,4,6,0.19,0,Low
+Compliance,AML Monitoring,SCANM09,Compliance,2207,90,17,4,17,3,33,4,18,22,0.13,10,High
+Compliance,AML Monitoring,RISKM03,Compliance,395,15,4,9,4,5,10,1,2,3,0.29,3,Low
+Credit Cards,Authorization,AUTHI24,Interface,4981,59,18,25,12,2,22,68,30,13,0.19,11,High
+Credit Cards,Limit Management,CARDD89,Driver,6095,75,10,17,5,0,22,52,17,19,0.32,4,Medium
+Savings Accounts,Withdrawal Processing,WDRR47,ReportWriter,5296,45,4,16,7,2,16,30,15,16,0.11,1,Low
+Customer Management,Customer Onboarding,CUSTM34,Compliance,399,22,6,0,5,4,5,20,4,1,0.16,3,Low
+Credit Cards,Authorization,CCMA02,Audit,8275,74,24,11,5,8,21,59,22,22,0.16,10,High
+Customer Management,Profile Maintenance,PROFU82,Utility,180,26,0,22,12,4,12,2,12,7,0.23,2,Medium
+Shared Utilities,Packed Decimal Utility,UTILA28,Audit,5392,47,17,6,9,6,12,6,29,17,0.03,9,High
+Loans,Collections,COLLC67,Calculation,6635,81,10,16,1,7,3,67,5,14,0.12,5,Medium
+Fixed Deposits,Interest Posting,ACCRR81,ReportWriter,6492,7,0,7,7,0,11,21,7,6,0.38,1,Low
+Loans,Collections,NTCEC83,Calculation,674,33,13,7,12,8,3,54,4,22,0.24,4,Medium
+Current Accounts,Charge Calculation,GLMV11,Validation,8327,199,16,11,11,9,33,67,34,38,0.04,12,High
+Shared Utilities,Error Handling,LOGU65,Utility,7718,125,3,14,10,16,26,20,27,9,0.0,10,High
+Customer Management,Customer Onboarding,DOCC07,Calculation,3264,22,7,9,12,9,6,69,4,9,0.09,6,Medium
+Credit Cards,Fraud Detection,CARDA77,Audit,1475,13,4,5,6,4,12,53,8,11,0.51,1,Low
+Compliance,Sanction Screening,SANCV47,Validation,1809,74,4,4,9,9,4,1,15,25,0.06,7,Medium
+Savings Accounts,Interest Posting,ACCRV79,Validation,874,45,6,5,2,1,8,45,0,11,0.44,0,Low
+Credit Cards,Settlement,RECONC89,Calculation,2777,12,5,4,1,3,7,25,4,4,0.41,0,Low
+Loans,Loan Origination,APPRP82,BatchProcessor,505,25,12,3,1,7,22,65,11,8,0.29,2,High
+Fixed Deposits,FD Renewal,FDMU53,Utility,7786,198,1,28,5,6,32,59,17,19,0.08,2,High
+Fixed Deposits,FD Renewal,CUSTM81,Compliance,3679,31,2,4,7,4,3,23,5,9,0.29,2,Low
+Savings Accounts,Account Opening,KYCVU15,Utility,586,17,1,14,1,1,4,14,5,1,0.54,1,Low
+Shared Utilities,Error Handling,MSGU96,Utility,5185,117,1,24,11,3,22,48,6,6,0.26,6,Medium
+Payments,Internal Transfer,POSTD78,Driver,3775,63,19,3,8,13,25,19,22,31,0.03,8,High
+Current Accounts,Charge Calculation,FEEA42,Audit,4372,89,13,9,1,6,17,71,6,12,0.31,4,Medium
+Shared Utilities,Packed Decimal Utility,FMTU13,Utility,4705,84,1,15,4,6,20,2,14,10,0.39,2,Medium
+Reporting,Daily Reporting,RPTV76,Validation,3671,128,16,9,15,2,22,50,14,24,0.0,11,High
+Customer Management,KYC Verification,IDCHKR72,ReportWriter,4482,16,7,13,7,5,11,3,2,9,0.21,1,Low
+Fixed Deposits,FD Renewal,RATEB43,DatabaseAccess,3929,167,7,10,10,13,27,55,34,9,0.07,4,High
+Savings Accounts,Account Opening,SAVR01,ReportWriter,8818,6,7,9,12,5,9,21,2,0,0.36,1,Low
+Loans,Loan Origination,LOANP30,BatchProcessor,2787,83,5,12,8,8,12,60,9,25,0.2,3,Medium
+Loans,Collections,RISKU79,Utility,2606,148,0,27,16,14,28,80,16,34,0.01,4,Medium
+Loans,Loan Origination,APPRU99,Utility,7125,99,1,19,11,4,15,37,4,21,0.22,6,Medium
+Shared Utilities,Format Utility,MASKV33,Validation,2639,134,10,9,3,9,22,12,14,5,0.27,3,Medium
+Customer Management,Profile Maintenance,PROFI30,Interface,3814,111,5,19,12,6,5,0,15,5,0.23,2,Medium
+Payments,Internal Transfer,XFERC46,Calculation,6334,40,10,13,7,0,9,25,3,17,0.18,2,Medium
+Customer Management,Customer Onboarding,KYCC25,Calculation,3124,108,6,13,11,2,18,18,9,16,0.08,4,Medium
+Current Accounts,Balance Maintenance,CURP89,BatchProcessor,7135,36,1,2,2,1,14,36,13,25,0.29,5,Medium
+Compliance,Sanction Screening,SCRNB73,DatabaseAccess,768,62,20,16,17,11,16,21,23,31,0.02,10,High
+Current Accounts,Overdraft Control,AUTHD51,Driver,3236,36,8,4,9,7,12,43,7,24,0.28,4,Medium
+Shared Utilities,Date Utility,CHKA13,Audit,410,199,6,23,4,16,7,59,23,34,0.09,7,High
+Customer Management,KYC Verification,DOCI12,Interface,6090,67,12,4,6,10,8,7,10,23,0.25,1,Medium
+Fixed Deposits,FD Renewal,RENWC26,Calculation,985,160,15,18,10,5,30,63,13,19,0.21,2,High
+Fixed Deposits,FD Closure,CLOSEC72,Calculation,6444,31,6,12,7,5,12,49,1,7,0.4,1,Low
+Credit Cards,Fee Calculation,FEECALC,Calculation,4955,113,2,20,7,8,18,55,10,21,0.4,2,Medium
+Savings Accounts,Deposit Posting,POSTA87,Audit,6136,91,7,14,11,4,7,39,12,13,0.23,0,Medium
+Loans,Loan Closure,PAYP56,BatchProcessor,6591,130,18,10,8,8,14,78,30,16,0.02,11,Medium
+Customer Management,Profile Maintenance,UPDTV22,Validation,372,79,14,6,7,3,8,4,11,20,0.2,3,Medium
+Shared Utilities,Error Handling,LOGC41,Calculation,901,43,5,8,3,1,9,34,5,4,0.4,1,Low
+Compliance,Audit Logging,LOGB53,DatabaseAccess,5080,32,0,1,6,6,3,4,8,9,0.42,7,Low
+Customer Management,KYC Verification,IDCHKI02,Interface,6262,108,14,18,3,1,4,19,10,18,0.35,1,Medium
+Loans,Loan Closure,PAYM91,Compliance,6705,209,5,8,8,16,13,76,19,36,0.06,9,High
+Customer Management,Profile Maintenance,PROFV55,Validation,1972,132,6,19,5,3,9,15,6,21,0.31,0,Medium
+Credit Cards,Fee Calculation,CALCD64,Driver,5454,155,16,13,18,5,11,54,20,16,0.22,5,High
+Customer Management,KYC Verification,IDCHKI86,Interface,2101,118,17,10,3,2,27,44,33,17,0.21,5,High
+Reporting,Month End Reporting,RPTU25,Utility,806,190,4,21,14,8,30,15,15,23,0.03,9,High
+Loans,EMI Processing,INSTC91,Calculation,2955,113,5,7,11,3,7,82,9,18,0.15,9,High
+Payments,Internal Transfer,AUTHC21,Calculation,8090,65,14,6,7,5,26,51,11,29,0.12,9,High
+Customer Management,Profile Maintenance,PROFC04,Calculation,3795,86,9,4,9,4,14,27,14,16,0.13,4,Medium
+Reporting,Year End Reporting,TAXU65,Utility,5977,9,3,10,11,2,1,7,7,4,0.29,0,Low
+Payments,Bill Payment,PAYA22,Audit,2539,91,12,10,18,15,10,62,33,38,0.01,10,High
+Compliance,Sanction Screening,SCRNI62,Interface,6050,28,4,8,4,6,6,46,11,10,0.1,5,Medium
+Reporting,Year End Reporting,GLMR36,ReportWriter,8242,56,23,5,11,7,17,75,23,27,0.08,10,Medium
+Payments,Bill Payment,SCHDV70,Validation,6680,35,1,12,7,1,2,23,2,0,0.56,0,Low
+Compliance,Audit Logging,TRACEM14,Compliance,5454,67,9,18,10,1,10,5,16,5,0.07,2,Medium
+Payments,Internal Transfer,POSTC95,Calculation,5408,33,0,5,7,1,9,38,5,10,0.54,2,Low
+Credit Cards,Fraud Detection,FRDA75,Audit,6447,106,14,7,8,0,5,53,5,19,0.21,1,High
+Compliance,Sanction Screening,SCRNB09,DatabaseAccess,4055,133,13,16,13,16,12,11,26,29,0.1,6,High
+Current Accounts,Balance Maintenance,CURR25,ReportWriter,7281,169,6,19,15,6,9,63,8,11,0.09,11,High
+Loans,Collections,RISKR43,ReportWriter,6616,86,11,28,16,11,21,24,14,19,0.04,10,High
+Current Accounts,Balance Maintenance,ACCTI91,Interface,593,217,24,7,11,4,25,42,19,14,0.04,8,High
+Compliance,Sanction Screening,NAMEV24,Validation,8722,135,10,22,17,12,33,77,22,15,0.24,8,High
+Payments,Standing Instruction,SCHDC50,Calculation,7461,10,0,8,6,5,5,49,0,0,0.28,2,Low
+Customer Management,Customer Onboarding,DOCR32,ReportWriter,6058,6,6,8,16,4,6,10,2,1,0.33,1,Low
+Credit Cards,Settlement,RECONA74,Audit,5978,30,7,4,1,5,2,25,5,11,0.53,3,Low
+Savings Accounts,Deposit Posting,LEDGM69,Compliance,2554,162,11,23,18,4,17,66,18,32,0.15,2,High
+Reporting,Year End Reporting,RPTR31,ReportWriter,6382,90,3,19,11,2,7,20,13,23,0.37,5,Medium
+Credit Cards,Authorization,CCMI27,Interface,7371,192,8,17,15,16,31,36,29,15,0.19,5,High
+Compliance,Regulatory Reporting,RECONA19,Audit,2164,73,5,1,3,9,6,8,16,19,0.4,6,Medium
+Customer Management,Customer Onboarding,DOCM00,Compliance,4530,69,9,7,12,0,5,22,8,9,0.24,1,Medium
+Loans,Interest Calculation,POSTA54,Audit,2628,8,6,5,1,4,10,41,2,2,0.52,1,Low
+Fixed Deposits,FD Closure,GLMV53,Validation,808,142,5,3,5,0,7,2,3,2,0.58,1,Low
+Loans,Loan Closure,CLOSEA97,Audit,708,100,24,10,12,10,19,74,20,36,0.25,6,High
+Credit Cards,Settlement,GLMM03,Compliance,5529,29,5,5,7,6,8,17,11,11,0.17,3,Medium
+Fixed Deposits,Interest Posting,POSTB15,DatabaseAccess,237,44,10,8,5,9,14,37,12,24,0.32,6,Medium
+Shared Utilities,Error Handling,ABNDU87,Utility,3741,163,3,17,9,6,20,10,22,15,0.25,7,High
+Reporting,Month End Reporting,MONU64,Utility,7440,195,6,30,6,11,12,59,10,21,0.15,7,High
+Customer Management,Profile Maintenance,PROFI39,Interface,8461,65,9,9,4,8,16,38,35,20,0.17,12,High
+Current Accounts,Overdraft Control,RISKP45,BatchProcessor,424,38,5,12,6,5,5,56,2,11,0.34,2,Low
+Credit Cards,Settlement,SETLM13,Compliance,4639,74,8,5,7,7,19,66,6,14,0.35,2,Medium
+Fixed Deposits,FD Closure,GLMB67,DatabaseAccess,1709,109,5,25,17,12,18,70,34,21,0.21,8,High
+Savings Accounts,Withdrawal Processing,LIMI89,Interface,2173,82,8,19,11,5,12,36,3,15,0.34,3,Medium
+Shared Utilities,Error Handling,LOGU71,Utility,6508,149,4,23,8,6,23,26,22,23,0.22,4,High
+Compliance,Sanction Screening,RULEC52,Calculation,4984,21,3,8,4,1,5,43,5,0,0.27,6,Medium
+Reporting,Year End Reporting,TAXC36,Calculation,8796,53,5,4,6,0,9,37,5,5,0.57,3,Low
+Credit Cards,Fraud Detection,FRDCHK,Validation,496,185,13,12,18,10,15,28,34,25,0.14,12,High
+Reporting,Year End Reporting,RPTV49,Validation,4332,169,15,7,14,3,12,89,18,19,0.14,12,High
+Credit Cards,Settlement,POSTI68,Interface,940,147,7,7,10,16,28,80,13,28,0.25,4,Medium
+Credit Cards,Fraud Detection,RISKC41,Calculation,8707,195,5,5,3,4,9,89,28,32,0.08,3,High
+Reporting,Month End Reporting,SUMD94,Driver,6456,64,14,16,12,4,12,48,8,6,0.35,4,Medium
+Reporting,Daily Reporting,FILEP34,BatchProcessor,6434,3,6,5,12,1,10,13,5,2,0.59,2,Low
+Reporting,Daily Reporting,RPTU53,Utility,2238,99,0,27,7,3,17,2,16,16,0.33,4,Medium
+Savings Accounts,Withdrawal Processing,LIMI32,Interface,2438,4,6,14,4,0,3,78,7,9,0.27,3,Low
+Reporting,Year End Reporting,TAXM23,Compliance,2262,39,1,18,5,7,7,51,14,21,0.15,4,Medium
+Credit Cards,Fee Calculation,POSTI23,Interface,1653,113,5,5,7,1,10,52,7,24,0.36,3,Medium
+Credit Cards,Fee Calculation,CARDC26,Calculation,6319,108,10,11,4,3,6,55,15,8,0.27,4,Low
+Current Accounts,Charge Calculation,CALCD22,Driver,4612,42,15,12,4,0,11,39,0,11,0.49,0,Low
+Credit Cards,Fraud Detection,CARDB67,DatabaseAccess,3084,40,4,6,3,15,12,25,7,0,0.51,2,Low
+Shared Utilities,Date Utility,HOLR50,ReportWriter,4450,44,6,0,7,1,10,13,4,5,0.53,3,Low
+Compliance,AML Monitoring,RISKM81,Compliance,548,167,21,18,16,9,25,58,35,15,0.04,10,High
+Customer Management,Customer Onboarding,CUSTV07,Validation,399,86,14,11,18,3,8,76,27,20,0.1,10,High
+Fixed Deposits,FD Closure,GLMU20,Utility,4864,18,1,14,1,1,4,18,0,6,0.38,2,Low
+Customer Management,Customer Onboarding,CUSTC68,Calculation,4668,35,7,1,7,5,12,78,3,5,0.43,2,Low
+Current Accounts,Balance Maintenance,UPDTB90,DatabaseAccess,4426,22,0,8,6,10,7,53,0,11,0.25,2,Low
+Fixed Deposits,FD Closure,GLMR29,ReportWriter,8409,107,10,20,7,2,12,13,5,25,0.17,5,Medium
+Savings Accounts,Account Opening,CUSTA92,Audit,613,49,6,6,4,3,2,45,7,1,0.19,2,Low
+Loans,Collections,PAYV57,Validation,1986,108,12,8,3,9,22,65,11,20,0.11,1,Medium
+Credit Cards,Fee Calculation,CARDM49,Compliance,2387,49,0,7,7,4,10,53,7,6,0.61,3,Low
+Credit Cards,Limit Management,AUTHM79,Compliance,1350,25,1,14,6,8,21,62,7,11,0.16,6,High
+Reporting,Management MIS,SUMD67,Driver,6348,104,8,9,14,3,13,64,8,37,0.16,10,High
+Payments,Internal Transfer,AUTHR90,ReportWriter,1289,115,10,1,14,7,16,11,6,4,0.38,5,Medium
+Compliance,Sanction Screening,KYCM41,Compliance,4521,45,7,13,14,15,31,39,31,28,0.12,5,High
+Savings Accounts,Deposit Posting,POSTB21,DatabaseAccess,6832,60,4,16,6,16,9,50,14,19,0.32,1,Medium
+Shared Utilities,Format Utility,OUTU99,Utility,5501,19,2,25,6,0,9,12,5,0,0.46,1,Low
+Compliance,AML Monitoring,AMLV71,Validation,4771,31,5,5,5,4,3,6,0,1,0.47,0,Low
+Compliance,Audit Logging,ERRV38,Validation,5883,105,6,7,1,3,6,14,0,10,0.17,7,Low
+Payments,External Transfer,SWFTM73,Compliance,6526,56,14,2,9,3,16,38,8,11,0.39,5,Medium
+Loans,Loan Origination,LOANM51,Compliance,306,24,5,14,5,5,9,11,4,6,0.21,3,Low
+Reporting,Management MIS,DASHU29,Utility,674,202,1,16,14,6,33,67,14,34,0.12,12,High
+Current Accounts,Overdraft Control,RISKB83,DatabaseAccess,6170,115,10,4,3,12,20,47,11,8,0.38,1,Medium
+Shared Utilities,Packed Decimal Utility,FMTU28,Utility,3973,39,1,23,10,0,8,25,18,9,0.08,3,Medium
+Shared Utilities,Error Handling,ERRC57,Calculation,5538,35,4,2,4,3,4,24,5,11,0.59,0,Low
+Loans,EMI Processing,BALP47,BatchProcessor,5220,22,0,10,2,5,4,25,4,7,0.46,1,Low
+Compliance,AML Monitoring,TXNM06,Compliance,547,90,14,25,18,4,13,51,28,14,0.11,12,High
+Reporting,Month End Reporting,GLMR74,ReportWriter,8201,22,4,19,10,10,14,16,18,14,0.35,5,Medium
+Loans,Loan Closure,PAYV03,Validation,2057,127,13,21,18,11,25,27,14,10,0.19,3,Medium
+Credit Cards,Authorization,CCMD91,Driver,8076,23,11,14,5,1,1,64,1,1,0.52,1,Low
+Payments,Bill Payment,POSTU21,Utility,2358,109,3,27,10,7,21,48,14,18,0.14,4,Medium
+Loans,Collections,DUEC03,Calculation,5475,118,5,4,11,8,16,27,5,24,0.08,1,Medium
+Customer Management,Profile Maintenance,ADDRM98,Compliance,4500,25,2,7,6,1,12,11,8,10,0.4,1,Low
+Fixed Deposits,FD Creation,ACCTV99,Validation,377,127,7,8,2,3,12,6,7,3,0.61,1,Low
+Customer Management,KYC Verification,NAMEV97,Validation,4407,53,5,13,3,1,4,16,6,5,0.51,3,Low
+Compliance,Sanction Screening,SCRNU96,Utility,1443,40,1,16,4,1,12,23,4,6,0.38,5,Low
+Compliance,Audit Logging,TRACEM77,Compliance,5241,54,2,6,4,0,5,5,1,11,0.39,2,Low
+Fixed Deposits,FD Renewal,CUSTR54,ReportWriter,7617,118,4,20,12,10,9,43,13,7,0.33,4,Medium
+Shared Utilities,Packed Decimal Utility,NUMU24,Utility,4652,18,3,19,2,0,11,16,2,0,0.33,3,Low
+Compliance,Regulatory Reporting,REGM43,Compliance,3648,59,4,12,8,10,5,7,11,7,0.32,9,Medium
+Current Accounts,Balance Maintenance,UPDTB08,DatabaseAccess,3404,64,17,7,4,12,10,37,19,14,0.05,3,High
+Credit Cards,Settlement,SETLM92,Compliance,1301,198,22,15,9,13,26,73,31,18,0.1,11,High
+Savings Accounts,Deposit Posting,POSTC21,Calculation,1315,112,7,14,1,6,9,41,17,13,0.22,3,Medium
+Current Accounts,Overdraft Control,RISKB82,DatabaseAccess,3912,6,1,7,0,11,6,62,1,5,0.56,0,Low
+Compliance,Audit Logging,TRACEM15,Compliance,2136,120,12,5,11,10,16,2,8,12,0.1,7,Medium
+Savings Accounts,Deposit Posting,BALB40,DatabaseAccess,4355,49,14,15,8,13,18,47,8,13,0.17,3,High
+Current Accounts,Balance Maintenance,CURC75,Calculation,5204,59,3,10,2,1,12,37,6,15,0.18,5,Medium
+Credit Cards,Limit Management,CARDP45,BatchProcessor,1278,47,3,10,1,0,4,77,6,7,0.16,3,Medium
+Savings Accounts,Interest Posting,ACCRB52,DatabaseAccess,1875,90,12,3,12,12,4,58,12,11,0.18,2,High
+Compliance,Regulatory Reporting,RPTM05,Compliance,869,105,17,7,13,3,29,89,17,30,0.03,10,Medium
+Shared Utilities,Format Utility,TEXTU59,Utility,2029,45,6,24,5,6,11,29,7,7,0.36,5,Medium
+Credit Cards,Settlement,ACQD21,Driver,662,38,6,11,3,1,8,46,4,7,0.35,2,Low
+Credit Cards,Authorization,CUSTVAL,Validation,2661,127,3,1,4,2,9,41,1,1,0.24,3,Low
+Reporting,Year End Reporting,GLMR68,ReportWriter,4728,99,6,12,14,12,18,70,24,17,0.03,6,High
+Loans,EMI Processing,POSTP90,BatchProcessor,4289,18,1,5,6,4,6,28,0,11,0.18,3,Low
+Customer Management,Customer Onboarding,KYCV54,Validation,750,124,12,7,3,3,18,48,17,22,0.28,12,High
+Fixed Deposits,FD Creation,ACCTP55,BatchProcessor,939,32,0,8,0,0,5,16,1,7,0.26,2,Low
+Payments,Standing Instruction,POSTM52,Compliance,3022,47,1,9,7,1,10,12,7,3,0.17,3,Low
+Fixed Deposits,FD Creation,ACCTP85,BatchProcessor,5876,29,4,15,12,8,19,2,16,9,0.16,0,Medium
+Customer Management,Customer Onboarding,ONBRP09,BatchProcessor,4688,32,7,3,1,2,4,7,5,9,0.38,2,Low
+Customer Management,Customer Onboarding,DOCR19,ReportWriter,8918,22,4,11,5,3,1,24,0,5,0.5,3,Low
+Savings Accounts,Deposit Posting,DEPI00,Interface,704,42,6,12,8,2,10,71,15,24,0.26,4,Medium
+Shared Utilities,Packed Decimal Utility,NUMU51,Utility,443,32,1,15,3,5,7,15,5,5,0.2,3,Low
+Compliance,Regulatory Reporting,RECONM79,Compliance,377,208,11,4,2,16,35,75,12,21,0.07,8,High
+Compliance,AML Monitoring,SCANV52,Validation,4629,96,2,8,6,0,9,19,6,3,0.44,6,Low
+Compliance,Sanction Screening,SANCM79,Compliance,7924,65,16,9,6,8,21,65,13,12,0.06,9,High
+Loans,Loan Closure,DOCA46,Audit,302,36,6,10,3,3,11,73,3,3,0.22,2,Low
+Fixed Deposits,FD Creation,OPENA10,Audit,1907,24,3,1,3,5,6,20,3,9,0.3,2,Low
+Reporting,Year End Reporting,TAXU58,Utility,3562,32,5,18,7,9,15,31,13,18,0.34,3,Medium
+Shared Utilities,Packed Decimal Utility,FMTU54,Utility,4137,29,2,17,7,1,21,32,15,20,0.37,4,Medium
+Credit Cards,Fee Calculation,GLMD48,Driver,1317,59,13,2,6,3,19,42,11,20,0.07,4,Medium
+Loans,Collections,PAYC07,Calculation,5450,140,7,28,4,13,34,63,29,9,0.22,8,High
+Customer Management,Profile Maintenance,UPDTP80,BatchProcessor,4341,33,4,9,0,5,2,10,3,3,0.44,1,Low
+Payments,Bill Payment,PAYP80,BatchProcessor,5488,19,7,11,0,2,12,18,4,5,0.32,1,Low
+Customer Management,Profile Maintenance,ADDRU50,Utility,3392,42,4,28,2,5,7,1,2,4,0.53,2,Low
+Reporting,Year End Reporting,GLMR87,ReportWriter,6971,35,2,5,8,4,7,11,4,5,0.44,2,Medium
+Reporting,Daily Reporting,DAYR49,ReportWriter,2167,42,0,2,16,1,1,2,3,4,0.61,0,Low
+Customer Management,Profile Maintenance,CUSTR14,ReportWriter,7774,101,13,11,14,1,18,47,17,22,0.32,2,Medium
+Credit Cards,Settlement,ACQV05,Validation,2088,56,7,7,1,2,3,41,3,1,0.55,3,Medium
+Loans,EMI Processing,INSTA43,Audit,3842,82,11,14,8,7,19,48,16,18,0.16,2,Medium
+Compliance,AML Monitoring,TXNM75,Compliance,1862,119,8,27,11,16,10,7,29,34,0.01,3,High
+Shared Utilities,Format Utility,TEXTC73,Calculation,8377,133,20,23,16,6,19,61,22,37,0.26,12,High
+Fixed Deposits,Interest Posting,GLMD16,Driver,2032,94,12,30,18,2,7,47,34,18,0.07,8,High
+Current Accounts,Overdraft Control,LIMM81,Compliance,1311,4,5,7,1,3,10,37,5,4,0.59,1,Low
+Customer Management,Customer Onboarding,CUSTB46,DatabaseAccess,2935,212,23,18,7,14,28,21,26,20,0.18,12,High
+Current Accounts,Overdraft Control,LIMB99,DatabaseAccess,373,67,21,23,9,10,13,66,16,9,0.28,6,High
+Savings Accounts,Withdrawal Processing,POSTM17,Compliance,2337,49,1,5,6,6,14,27,9,6,0.32,3,Medium
+Loans,Collections,DUEV79,Validation,1981,92,9,16,2,6,21,44,3,14,0.24,6,Medium
+Shared Utilities,Error Handling,UTILU86,Utility,1443,79,2,27,6,10,7,0,16,4,0.18,5,Medium
+Customer Management,Profile Maintenance,UPDTC70,Calculation,5607,95,3,7,9,3,4,37,14,20,0.28,6,Medium
+Compliance,Regulatory Reporting,FILEU76,Utility,1341,97,4,22,14,13,22,11,26,34,0.27,3,High
+Customer Management,Profile Maintenance,PROFU25,Utility,2925,34,2,28,7,5,3,20,4,10,0.23,1,Low
+Customer Management,KYC Verification,NAMEB53,DatabaseAccess,7597,166,21,18,9,16,29,49,26,33,0.1,4,High
+Shared Utilities,Format Utility,UTILA42,Audit,3168,54,4,16,2,2,18,24,6,5,0.32,3,Medium
+Reporting,Management MIS,FILER96,ReportWriter,4205,155,23,6,14,7,23,65,19,22,0.23,4,High
+Shared Utilities,Date Utility,HOLU17,Utility,383,34,3,8,4,5,8,4,4,8,0.43,1,Low
+Customer Management,KYC Verification,DOCV24,Validation,486,140,14,16,2,7,15,53,16,16,0.29,1,Medium
+Savings Accounts,Interest Posting,POSTB10,DatabaseAccess,3914,56,1,3,9,8,10,52,12,7,0.27,2,Medium
+Payments,External Transfer,ACHM10,Compliance,5562,22,5,9,1,5,10,21,2,1,0.56,1,Low
+Savings Accounts,Withdrawal Processing,WDRI32,Interface,467,51,5,6,10,9,15,26,29,23,0.2,4,High
+Reporting,Daily Reporting,SUMR35,ReportWriter,8312,47,2,2,7,1,1,22,8,8,0.47,2,Low
+Customer Management,Customer Onboarding,KYCB56,DatabaseAccess,3868,120,18,22,10,12,28,54,16,22,0.04,2,High
+Shared Utilities,Packed Decimal Utility,FMTR33,ReportWriter,5924,51,2,2,11,3,7,4,7,10,0.3,2,Low
+Compliance,Sanction Screening,RULEM04,Compliance,597,158,15,12,5,10,18,58,23,35,0.04,11,High
+Savings Accounts,Account Opening,SAVR84,ReportWriter,674,122,23,25,18,6,29,55,16,13,0.13,3,High
+Credit Cards,Fraud Detection,AUTHV31,Validation,4713,60,7,20,18,5,34,42,23,34,0.25,12,High
+Current Accounts,Balance Maintenance,LEDGD90,Driver,535,65,18,4,1,5,11,20,15,6,0.38,6,Medium
+Fixed Deposits,FD Creation,OPENB59,DatabaseAccess,6514,24,5,0,1,9,6,25,1,0,0.31,1,Medium
+Shared Utilities,Error Handling,LOGU11,Utility,275,45,0,19,11,7,6,20,5,12,0.07,2,Medium
+Reporting,Daily Reporting,EXTRA80,Audit,4699,100,5,5,13,13,11,86,17,8,0.1,5,High
+Savings Accounts,Deposit Posting,LEDGM15,Compliance,5812,27,2,1,4,3,4,19,3,10,0.61,1,Low
+Customer Management,Customer Onboarding,ONBRP12,BatchProcessor,5992,9,2,12,2,1,1,3,1,4,0.2,3,Low
+Payments,Internal Transfer,AUTHR51,ReportWriter,789,156,4,5,6,4,17,36,15,29,0.15,9,High
+Current Accounts,Balance Maintenance,CURV58,Validation,5431,71,12,1,7,6,6,52,7,8,0.2,2,Medium
+Credit Cards,Fee Calculation,CARDU47,Utility,3452,83,1,24,6,3,7,67,9,12,0.3,6,Medium
+Current Accounts,Overdraft Control,ODMI44,Interface,1298,74,8,8,8,13,30,46,19,19,0.24,9,High
+Reporting,Daily Reporting,DAYR10,ReportWriter,3520,50,6,11,6,2,11,8,6,9,0.17,2,Low
+Savings Accounts,Account Opening,SAVV62,Validation,825,37,9,14,7,8,22,30,15,13,0.13,2,Medium
+Payments,Internal Transfer,AUTHV16,Validation,3451,217,14,27,8,12,23,30,34,29,0.02,2,High
+Compliance,Sanction Screening,RULEA16,Audit,5267,34,2,13,9,4,7,13,14,7,0.18,1,Medium
+Credit Cards,Fee Calculation,CARDV07,Validation,5779,129,2,10,4,10,6,50,12,20,0.27,5,Medium
+Shared Utilities,Packed Decimal Utility,PACKU56,Utility,2362,36,1,7,6,0,11,18,1,7,0.51,0,Low
+Credit Cards,Fee Calculation,POSTV76,Validation,5492,117,4,10,8,12,25,60,17,33,0.01,6,High
+Reporting,Daily Reporting,DAYU07,Utility,6628,199,0,23,16,13,34,69,28,16,0.01,2,Medium
+Customer Management,Customer Onboarding,ADDRU05,Utility,3496,50,3,25,1,4,3,18,8,8,0.45,0,Low
+Savings Accounts,Withdrawal Processing,LIMR73,ReportWriter,4539,29,6,11,8,0,5,27,12,22,0.34,3,Low
+Loans,Loan Closure,CLOSEV88,Validation,2956,92,4,5,10,4,19,63,16,7,0.27,4,Medium
+Payments,Internal Transfer,ACCTC59,Calculation,5798,78,2,9,2,3,15,39,11,21,0.28,3,Medium
+Customer Management,KYC Verification,AMLU89,Utility,1373,22,6,21,1,1,3,3,7,4,0.52,1,Low
+Savings Accounts,Account Opening,KYCVA78,Audit,4437,7,5,3,4,2,11,74,4,7,0.16,0,Low
+Reporting,Month End Reporting,RPTR25,ReportWriter,5286,57,13,11,10,10,20,34,10,15,0.36,3,Medium
+Shared Utilities,Format Utility,FMTU15,Utility,854,113,3,16,14,8,34,60,19,14,0.01,10,High
+Customer Management,KYC Verification,NAMEP55,BatchProcessor,6298,10,4,14,2,2,11,9,0,3,0.49,1,Low
+Payments,Internal Transfer,AUTHP01,BatchProcessor,4743,84,12,4,6,4,5,36,16,19,0.23,6,Medium
+Current Accounts,Overdraft Control,BALC23,Calculation,1053,157,5,9,16,2,15,67,26,27,0.01,5,Medium
+Payments,Bill Payment,SCHDV13,Validation,452,143,1,7,2,6,19,33,15,6,0.41,1,Medium
+Payments,Bill Payment,BILLV30,Validation,5015,76,14,16,6,3,5,36,3,14,0.42,2,Medium
+Fixed Deposits,FD Renewal,RENWB77,DatabaseAccess,3366,72,14,8,4,7,17,9,4,4,0.2,6,Medium
+Customer Management,KYC Verification,KYCP13,BatchProcessor,5987,181,18,7,4,6,15,21,27,12,0.18,4,High
+Shared Utilities,Error Handling,UTILU55,Utility,1342,96,1,25,4,12,30,10,26,8,0.08,12,High
+Shared Utilities,Date Utility,DATEU04,Utility,5353,32,4,30,4,1,6,16,0,9,0.42,1,Low
+Customer Management,Customer Onboarding,DOCB42,DatabaseAccess,6711,59,9,16,1,7,21,3,5,25,0.2,2,Medium
+Compliance,Sanction Screening,SANCA40,Audit,2724,3,3,10,5,3,1,3,1,2,0.43,10,Medium
+Customer Management,Customer Onboarding,ADDRC36,Calculation,2872,211,4,11,12,15,18,84,34,34,0.09,12,High
+Shared Utilities,Date Utility,CALA84,Audit,3933,92,12,17,6,7,13,32,10,25,0.12,6,Medium
+Payments,Standing Instruction,SCHDB26,DatabaseAccess,6652,99,12,18,12,8,4,39,4,12,0.39,6,Medium
+Reporting,Daily Reporting,RPTR02,ReportWriter,7881,57,0,8,7,4,5,0,3,5,0.27,0,Low
+Compliance,Audit Logging,TRACEV81,Validation,5969,149,0,1,2,2,11,11,6,1,0.25,6,Low
+Shared Utilities,Packed Decimal Utility,DECU42,Utility,2057,100,5,22,5,9,10,20,6,5,0.37,6,Medium
+Customer Management,Customer Onboarding,KYCR81,ReportWriter,4201,138,7,4,12,13,19,75,22,29,0.07,6,High
+Savings Accounts,Withdrawal Processing,POSTD63,Driver,1664,94,20,19,5,4,3,53,16,6,0.28,3,Medium
+Loans,Interest Calculation,CALCU16,Utility,4832,56,1,21,7,2,3,57,6,7,0.16,1,Low
+Compliance,Sanction Screening,NAMEM96,Compliance,8172,166,11,4,2,2,33,47,28,34,0.07,11,High
+Reporting,Management MIS,MISP50,BatchProcessor,8159,53,8,1,12,7,13,38,10,17,0.4,1,Medium
+Fixed Deposits,FD Closure,GLMI15,Interface,1627,49,6,7,6,7,8,30,7,20,0.29,3,Medium
+Loans,Loan Origination,LNORC87,Calculation,8210,203,18,23,5,3,15,90,32,16,0.12,5,High
+Loans,Loan Closure,BALI87,Interface,342,57,4,1,3,4,5,55,6,6,0.49,2,Low
+Compliance,Audit Logging,HISTA64,Audit,493,22,2,10,5,1,12,25,0,9,0.46,1,Low
+Current Accounts,Overdraft Control,BALV40,Validation,1939,76,8,10,11,4,8,51,13,19,0.09,4,Low
+Customer Management,Customer Onboarding,CUSTI46,Interface,7733,185,21,8,3,8,12,50,19,33,0.22,10,High
+Fixed Deposits,Interest Posting,POSTU28,Utility,3503,33,0,30,11,5,13,49,15,15,0.26,2,Medium
+Customer Management,Customer Onboarding,KYCV09,Validation,2620,118,9,19,12,3,10,9,8,10,0.34,4,Low
+Savings Accounts,Deposit Posting,LEDGR85,ReportWriter,8464,93,11,17,7,14,27,86,32,17,0.24,3,High
+Shared Utilities,Date Utility,UTILI37,Interface,3190,15,1,0,0,2,1,23,4,3,0.28,0,Low
+Fixed Deposits,Interest Posting,ACCRA27,Audit,371,26,3,2,6,4,3,16,5,9,0.35,1,Low
+Customer Management,Profile Maintenance,PROFU59,Utility,1921,43,1,11,2,0,3,5,7,11,0.52,0,Low
+Payments,Internal Transfer,POSTI59,Interface,1823,42,5,8,2,2,11,19,0,9,0.23,3,Low
+Savings Accounts,Account Opening,ACCTP26,BatchProcessor,2374,138,16,12,4,3,9,49,8,19,0.01,12,High
+Current Accounts,Overdraft Control,LIMI37,Interface,4149,53,6,6,0,4,10,18,8,3,0.19,3,Low
+Reporting,Month End Reporting,RPTC63,Calculation,3498,109,13,11,17,3,22,38,12,11,0.19,5,High
+Customer Management,Customer Onboarding,KYCA38,Audit,4105,72,22,13,13,2,27,15,35,16,0.14,7,High
+Shared Utilities,Error Handling,ABNDA97,Audit,5944,30,13,5,6,10,7,2,12,20,0.08,1,Medium
+Reporting,Management MIS,DASHC36,Calculation,6116,83,13,5,10,0,10,42,8,25,0.07,6,Medium
+Fixed Deposits,FD Creation,DOCV02,Validation,5880,77,9,4,11,5,6,15,9,21,0.38,4,Medium
+Compliance,AML Monitoring,RULEI55,Interface,7987,141,6,23,6,11,10,51,30,36,0.14,10,High
+Savings Accounts,Account Opening,KYCVA25,Audit,4133,26,10,3,7,10,12,40,11,16,0.38,1,Medium
+Credit Cards,Fee Calculation,FEEA20,Audit,568,88,19,25,3,14,33,69,20,27,0.08,7,High
+Fixed Deposits,FD Creation,DOCC24,Calculation,708,209,5,8,2,3,24,45,24,38,0.08,12,High
+Fixed Deposits,Interest Posting,FDINTD93,Driver,2591,121,18,3,10,13,28,74,17,19,0.09,8,High
+Reporting,Year End Reporting,AUDA76,Audit,1637,115,9,17,4,1,19,32,5,22,0.4,3,Medium
+Customer Management,Customer Onboarding,ADDRB46,DatabaseAccess,4371,35,3,0,2,5,9,4,0,10,0.57,1,Medium
+Savings Accounts,Interest Posting,STMTB80,DatabaseAccess,5541,8,4,11,3,11,3,52,3,8,0.62,1,Low
+Current Accounts,Overdraft Control,AUTHI45,Interface,2889,48,6,6,7,3,9,24,3,10,0.16,0,Low
+Current Accounts,Charge Calculation,CHGI25,Interface,5610,67,9,19,3,0,8,35,4,14,0.12,5,Medium
+Compliance,Audit Logging,HISTD01,Driver,6228,61,13,4,2,8,5,51,12,16,0.4,6,Medium
+Payments,External Transfer,SWFTR47,ReportWriter,5103,20,6,5,15,1,6,16,8,5,0.3,0,Low
+Shared Utilities,Packed Decimal Utility,NUMA45,Audit,5037,43,4,10,5,1,9,23,4,3,0.5,1,Low
+Loans,Interest Calculation,ACCRA70,Audit,1550,30,0,1,1,0,5,10,1,7,0.29,0,Low
+Compliance,AML Monitoring,TXNP71,BatchProcessor,3065,36,8,18,7,9,7,9,13,19,0.16,9,Medium
+Customer Management,Customer Onboarding,DOCV41,Validation,4664,77,2,9,11,9,10,13,4,25,0.27,0,Medium
+Payments,External Transfer,ACHM03,Compliance,4637,46,2,9,6,0,2,23,0,5,0.36,1,Low
+Savings Accounts,Interest Posting,STMTM05,Compliance,8678,111,15,4,4,5,22,72,29,33,0.03,4,High
+Reporting,Month End Reporting,SUMM73,Compliance,4292,56,0,5,6,3,10,8,0,11,0.58,2,Low
+Credit Cards,Limit Management,CARDU02,Utility,199,43,2,9,0,0,5,47,4,8,0.52,2,Medium
+Customer Management,Customer Onboarding,KYCA01,Audit,5045,29,5,3,6,1,3,3,4,0,0.36,2,Low
+Reporting,Daily Reporting,DAYI44,Interface,5618,176,18,6,13,8,32,78,29,13,0.13,4,High
+Fixed Deposits,FD Creation,OPENV72,Validation,643,195,20,19,5,10,14,34,12,24,0.03,12,High
+Savings Accounts,Withdrawal Processing,LIMB08,DatabaseAccess,475,129,15,15,16,8,12,53,25,19,0.1,11,Medium
+Payments,Bill Payment,PAYC83,Calculation,5518,41,7,4,1,0,1,8,2,9,0.6,3,Low
+Savings Accounts,Account Opening,KYCVP68,BatchProcessor,3865,181,17,14,10,4,35,55,18,31,0.02,12,High
+Savings Accounts,Interest Posting,INTM00,Compliance,568,165,14,30,15,14,22,79,12,37,0.16,3,High
+Reporting,Month End Reporting,MONU43,Utility,901,78,3,26,12,12,20,55,10,13,0.24,2,High
+Compliance,AML Monitoring,TXNM83,Compliance,1552,13,1,11,0,4,10,6,4,8,0.42,8,Low
+Savings Accounts,Deposit Posting,LEDGD38,Driver,4320,59,22,12,6,1,8,25,4,11,0.26,1,Low
+Reporting,Year End Reporting,AUDM27,Compliance,813,212,5,29,16,2,19,57,33,30,0.07,6,High
+Customer Management,KYC Verification,DOCV66,Validation,4530,90,3,11,7,5,18,45,13,6,0.21,5,Medium
+Customer Management,Profile Maintenance,PROFP64,BatchProcessor,4420,108,1,12,4,8,6,34,18,11,0.4,0,Medium
+Current Accounts,Overdraft Control,BALV94,Validation,4713,40,7,13,9,3,3,44,13,3,0.11,2,High
+Shared Utilities,Error Handling,MSGU95,Utility,2470,46,1,19,11,4,6,15,8,20,0.09,3,Medium
+Compliance,Regulatory Reporting,MISC28,Calculation,6827,22,10,11,10,7,5,62,9,3,0.25,9,Medium
+Loans,Interest Calculation,INTD50,Driver,3738,69,10,3,3,1,22,58,14,12,0.38,4,Medium
+Compliance,AML Monitoring,SCANM83,Compliance,5324,36,0,2,0,1,9,4,2,0,0.56,10,Low
+Current Accounts,Balance Maintenance,ACCTU64,Utility,521,107,5,20,11,13,20,74,23,25,0.11,11,High
+Customer Management,Customer Onboarding,ADDRD37,Driver,949,201,12,7,16,15,24,18,26,10,0.1,4,High
+Current Accounts,Balance Maintenance,ACCTV79,Validation,335,111,24,12,4,11,27,40,26,22,0.1,8,High
+Savings Accounts,Withdrawal Processing,LIMU04,Utility,1215,59,6,24,4,8,20,52,33,29,0.19,6,High
+Savings Accounts,Interest Posting,ACCRA19,Audit,2679,22,7,4,6,0,3,79,7,3,0.32,2,Low
+Savings Accounts,Deposit Posting,LEDGV69,Validation,8740,22,1,10,4,1,6,42,2,4,0.51,2,Medium
+Fixed Deposits,FD Creation,DOCP83,BatchProcessor,1120,45,4,12,3,2,12,0,6,10,0.45,3,Low
+Shared Utilities,Format Utility,FMTA30,Audit,5629,38,3,7,2,2,4,5,1,6,0.16,0,Low
+Reporting,Daily Reporting,SUMR57,ReportWriter,8136,23,5,11,5,3,7,11,4,7,0.31,1,Low
+Shared Utilities,Error Handling,LOGU97,Utility,447,128,3,30,6,7,27,23,24,23,0.07,10,High
+Customer Management,KYC Verification,DOCB60,DatabaseAccess,8687,118,14,22,3,13,35,39,14,33,0.01,6,High
+Payments,External Transfer,EXTC09,Calculation,5165,62,10,4,12,8,15,58,4,25,0.26,1,Medium
+Loans,Loan Closure,DOCV08,Validation,4389,138,7,16,12,2,15,60,27,26,0.15,3,High
+Reporting,Month End Reporting,SUMI68,Interface,8197,59,3,6,5,1,10,9,2,6,0.15,0,Low
+Reporting,Year End Reporting,GLMA27,Audit,3159,109,9,6,12,2,17,11,3,17,0.29,6,Medium
+Current Accounts,Overdraft Control,RISKV65,Validation,963,74,5,18,11,10,11,56,13,19,0.3,2,Medium
+Shared Utilities,Error Handling,MSGU87,Utility,2310,28,2,22,7,1,4,10,16,24,0.24,2,Medium
+Fixed Deposits,FD Closure,FDCB13,DatabaseAccess,453,6,3,9,1,9,9,2,6,3,0.28,3,Medium
+Customer Management,KYC Verification,KYCP86,BatchProcessor,2856,25,2,14,4,2,11,0,8,2,0.58,1,Low
+Credit Cards,Settlement,GLMC90,Calculation,1465,56,3,6,6,0,10,24,6,3,0.32,2,Low
+Reporting,Month End Reporting,MONA65,Audit,7883,209,7,6,9,12,7,19,12,22,0.22,8,High
+Compliance,AML Monitoring,AMLR19,ReportWriter,857,129,8,22,17,16,24,80,10,29,0.05,3,High
+Compliance,Regulatory Reporting,MISM32,Compliance,4494,24,2,14,11,7,19,43,16,19,0.15,10,Medium
+Shared Utilities,Format Utility,TEXTV91,Validation,654,196,14,9,2,7,32,10,16,30,0.25,8,High
+Shared Utilities,Packed Decimal Utility,DECU11,Utility,1505,26,2,7,10,3,21,10,16,11,0.16,5,Medium
+Shared Utilities,Packed Decimal Utility,DECM58,Compliance,4827,76,10,20,1,2,15,6,8,9,0.23,4,High
+Fixed Deposits,FD Closure,GLMR99,ReportWriter,4621,29,4,4,5,1,6,22,3,7,0.43,1,Low
+Compliance,Sanction Screening,KYCM39,Compliance,4185,22,3,10,6,4,1,0,1,6,0.24,4,Low
+Reporting,Management MIS,MISC77,Calculation,5164,112,10,9,11,1,10,24,4,15,0.13,3,Low
+Fixed Deposits,FD Creation,OPENR34,ReportWriter,802,205,7,24,11,16,26,81,18,21,0.11,3,High
+Savings Accounts,Withdrawal Processing,LIMI49,Interface,872,65,8,1,12,8,10,55,6,24,0.36,3,Medium
+Credit Cards,Fee Calculation,POSTC08,Calculation,1936,60,6,1,4,1,7,18,0,7,0.32,1,Low
+Savings Accounts,Interest Posting,POSTC22,Calculation,1171,112,22,21,10,15,27,50,9,15,0.12,7,Medium
+Customer Management,Customer Onboarding,KYCA16,Audit,3750,116,22,6,14,13,26,22,23,33,0.26,2,High
+Reporting,Management MIS,RPTA20,Audit,8359,35,7,8,16,6,22,22,11,15,0.32,3,High
+Shared Utilities,Format Utility,MASKU99,Utility,4212,33,0,24,8,3,20,15,11,7,0.32,6,Medium
+Payments,Bill Payment,POSTV32,Validation,3755,57,9,4,8,10,20,54,13,17,0.18,0,Medium
+Fixed Deposits,FD Creation,ACCTA93,Audit,6525,167,7,18,8,12,35,56,23,28,0.02,12,High
+Savings Accounts,Account Opening,SAVB02,DatabaseAccess,8643,135,24,27,3,14,11,57,34,35,0.25,9,High
+Reporting,Daily Reporting,EXTRR06,ReportWriter,7207,77,2,19,6,7,19,32,16,20,0.41,4,Medium
+Fixed Deposits,FD Renewal,RENWA74,Audit,3571,11,4,10,4,0,5,25,6,2,0.45,0,Medium
+Payments,Bill Payment,POSTD34,Driver,6452,27,12,20,10,3,13,29,7,8,0.21,1,Medium
+Reporting,Management MIS,RPTR05,ReportWriter,5860,204,6,3,8,14,21,60,18,19,0.17,9,High
+Shared Utilities,Date Utility,CALU72,Utility,1804,174,3,12,10,8,9,23,8,37,0.04,11,High
+Current Accounts,Balance Maintenance,CURB51,DatabaseAccess,1184,54,3,5,0,5,5,48,3,7,0.33,0,Low
+Credit Cards,Fraud Detection,FRDC51,Calculation,5606,27,7,9,1,2,8,69,4,0,0.39,0,Low
+Customer Management,KYC Verification,IDCHKB66,DatabaseAccess,2426,57,24,9,8,12,33,14,14,26,0.25,9,High
+Savings Accounts,Deposit Posting,DEPC48,Calculation,5252,19,3,10,7,1,8,25,0,3,0.36,0,Low
+Loans,Loan Origination,DOCC39,Calculation,2218,25,3,15,7,2,9,78,12,15,0.16,5,Low
+Credit Cards,Settlement,ACQA76,Audit,4793,37,7,1,6,2,3,10,8,10,0.15,3,Low
+Savings Accounts,Withdrawal Processing,POSTC76,Calculation,5414,207,19,22,16,14,20,70,10,23,0.22,10,High
+Shared Utilities,Date Utility,UTILU97,Utility,3336,38,6,30,8,9,15,4,8,23,0.39,4,Medium
+Loans,Collections,NTCEV73,Validation,1160,144,22,12,11,3,8,44,29,14,0.0,5,High
+Fixed Deposits,FD Creation,CUSTM93,Compliance,4097,45,16,17,13,4,29,71,27,21,0.12,4,High
+Savings Accounts,Deposit Posting,LEDGU84,Utility,2458,39,6,21,6,7,18,66,15,11,0.34,3,Medium
+Payments,Bill Payment,AUTHC94,Calculation,606,162,9,30,18,10,13,48,28,13,0.14,11,High
+Customer Management,Customer Onboarding,KYCP50,BatchProcessor,501,108,4,17,3,4,7,3,8,17,0.26,3,Medium
+Loans,Collections,NTCEI62,Interface,783,112,1,3,9,8,21,52,18,6,0.4,2,Medium
+Loans,Collections,DUEB18,DatabaseAccess,1338,120,17,10,8,12,21,22,25,16,0.25,4,High
+Customer Management,Customer Onboarding,CUSTU64,Utility,2573,83,1,23,6,8,15,18,9,17,0.36,6,Medium
+Reporting,Management MIS,SUMR91,ReportWriter,4634,121,9,3,18,7,25,61,14,12,0.25,5,High
+Credit Cards,Fee Calculation,CALCM82,Compliance,4194,79,1,16,3,7,3,52,10,3,0.28,2,Medium
+Current Accounts,Overdraft Control,AUTHC39,Calculation,1495,103,2,8,3,5,9,72,7,8,0.39,4,Medium
+Shared Utilities,Error Handling,LOGP20,BatchProcessor,1713,66,2,20,1,3,9,14,4,8,0.34,5,Medium
+Compliance,AML Monitoring,TXNV37,Validation,5847,53,0,13,7,3,2,25,7,4,0.48,9,Medium
+Customer Management,KYC Verification,AMLR04,ReportWriter,2362,44,2,12,10,2,2,10,4,10,0.5,0,Low
+Current Accounts,Balance Maintenance,ACCTI37,Interface,6195,189,19,28,7,13,26,33,34,35,0.09,11,Medium
+Current Accounts,Balance Maintenance,LEDGM55,Compliance,3911,49,1,5,0,4,11,80,4,8,0.61,1,Low
+Reporting,Month End Reporting,RECOND60,Driver,6205,220,23,5,16,13,32,55,32,9,0.12,12,High
+Credit Cards,Authorization,MAINDRV,Driver,985,30,22,15,5,1,6,46,3,14,0.24,0,Medium
+Savings Accounts,Withdrawal Processing,POSTC26,Calculation,4489,82,6,22,14,3,33,73,28,28,0.19,2,High
+Current Accounts,Balance Maintenance,BALU90,Utility,6333,165,6,20,3,11,34,76,33,16,0.11,6,High
+Credit Cards,Settlement,POSTC65,Calculation,1702,29,12,13,7,3,5,21,18,13,0.2,0,Medium
+Shared Utilities,Format Utility,FMTC64,Calculation,1161,18,4,11,7,2,9,14,6,4,0.35,2,Low
+Reporting,Month End Reporting,GLMP04,BatchProcessor,448,184,6,23,13,13,19,31,14,31,0.03,7,High
+Loans,Collections,DUEB12,DatabaseAccess,3388,48,9,23,16,11,13,82,19,17,0.11,4,High
+Reporting,Daily Reporting,SUMC31,Calculation,2339,22,9,17,7,0,16,34,17,5,0.12,1,Medium
+Credit Cards,Fraud Detection,CARDM71,Compliance,3061,19,5,7,3,5,9,18,6,8,0.3,3,Low
+Credit Cards,Settlement,ACQP98,BatchProcessor,1821,60,0,8,5,5,7,12,6,9,0.36,2,Low
+Shared Utilities,Packed Decimal Utility,UTILU93,Utility,3711,63,0,25,4,4,3,23,10,10,0.3,0,Medium
+Compliance,Sanction Screening,SANCC06,Calculation,3924,21,1,12,6,4,1,41,4,3,0.53,8,Low
+Loans,Collections,NTCEC53,Calculation,3162,24,1,12,1,5,21,21,10,25,0.26,6,Medium
+Credit Cards,Authorization,CCMB20,DatabaseAccess,4491,68,14,17,7,12,16,46,3,20,0.25,0,Medium
+Payments,Standing Instruction,STNDD61,Driver,2532,42,16,10,9,0,4,23,13,22,0.15,1,Medium
+Payments,External Transfer,EXTB46,DatabaseAccess,4982,22,5,13,3,7,3,25,5,9,0.52,0,Medium
+Savings Accounts,Account Opening,ACCTV60,Validation,4391,149,4,5,5,5,7,50,0,2,0.23,1,Low
+Reporting,Daily Reporting,EXTRV98,Validation,5997,82,1,17,15,10,13,3,14,8,0.09,4,Medium
+Payments,Bill Payment,AUTHD56,Driver,1098,23,15,9,1,5,7,20,8,4,0.52,0,Low
+Compliance,Sanction Screening,SCRNB99,DatabaseAccess,3657,101,19,22,10,12,24,14,28,35,0.01,7,High
+Customer Management,KYC Verification,AMLU14,Utility,2592,104,1,20,8,12,34,62,9,36,0.12,2,High
+Current Accounts,Charge Calculation,FEEM49,Compliance,4738,37,14,11,8,8,9,36,3,23,0.4,1,Medium
+Savings Accounts,Interest Posting,POSTD42,Driver,5535,58,11,25,7,7,29,68,24,22,0.26,3,High
+Savings Accounts,Deposit Posting,LEDGB42,DatabaseAccess,3841,134,13,25,16,15,30,64,28,14,0.14,7,High
+Credit Cards,Authorization,CARDC00,Calculation,8662,136,21,28,8,2,23,35,13,26,0.08,11,High
+Fixed Deposits,FD Closure,PAYC55,Calculation,6340,69,6,20,12,11,7,28,27,14,0.09,2,High

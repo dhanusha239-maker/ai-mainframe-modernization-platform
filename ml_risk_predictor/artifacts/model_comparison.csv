@@ -1,0 +1,5 @@
+model,accuracy
+Baseline Model - Logistic Regression,0.625
+Improved Model - Decision Tree,0.83
+Final Model - Random Forest,0.865
+Final Tuned Random Forest,0.865
