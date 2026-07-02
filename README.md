@@ -25,29 +25,33 @@ ________________________________________
 The objective is to build a platform that performs two major functions:
 
 # 1. ML-Based Legacy Code Risk Intelligence
-This component analyzes legacy modules and predicts modernization risk.
-It uses features such as:
 
-•	Lines of code
-•	Cyclomatic complexity
-•	Branch count
-•	External program calls
-•	File and database operations
-•	Copybook/include dependencies
-•	Packed decimal usage
-•	Historical bug count
-•	Change frequency
-•	Comment ratio
-•	Unsupported legacy constructs
+This component analyses legacy HLASM modules and predicts modernization risk using machine learning.
+Rather than relying only on module size, the model learns from multiple software engineering characteristics, including:
+•	Lines of Code (LOC) 
+•	Branch Instruction Count 
+•	Called Module Count 
+•	Calling Module Count 
+•	File I/O Operations 
+•	Database Access Operations 
+•	Macro Call Count 
+•	Packed Decimal Instruction Count 
+•	Historical Defect Count 
+•	Change Count (Last 12 Months) 
+•	Comment Ratio 
+•	Unsupported Instruction Count 
+**Output**
+•	 Modernization Risk Level: Low / Medium / High
+•	 Prediction Confidence Score
+•	 Top Risk Factors
+•	 Feature Importance Explanation
+•	 SHAP-based Sample Prediction Explanation
+**Important**
+The model does not classify risk based only on Lines of Code.
+For example:
+•	A 6,000-line reporting module can still be Low Risk if it has simple logic, few dependencies, low defect history, and good documentation. 
+•	A 400-line authorization module can be High Risk if it contains deep branching, unsupported instructions, frequent changes, and complex dependencies. 
 
-# Output:
-Risk Level: Low / Medium / High
-Confidence Score
-Top Risk Factors
-Feature Importance / SHAP Explanation
-
-# Important point:
-The model should not predict risk only based on LOC. A 2,000-line module can still be low risk if it has simple logic and few dependencies. A 400-line module can be high risk if it has deep branching, many calls, database operations, and poor maintainability.
 ________________________________________
 
 # 2. AI-Powered HLASM-to-Java Modernization
@@ -104,72 +108,94 @@ ________________________________________
 
 # Week 1: ML-Based Legacy Code Risk Prediction
 **Goal**
-Build the ML foundation that predicts modernization risk for legacy software modules.
-Main Activities
-# 1A.	Dataset Design
-Create a realistic dataset where each row represents one legacy module.
-Sample dataset columns:
-module_id
-loc
-cyclomatic_complexity
-branch_count
-external_call_count
-db_call_count
-file_operation_count
-packed_decimal_count
-copybook_count
-historical_bug_count
-change_frequency
+Develop an ML pipeline that predicts modernization risk for legacy HLASM software modules.
+
+# 1A.	Enterprise Dataset Design
+Develop a realistic enterprise banking dataset where each record represents one HLASM module.
+**Example columns:**
+application_name
+business_process
+module_name
+module_role
+lines_of_code
+branch_instruction_count
+called_module_count
+calling_module_count
+file_io_count
+database_access_count
+macro_call_count
+packed_decimal_instruction_count
+historical_defect_count
+change_count_last_12_months
 comment_ratio
 unsupported_instruction_count
+
+
+**Target variable**
 risk_level
-Target column:
-risk_level = Low / Medium / High
+Low
+Medium
+High
+
 ________________________________________
 
-# 1B.	Feature Engineering
+# 1B.	Data Preparation
 
-Create meaningful ML features such as:
-dependency_density
-branch_density
-defect_density
-documentation_score
-modernization_blocker_score
-operational_criticality_score
-migration_effort_score
-These features help the model learn real risk patterns instead of depending only on module size.
+Perform data preprocessing before model training.
+Activities include:
+•	Feature selection 
+•	Categorical feature encoding (One-Hot Encoding) 
+•	Numerical feature preparation 
+•	Train/Test split 
+•	ML pipeline construction using Scikit-learn 
+
 ________________________________________
 
-# 1C.	Model Training
+# 1C.	 Model Development
 
-Train and compare multiple models:
-•	Logistic Regression
-•	Decision Tree
-•	Random Forest
-•	XGBoost / LightGBM / CatBoost
-Evaluation metrics:
-•	Accuracy
-•	Precision
-•	Recall
-•	F1-score
-•	Confusion matrix
-Priority metric:
-High-risk recall
-Reason: Missing a high-risk module can cause serious modernization problems later.
+Train and compare multiple machine learning models:
+•	Logistic Regression (Baseline) 
+•	Decision Tree 
+•	Random Forest 
+•	• XGBoost Classifier
+Perform hyperparameter tuning using:
+•	GridSearchCV 
+•	5-Fold Cross Validation 
+Select the Final model as the production model.
+
+________________________________________
+## 1D.   Model Evaluation
+
+Evaluate each model using:
+•	Accuracy 
+•	Precision 
+•	Recall 
+•	F1-Score 
+•	Confusion Matrix 
+•	Cross-Validation Accuracy 
+Compare baseline and tuned models to select the most reliable model.
 ________________________________________
 
-# 1D.	Explainability
 
-Use SHAP or feature importance to explain the model prediction.
+# 1E.	Explainability
+
+Interpret model predictions using:
+• Feature Importance Ranking
+• SHAP-based sample prediction explanation
+____________________________________
+
 
 **Week 1 Deliverables**
-•	Legacy code risk dataset
-•	Data dictionary
-•	Feature extraction logic
-•	Trained ML model
-•	Model evaluation report
-•	SHAP/feature importance explanation
-•	Risk prediction output
+•	Enterprise Banking HLASM Risk Dataset 
+•	Data Dictionary 
+•	Data Preprocessing Pipeline 
+•	Trained ML Models 
+•	Hyperparameter Tuning Results 
+•	Model Evaluation Report 
+•	Feature Importance Analysis 
+•	Sample Modernization Risk Predictions 
+•	Saved Model Artifacts for Week 2 Integration 
+
 ________________________________________
 
 ## Week 2: AI-Powered Legacy Software Modernization Platform
