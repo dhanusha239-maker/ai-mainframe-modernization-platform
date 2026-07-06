@@ -31,7 +31,8 @@ public class Limitchk implements AssemblerModule {
         // Branch-aware translated instruction candidates from HLASM source.
         // LABEL: LIMITCHK
         // CSECT directive: LIMITCHK CSECT ,                   Packed Math Margin Assessor
-        // TODO manual review required: BAKR  14,0                Save context
+        // TODO protected semantic translation for BAKR: Branch-and-stack requires linkage-stack/runtime support.
+        //      category=control_flow_linkage; proposed_helper=AsmRuntime.Branch.bakr; source: BAKR  14,0                Save context
         // subroutine call via BASR: BASR  12,0
         // USING directive: USING *,12
         // TODO LM already handled by analyzer register_map when possible: LM    2,3,0(1)            R2 = Addr of CURRTX, R3 = Addr of ERRCODE
@@ -43,11 +44,9 @@ public class Limitchk implements AssemblerModule {
         // LABEL: LIMIT_OK
         // DS declaration: LIMIT_OK DS    0H
         registers.clear(15);
-        // TODO manual review required: PR
-        // TODO manual review required: LTORG ,
-        // TODO manual review required: END   LIMITCHK
+        return ModuleResult.rc(registers.get(15), "Returned by translated PR");
 
-        return ModuleResult.rc(0, "LIMITCHK executed as generated candidate");
+
 
     }
 }

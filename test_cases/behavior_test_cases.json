@@ -179,5 +179,43 @@
     "AUTHSTAT": "APPRV",
     "TXFEE": "1.50"
   }
- }
+  },
+  {
+    "case_id": "TXREAD_LOCAL_PS_001",
+    "mode": "module",
+    "module": "TXREAD",
+    "description": "TXREAD reads the first local PS/QSAM-style transaction record and populates transaction fields.",
+    "input": {
+      "IO_FORCE_READ": "true",
+      "INRPL_PATH": "test_cases/ps/txread_input.ps",
+      "INVSAM_PATH": "test_cases/ps/txread_input.ps",
+      "CURRTX_PATH": "test_cases/ps/txread_input.ps",
+      "ERRCODE": "0000"
+    },
+    "expected_asm_output": {
+      "RC": "0",
+      "TXCUST": "CUST000001",
+      "TXSTAT": "A",
+      "TXAMT": "100.00",
+      "TXLIMIT": "500.00",
+      "TXTYPE": "PO",
+      "TXFEE": "0.00"
+    }
+  },
+  {
+    "case_id": "VSAMPACK_LOCAL_PS_SMOKE_001",
+    "mode": "module",
+    "module": "VSAMPACK",
+    "description": "VSAMPACK opens local input/output files, reads a 100-byte record, and completes without Java runtime failure.",
+    "input": {
+      "IO_FORCE_READ": "true",
+      "INVSAM_PATH": "test_cases/ps/vsampack_input.ps",
+      "VSAMIN_PATH": "test_cases/ps/vsampack_input.ps",
+      "OUTFILE_PATH": "test_cases/ps/vsampack_output.ps",
+      "OUTDD_PATH": "test_cases/ps/vsampack_output.ps"
+    },
+    "expected_asm_output": {
+      "RC": "0"
+    }
+  }
 ]

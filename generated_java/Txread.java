@@ -30,11 +30,12 @@ public class Txread implements AssemblerModule {
         // Branch-aware translated instruction candidates from HLASM source.
         // LABEL: TXREAD
         // CSECT directive: TXREAD   CSECT ,                   VSAM Sequential Input Processor
-        // TODO manual review required: BAKR  14,0                Save registers on stack
+        // TODO protected semantic translation for BAKR: Branch-and-stack requires linkage-stack/runtime support.
+        //      category=control_flow_linkage; proposed_helper=AsmRuntime.Branch.bakr; source: BAKR  14,0                Save registers on stack
         // subroutine call via BASR: BASR  12,0
         // USING directive: USING *,12
         // TODO LM already handled by analyzer register_map when possible: LM    2,3,0(1)            R2 = Addr of INRPL, R3 = Addr of CURRTX
-        // TODO manual review required: GET   RPL=(2)             Retrieve record into CURRTX buffer
+        AsmRuntime.IO.get(ctx, "RPL=(2)", "", cc); registers.clear(15);
         AsmRuntime.Register.ltr(registers, 15, 15, cc);
         // TODO manual review required: JZ    GET_SUCCESS         If 0, line extracted cleanly
         // TODO L requires memory/address resolution before exact helper call: L     4,4(,2)             Access the RPL feedback control field
@@ -45,15 +46,9 @@ public class Txread implements AssemblerModule {
         // LABEL: GET_EOF
         // DS declaration: GET_EOF  DS    0H
         registers.set(15, 4);
-        // TODO manual review required: PR
-        // LABEL: GET_SUCCESS
-        // DS declaration: GET_SUCCESS DS 0H
-        registers.clear(15);
-        // TODO manual review required: PR
-        // TODO manual review required: LTORG ,
-        // TODO manual review required: END   TXREAD
+        return ModuleResult.rc(registers.get(15), "Returned by translated PR");
 
-        return ModuleResult.rc(0, "TXREAD executed as generated candidate");
+
 
     }
 }

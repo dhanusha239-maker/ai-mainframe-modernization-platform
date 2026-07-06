@@ -1,5 +1,7 @@
 ### AI-Powered Legacy Software Intelligence & Modernization Platform
 # 2-Week Sprint Plan
+Week 1: "Which HLASM modules are risky to modernize?"
+Week 2: "How do we modernize them safely and verify the translated behavior?"
 
 **Scope:**  ML-based legacy code risk prediction, HLASM-to-Java modernization, behavioral validation, and AI-assisted modernization reporting
 **Duration:** 2 Weeks
@@ -290,3 +292,16 @@ ________________________________________
 ## 5. Conclusion
 
 The project is not just a translator and not just an ML model. It is an integrated modernization platform that predicts risk, modernizes code, validates behavior, and provides engineering guidance.
+
+### Power shall commands:
+python tests/test_scanner.py    -- to get list of called modules (asm_scanner.py)
+python tests/test_cfg_builder.py -- to get CFG of all 11 modules with branches(cfg_builder.py)
+python tests/test_pdg_builder.py--pdg_builder.py
+python impact_analyzer.py
+python documentation_generator.py
+python instruction_translator.py
+python java_generator.py
+python tests/asm_runtime_tests.py
+python validator/behavior_comparator.py
+python validator/modernization_dashboard.py
+streamlit run dashboard/app.py

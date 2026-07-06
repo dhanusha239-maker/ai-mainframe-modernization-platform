@@ -30,6 +30,18 @@
       "datatype": "XL4",
       "line": "LOGMASK  DS    XL4"
     },
+    "COUNT": {
+      "module": "BCTCOUNT",
+      "opcode": "DC",
+      "datatype": "F'10'",
+      "line": "COUNT     DC    F'10'              Initial loop count"
+    },
+    "TOTAL": {
+      "module": "BCTCOUNT",
+      "opcode": "DS",
+      "datatype": "F",
+      "line": "TOTAL     DS    F                  Storage for accumulated result"
+    },
     "FEEWORK": {
       "module": "FEECALC",
       "opcode": "DS",
@@ -95,6 +107,36 @@
       "opcode": "DC",
       "datatype": "CL5'",
       "line": "AUTHSTAT DC    CL5'     '"
+    },
+    "IN_RECORD": {
+      "module": "VSAMPACK",
+      "opcode": "DS",
+      "datatype": "CL100",
+      "line": "IN_RECORD  DS  CL100                    Input VSAM buffer (100 byte max length)"
+    },
+    "OUT_RECORD": {
+      "module": "VSAMPACK",
+      "opcode": "DS",
+      "datatype": "CL100",
+      "line": "OUT_RECORD DS  CL100                    Output sequential buffer (100 byte max length)"
+    },
+    "WS_PACKED_AMT": {
+      "module": "VSAMPACK",
+      "opcode": "DS",
+      "datatype": "PL8",
+      "line": "WS_PACKED_AMT DS PL8                    Temporary packed storage for data conversion"
+    },
+    "WS_TAX_AMT": {
+      "module": "VSAMPACK",
+      "opcode": "DS",
+      "datatype": "PL8",
+      "line": "WS_TAX_AMT    DS PL8                    Temporary packed storage for math operations"
+    },
+    "WS_ZONED_TAX": {
+      "module": "VSAMPACK",
+      "opcode": "DS",
+      "datatype": "CL10",
+      "line": "WS_ZONED_TAX  DS CL10                   Temporary alphanumeric zone storage for output"
     }
   },
   "field_offsets": {
@@ -146,6 +188,16 @@
       "module": "MAINDRV",
       "ddname": "OUTVSAM",
       "line": "OUTACB   ACB   AM=VSAM,DDNAME=OUTVSAM,MACRF=(ADR,SEQ,OUT) Output Trace"
+    },
+    "INVSAM": {
+      "module": "VSAMPACK",
+      "ddname": "VSAMIN",
+      "line": "INVSAM   ACB   MACRF=(RP,SEQ),DDNAME=VSAMIN,EXLST=MYEXLST"
+    },
+    "OUTFILE": {
+      "module": "VSAMPACK",
+      "ddname": "OUTDD",
+      "line": "OUTFILE  RPL   MACRF=(PM),DDNAME=OUTDD"
     }
   },
   "rpl_areas": {
@@ -225,6 +277,9 @@
     "AUTHDEC": [
       "AUTHSTAT"
     ],
+    "BCTCOUNT": [
+      "COUNT"
+    ],
     "CARDSTAT": [
       "TXSTAT"
     ],
@@ -245,6 +300,12 @@
     ],
     "TXREAD": [
       "INRPL"
+    ],
+    "VSAMPACK": [
+      "WS_PACKED_AMT",
+      "WS_TAX_AMT",
+      "WS_ZONED_TAX",
+      "IN_RECORD"
     ]
   },
   "writes": {
@@ -257,6 +318,9 @@
     ],
     "AUTHDEC": [
       "AUTHSTAT"
+    ],
+    "BCTCOUNT": [
+      "TOTAL"
     ],
     "CARDSTAT": [
       "ERRCODE"
@@ -276,6 +340,10 @@
     ],
     "TXREAD": [
       "CURRTX"
+    ],
+    "VSAMPACK": [
+      "WS_TAX_AMT",
+      "OUT_RECORD"
     ]
   },
   "symbol_readers": {
@@ -299,6 +367,9 @@
     "LOGBUFF": [
       "AUDWRITE"
     ],
+    "COUNT": [
+      "BCTCOUNT"
+    ],
     "TXSTAT": [
       "CARDSTAT"
     ],
@@ -313,6 +384,18 @@
     ],
     "INRPL": [
       "TXREAD"
+    ],
+    "WS_PACKED_AMT": [
+      "VSAMPACK"
+    ],
+    "WS_TAX_AMT": [
+      "VSAMPACK"
+    ],
+    "WS_ZONED_TAX": [
+      "VSAMPACK"
+    ],
+    "IN_RECORD": [
+      "VSAMPACK"
     ]
   },
   "symbol_writers": {
@@ -334,6 +417,9 @@
     "AUTHSTAT": [
       "AUTHDEC"
     ],
+    "TOTAL": [
+      "BCTCOUNT"
+    ],
     "ERRCODE": [
       "CARDSTAT",
       "CUSTVAL",
@@ -348,6 +434,12 @@
     ],
     "CURRTX": [
       "TXREAD"
+    ],
+    "WS_TAX_AMT": [
+      "VSAMPACK"
+    ],
+    "OUT_RECORD": [
+      "VSAMPACK"
     ]
   },
   "return_codes": {
@@ -512,6 +604,56 @@
           "15"
         ],
         "line": "LTR   15,15               Check low-level subsystem health code"
+      }
+    ],
+    "VSAMPACK": [
+      {
+        "instruction": "LTR",
+        "operands": [
+          "R15",
+          "R15"
+        ],
+        "line": "LTR   R15,R15                  Did both files open successfully?"
+      },
+      {
+        "instruction": "CLI",
+        "operands": [
+          "0(R4)",
+          "C'A'"
+        ],
+        "line": "CLI   0(R4),C'A'"
+      },
+      {
+        "instruction": "CLI",
+        "operands": [
+          "0(R4)",
+          "C'B'"
+        ],
+        "line": "CLI   0(R4),C'B'"
+      },
+      {
+        "instruction": "CLI",
+        "operands": [
+          "0(R4)",
+          "C'T'"
+        ],
+        "line": "CLI   0(R4),C'T'"
+      },
+      {
+        "instruction": "CLI",
+        "operands": [
+          "0(R4)",
+          "C'X'"
+        ],
+        "line": "CLI   0(R4),C'X'"
+      },
+      {
+        "instruction": "LTR",
+        "operands": [
+          "R5",
+          "R5"
+        ],
+        "line": "LTR   R5,R5"
       }
     ]
   },
@@ -722,6 +864,98 @@
           "branch_op": "JZ",
           "target": "GET_SUCCESS",
           "line": "JZ    GET_SUCCESS         If 0, line extracted cleanly"
+        }
+      }
+    ],
+    "VSAMPACK": [
+      {
+        "condition": {
+          "instruction": "LTR",
+          "operands": [
+            "R15",
+            "R15"
+          ],
+          "line": "LTR   R15,R15                  Did both files open successfully?"
+        },
+        "branch": {
+          "branch_op": "BNZ",
+          "target": "ERR_OPEN",
+          "line": "BNZ   ERR_OPEN                 No, jump to open error routine"
+        }
+      },
+      {
+        "condition": {
+          "instruction": "CLI",
+          "operands": [
+            "0(R4)",
+            "C'A'"
+          ],
+          "line": "CLI   0(R4),C'A'"
+        },
+        "branch": {
+          "branch_op": "BE",
+          "target": "SKIP_A",
+          "line": "BE    SKIP_A"
+        }
+      },
+      {
+        "condition": {
+          "instruction": "CLI",
+          "operands": [
+            "0(R4)",
+            "C'B'"
+          ],
+          "line": "CLI   0(R4),C'B'"
+        },
+        "branch": {
+          "branch_op": "BE",
+          "target": "FOUND_B",
+          "line": "BE    FOUND_B"
+        }
+      },
+      {
+        "condition": {
+          "instruction": "CLI",
+          "operands": [
+            "0(R4)",
+            "C'T'"
+          ],
+          "line": "CLI   0(R4),C'T'"
+        },
+        "branch": {
+          "branch_op": "BE",
+          "target": "PROCESS_T",
+          "line": "BE    PROCESS_T"
+        }
+      },
+      {
+        "condition": {
+          "instruction": "CLI",
+          "operands": [
+            "0(R4)",
+            "C'X'"
+          ],
+          "line": "CLI   0(R4),C'X'"
+        },
+        "branch": {
+          "branch_op": "BE",
+          "target": "SKIP_X",
+          "line": "BE    SKIP_X"
+        }
+      },
+      {
+        "condition": {
+          "instruction": "LTR",
+          "operands": [
+            "R5",
+            "R5"
+          ],
+          "line": "LTR   R5,R5"
+        },
+        "branch": {
+          "branch_op": "BZ",
+          "target": "SKIP_T_NO_B",
+          "line": "BZ    SKIP_T_NO_B"
         }
       }
     ]

@@ -46,6 +46,24 @@ public class ExecutionContext {
         fields.put(fieldName, value);
     }
 
+    public int getInt(String fieldName) {
+        Object value = fields.get(fieldName);
+
+        if (value == null) {
+            return 0;
+        }
+
+        if (value instanceof Number) {
+            return ((Number) value).intValue();
+        }
+
+        return Integer.parseInt(value.toString().trim());
+    }
+
+    public void setInt(String fieldName, int value) {
+        fields.put(fieldName, value);
+    }
+
     public Map<String, Object> snapshot() {
         return new HashMap<>(fields);
     }

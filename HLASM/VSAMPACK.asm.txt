@@ -1,0 +1,122 @@
+VSAMPACK CSECT
+         SAVE  (14,12),,'TAXPROG_CSECT'   Save input registers
+         BALR  R12,0                    Establish program base register
+         USING *,R12
+*
+* 1. OPEN FILES
+*
+         OPEN  (INVSAM,INPUT,OUTFILE,OUTPUT)
+         LTR   R15,R15                  Did both files open successfully?
+         BNZ   ERR_OPEN                 No, jump to open error routine
+*
+* 2. MAIN READ LOOP (LOOPS FOR EVERY RECORD)
+*
+READ_REC EQU   *
+         GET   INVSAM,IN_RECORD         Read next record from VSAM KSDS
+*
+* Note: When VSAM reaches End-Of-File (EOF), it will automatically jump 
+* to the EOF_ROUTINE statement declared in the MYEXLST macro below.
+*
+* 3. INITIALIZE POINTERS & BOUNDARIES FOR THE CURRENT RECORD
+*
+         LA    R4,IN_RECORD             
+         LA    R6,IN_RECORD             
+         A     R6,=F'100'               
+         SR    R5,R5                    
+*
+* 4. DISPATCHER SCAN LOOP (INSPECTING CURRENT RECORD)
+*
+SCAN_LOOP EQU  *
+*---------------------------------------------------------------------*
+* BOUNDARY CHECK: Prevents infinite loops if trailers/fillers vary    *
+*---------------------------------------------------------------------*
+         CR    R4,R6                    
+         BNL   WRITE_REC                
+*
+         CLI   0(R4),C'A'               
+         BE    SKIP_A
+         CLI   0(R4),C'B'               
+         BE    FOUND_B
+         CLI   0(R4),C'T'               
+         BE    PROCESS_T
+         CLI   0(R4),C'X'               
+         BE    SKIP_X
+*
+* If an unrecognized trailer or trailing filler (like '-') is found, 
+* safely advance 1 byte and check again. The CR check above guarantees 
+* we will break out exactly at 100 bytes and never loop infinitely.
+*
+         LA    R4,1(,R4)                
+         B     SCAN_LOOP                
+*
+* 5. TRAILER JUMPING LOGIC (DYNAMIC SEGMENT SKIPPING)
+*
+SKIP_A   EQU   *
+         LA    R4,10(,R4)               
+         B     SCAN_LOOP                
+*
+SKIP_X   EQU   *
+         LA    R4,9(,R4)                
+         B     SCAN_LOOP                
+*
+FOUND_B  EQU   *
+         LR    R5,R4                    
+         LA    R4,10(,R4)               
+         B     SCAN_LOOP                
+*
+* 6. PROCESS T TRAILER & CALCULATE TAX
+*
+PROCESS_T EQU  *
+         LTR   R5,R5                    
+         BZ    SKIP_T_NO_B              
+*
+* T segment structure: 'T' (1 byte) + Amount (10 bytes Zoned Text)
+         PACK  WS_PACKED_AMT,1(10,R4)   
+         ZAP   WS_TAX_AMT,WS_PACKED_AMT 
+         MP    WS_TAX_AMT,=P'0.05'      
+*
+         UNPK  WS_ZONED_TAX,WS_TAX_AMT  
+         OI    WS_ZONED_TAX+9,X'F0'     
+*
+* Inject calculated tax string back into bytes 2-10 of the stored B trailer
+         MVC   1(9,R5),WS_ZONED_TAX+1   
+*
+SKIP_T_NO_B EQU *
+         LA    R4,11(,R4)               
+         B     SCAN_LOOP                
+*
+* 7. WRITE THE RECORD AND REPEAT FOR NEXT RECORD
+*
+WRITE_REC EQU  *
+         MVC   OUT_RECORD,IN_RECORD     
+         PUT   OUTFILE,OUT_RECORD       Write record 
+         B     READ_REC                 LOOP 
+*
+* 8. GRACEFUL END OF FILE ROUTINE (TRIGGERED BY VSAM AUTOMATICALLY)
+*
+EOF_ROUTINE EQU *
+         CLOSE (INVSAM,,OUTFILE)        Close both files cleanly
+         RETURN (14,12),RC=0            
+*
+* ERROR HANDLING
+*
+ERR_OPEN WTO   'ERROR: Unable to open VSAM input or Sequential output files'
+         RETURN (14,12),RC=16           Exit program with Return Code 16 (Severe Error)
+*
+* DATA DEFINITIONS AND SYSTEM CONTROL BLOCKS
+*
+INVSAM   ACB   MACRF=(RP,SEQ),DDNAME=VSAMIN,EXLST=MYEXLST
+OUTFILE  RPL   MACRF=(PM),DDNAME=OUTDD
+*
+* VSAM Exit List to capture End-Of-Data (EODAD)
+MYEXLST  EXLST EODAD=EOF_ROUTINE
+*
+* Storage Buffers and Work Areas
+IN_RECORD  DS  CL100                    Input VSAM buffer (100 byte max length)
+OUT_RECORD DS  CL100                    Output sequential buffer (100 byte max length)
+*
+WS_PACKED_AMT DS PL8                    Temporary packed storage for data conversion
+WS_TAX_AMT    DS PL8                    Temporary packed storage for math operations
+WS_ZONED_TAX  DS CL10                   Temporary alphanumeric zone storage for output
+*
+         END   TAXPROG

@@ -30,7 +30,8 @@ public class Authdec implements AssemblerModule {
         // Branch-aware translated instruction candidates from HLASM source.
         // LABEL: AUTHDEC
         // CSECT directive: AUTHDEC  CSECT ,                   Transactional State Evaluator
-        // TODO manual review required: BAKR  14,0                Save state
+        // TODO protected semantic translation for BAKR: Branch-and-stack requires linkage-stack/runtime support.
+        //      category=control_flow_linkage; proposed_helper=AsmRuntime.Branch.bakr; source: BAKR  14,0                Save state
         // subroutine call via BASR: BASR  12,0
         // USING directive: USING *,12
         // TODO LM already handled by analyzer register_map when possible: LM    2,3,4(1)            R2 = Addr of CURRTX, R3 = Addr of ERRCODE
@@ -39,7 +40,7 @@ public class Authdec implements AssemblerModule {
         if (AsmRuntime.Branch.isEqual(cc)) {
             AsmRuntime.Memory.mvcLiteral(ctx, "AUTHSTAT", 5, "APPRV");
             // branch target: DEC_DONE
-            return ModuleResult.rc(registers.get(15), "Completed translated branch path");
+            // branch target: DEC_DONE
         }
         // LABEL: SET_REJECT
         // DS declaration: SET_REJECT DS  0H
@@ -47,11 +48,9 @@ public class Authdec implements AssemblerModule {
         // LABEL: DEC_DONE
         // DS declaration: DEC_DONE DS    0H
         registers.clear(15);
-        // TODO manual review required: PR
-        // TODO manual review required: LTORG ,
-        // TODO manual review required: END   AUTHDEC
+        return ModuleResult.rc(registers.get(15), "Returned by translated PR");
 
-        return ModuleResult.rc(0, "AUTHDEC executed as generated candidate");
+
 
     }
 }

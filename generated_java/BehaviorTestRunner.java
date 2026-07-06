@@ -22,8 +22,6 @@ public class BehaviorTestRunner {
         results.add(runCase11());
         results.add(runCase12());
         results.add(runCase13());
-        results.add(runCase14());
-        results.add(runCase15());
 
         writeJson(results);
     }
@@ -445,34 +443,31 @@ public class BehaviorTestRunner {
     private static java.util.Map<String, String> runCase12() {
         ExecutionContext ctx = new ExecutionContext();
 
-        ctx.setString("TXCUST", "CUST000001");
-        ctx.setString("TXSTAT", "A");
-        ctx.setDecimal("TXAMT", new java.math.BigDecimal("100.00"));
-        ctx.setDecimal("TXLIMIT", new java.math.BigDecimal("500.00"));
-        ctx.setString("TXTYPE", "PO");
+        ctx.setString("IO_FORCE_READ", "true");
+        ctx.setString("INRPL_PATH", "test_cases/ps/txread_input.ps");
+        ctx.setString("INVSAM_PATH", "test_cases/ps/txread_input.ps");
+        ctx.setString("CURRTX_PATH", "test_cases/ps/txread_input.ps");
         ctx.setString("ERRCODE", "0000");
-        ctx.setString("AUTHSTAT", "");
-        ctx.setDecimal("TXFEE", new java.math.BigDecimal("0.00"));
 
 
-                AssemblerModule application = new Maindrv();
-                ModuleResult result = application.execute(ctx);
+                AssemblerModule module = new Txread();
+                ModuleResult result = module.execute(ctx);
                 int rc = result.getReturnCode();
         
 
         java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
-        output.put("case_id", "TX001");
-        output.put("module", "MAINDRV");
+        output.put("case_id", "TXREAD_LOCAL_PS_001");
+        output.put("module", "TXREAD");
         output.put("RC", String.valueOf(rc));
 
-        output.put("ERRCODE", ctx.getString("ERRCODE"));
-        output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
-        output.put("TXFEE", ctx.getString("TXFEE"));
-        output.put("TXAMT", ctx.getString("TXAMT"));
-        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
         output.put("TXCUST", ctx.getString("TXCUST"));
         output.put("TXSTAT", ctx.getString("TXSTAT"));
+        output.put("TXAMT", ctx.getString("TXAMT"));
+        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
         output.put("TXTYPE", ctx.getString("TXTYPE"));
+        output.put("TXFEE", ctx.getString("TXFEE"));
+        output.put("ERRCODE", ctx.getString("ERRCODE"));
+        output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
 
         return output;
     }
@@ -481,96 +476,21 @@ public class BehaviorTestRunner {
     private static java.util.Map<String, String> runCase13() {
         ExecutionContext ctx = new ExecutionContext();
 
-        ctx.setString("TXCUST", "CUST000002");
-        ctx.setString("TXSTAT", "A");
-        ctx.setDecimal("TXAMT", new java.math.BigDecimal("700.00"));
-        ctx.setDecimal("TXLIMIT", new java.math.BigDecimal("500.00"));
-        ctx.setString("TXTYPE", "PO");
-        ctx.setString("ERRCODE", "0000");
-        ctx.setString("AUTHSTAT", "");
-        ctx.setDecimal("TXFEE", new java.math.BigDecimal("0.00"));
+        ctx.setString("IO_FORCE_READ", "true");
+        ctx.setString("INVSAM_PATH", "test_cases/ps/vsampack_input.ps");
+        ctx.setString("VSAMIN_PATH", "test_cases/ps/vsampack_input.ps");
+        ctx.setString("OUTFILE_PATH", "test_cases/ps/vsampack_output.ps");
+        ctx.setString("OUTDD_PATH", "test_cases/ps/vsampack_output.ps");
 
 
-                AssemblerModule application = new Maindrv();
-                ModuleResult result = application.execute(ctx);
+                AssemblerModule module = new Vsampack();
+                ModuleResult result = module.execute(ctx);
                 int rc = result.getReturnCode();
         
 
         java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
-        output.put("case_id", "TX002");
-        output.put("module", "MAINDRV");
-        output.put("RC", String.valueOf(rc));
-
-        output.put("ERRCODE", ctx.getString("ERRCODE"));
-        output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
-        output.put("TXFEE", ctx.getString("TXFEE"));
-        output.put("TXAMT", ctx.getString("TXAMT"));
-        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
-        output.put("TXCUST", ctx.getString("TXCUST"));
-        output.put("TXSTAT", ctx.getString("TXSTAT"));
-        output.put("TXTYPE", ctx.getString("TXTYPE"));
-
-        return output;
-    }
-
-
-    private static java.util.Map<String, String> runCase14() {
-        ExecutionContext ctx = new ExecutionContext();
-
-        ctx.setString("TXCUST", "CUST000003");
-        ctx.setString("TXSTAT", "B");
-        ctx.setDecimal("TXAMT", new java.math.BigDecimal("100.00"));
-        ctx.setDecimal("TXLIMIT", new java.math.BigDecimal("500.00"));
-        ctx.setString("TXTYPE", "PO");
-        ctx.setString("ERRCODE", "0000");
-        ctx.setString("AUTHSTAT", "");
-        ctx.setDecimal("TXFEE", new java.math.BigDecimal("0.00"));
-
-
-                AssemblerModule application = new Maindrv();
-                ModuleResult result = application.execute(ctx);
-                int rc = result.getReturnCode();
-        
-
-        java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
-        output.put("case_id", "TX003");
-        output.put("module", "MAINDRV");
-        output.put("RC", String.valueOf(rc));
-
-        output.put("ERRCODE", ctx.getString("ERRCODE"));
-        output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
-        output.put("TXFEE", ctx.getString("TXFEE"));
-        output.put("TXAMT", ctx.getString("TXAMT"));
-        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
-        output.put("TXCUST", ctx.getString("TXCUST"));
-        output.put("TXSTAT", ctx.getString("TXSTAT"));
-        output.put("TXTYPE", ctx.getString("TXTYPE"));
-
-        return output;
-    }
-
-
-    private static java.util.Map<String, String> runCase15() {
-        ExecutionContext ctx = new ExecutionContext();
-
-        ctx.setString("TXCUST", "CUST000004");
-        ctx.setString("TXSTAT", "A");
-        ctx.setDecimal("TXAMT", new java.math.BigDecimal("600.00"));
-        ctx.setDecimal("TXLIMIT", new java.math.BigDecimal("700.00"));
-        ctx.setString("TXTYPE", "RE");
-        ctx.setString("ERRCODE", "0000");
-        ctx.setString("AUTHSTAT", "");
-        ctx.setDecimal("TXFEE", new java.math.BigDecimal("0.00"));
-
-
-                AssemblerModule application = new Maindrv();
-                ModuleResult result = application.execute(ctx);
-                int rc = result.getReturnCode();
-        
-
-        java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
-        output.put("case_id", "TX004");
-        output.put("module", "MAINDRV");
+        output.put("case_id", "VSAMPACK_LOCAL_PS_SMOKE_001");
+        output.put("module", "VSAMPACK");
         output.put("RC", String.valueOf(rc));
 
         output.put("ERRCODE", ctx.getString("ERRCODE"));

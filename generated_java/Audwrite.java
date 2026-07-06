@@ -36,7 +36,8 @@ public class Audwrite implements AssemblerModule {
         // Branch-aware translated instruction candidates from HLASM source.
         // LABEL: AUDWRITE
         // CSECT directive: AUDWRITE CSECT ,                   VSAM Record Persistence Engine
-        // TODO manual review required: BAKR  14,0                Save state
+        // TODO protected semantic translation for BAKR: Branch-and-stack requires linkage-stack/runtime support.
+        //      category=control_flow_linkage; proposed_helper=AsmRuntime.Branch.bakr; source: BAKR  14,0                Save state
         // subroutine call via BASR: BASR  12,0
         // USING directive: USING *,12
         // TODO LM already handled by analyzer register_map when possible: LM    2,4,0(1)            R2 = Addr of OUTRPL, R3 = Addr of CURRTX, R4 = AuthStat
@@ -46,32 +47,15 @@ public class Audwrite implements AssemblerModule {
         AsmRuntime.Memory.mvc(ctx, "LOGPAN", 16, "TXCARD");
         AsmRuntime.Memory.mvcLiteral(ctx, "LOGPAN", 8, "XXXXXXXX");
         // TODO L requires memory/address resolution before exact helper call: L     5,26(,3)            Load raw 4-byte packed transaction amount
-        // TODO manual review required: X     5,=X'EF7A9BC1'      Apply cryptographic verification matrix
+        // TODO protected semantic translation for X: Fullword XOR memory operation requires byte-accurate storage model.
+        //      category=logical_memory; proposed_helper=AsmRuntime.Logical.x; source: X     5,=X'EF7A9BC1'      Apply cryptographic verification matrix
         // TODO ST requires register-to-memory metadata: ST    5,LOGMASK           Store value into target layout field
         // TODO manual review required: MODCB RPL=(2),AREA=LOGBUFF,AREALEN=80 Connect record pointers
-        // TODO manual review required: PUT   RPL=(2)             Write audit entry out to target file
+        // TODO invalid PUT: PUT   RPL=(2)             Write audit entry out to target file
         registers.clear(15);
-        // TODO manual review required: PR
-        // DS declaration: DS    0F
-        // LABEL: LOGBUFF
-        // DS declaration: LOGBUFF  DS    0CL80               80-Byte Structural Record Output
-        // DC declaration: DC    C'AUDIT|'
-        // LABEL: LOGCUST
-        // DS declaration: LOGCUST  DS    CL10
-        // DC declaration: DC    C'|PAN:'
-        // LABEL: LOGPAN
-        // DS declaration: LOGPAN   DS    CL16
-        // DC declaration: DC    C'|RES:'
-        // LABEL: LOGSTAT
-        // DS declaration: LOGSTAT  DS    CL5
-        // DC declaration: DC    C'|MSK:'
-        // LABEL: LOGMASK
-        // DS declaration: LOGMASK  DS    XL4
-        // DS declaration: DS    CL23
-        // TODO manual review required: LTORG ,
-        // TODO manual review required: END   AUDWRITE
+        return ModuleResult.rc(registers.get(15), "Returned by translated PR");
 
-        return ModuleResult.rc(0, "AUDWRITE executed as generated candidate");
+
 
     }
 }

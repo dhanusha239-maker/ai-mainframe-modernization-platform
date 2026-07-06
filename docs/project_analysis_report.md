@@ -1,6 +1,6 @@
 # Legacy Program Intelligence + Verification Report
 
-Generated on: `2026-06-28 03:47:27`
+Generated on: `2026-07-05 22:14:09`
 
 ## 1. Project Purpose
 
@@ -8,7 +8,7 @@ This report summarizes analysis results from the HLASM codebase. The system scan
 
 ## 2. Repository Analysis Summary
 
-- Total analyzed modules: `9`
+- Total analyzed modules: `11`
 - Analysis artifacts generated:
   - `analysis_report.json`
   - `docs/generated_behavior_report.md`
@@ -18,6 +18,7 @@ This report summarizes analysis results from the HLASM codebase. The system scan
 
 - `AUDWRITE`
 - `AUTHDEC`
+- `BCTCOUNT`
 - `CARDSTAT`
 - `CUSTVAL`
 - `FEECALC`
@@ -25,11 +26,14 @@ This report summarizes analysis results from the HLASM codebase. The system scan
 - `LIMITCHK`
 - `MAINDRV`
 - `TXREAD`
+- `VSAMPACK`
 
 ## 3. File / DDNAME Summary
 
 - `INACB` references DDNAME `INVSAM` in module `MAINDRV`
 - `OUTACB` references DDNAME `OUTVSAM` in module `MAINDRV`
+- `INVSAM` references DDNAME `VSAMIN` in module `VSAMPACK`
+- `OUTFILE` references DDNAME `OUTDD` in module `VSAMPACK`
 
 ## 4. Parameter Passing Summary
 
@@ -74,6 +78,11 @@ This report summarizes analysis results from the HLASM codebase. The system scan
 - Business Fields Read: `AUTHSTAT`
 - Business Fields Written: `AUTHSTAT`
 
+### `BCTCOUNT`
+
+- Business Fields Read: `COUNT`
+- Business Fields Written: `TOTAL`
+
 ### `CARDSTAT`
 
 - Business Fields Read: `TXSTAT`
@@ -103,6 +112,11 @@ This report summarizes analysis results from the HLASM codebase. The system scan
 
 - Business Fields Read: `INRPL`
 - Business Fields Written: `CURRTX`
+
+### `VSAMPACK`
+
+- Business Fields Read: `WS_PACKED_AMT`, `WS_TAX_AMT`, `WS_ZONED_TAX`, `IN_RECORD`
+- Business Fields Written: `WS_TAX_AMT`, `OUT_RECORD`
 
 ## 6. Record Buffer / VSAM I/O Effects
 
@@ -163,6 +177,15 @@ This report summarizes analysis results from the HLASM codebase. The system scan
 
 - `LTR` `15`, `15`
 
+### `VSAMPACK`
+
+- `LTR` `R15`, `R15`
+- `CLI` `0(R4)`, `C'A'`
+- `CLI` `0(R4)`, `C'B'`
+- `CLI` `0(R4)`, `C'T'`
+- `CLI` `0(R4)`, `C'X'`
+- `LTR` `R5`, `R5`
+
 ## 9. Impact Analysis Summary
 
 ### `LOGBUFF`
@@ -194,6 +217,18 @@ This report summarizes analysis results from the HLASM codebase. The system scan
 - Written by: `AUDWRITE`
 - Read by: None
 - Impacted modules: `AUDWRITE`
+
+### `COUNT`
+
+- Written by: None
+- Read by: `BCTCOUNT`
+- Impacted modules: `BCTCOUNT`
+
+### `TOTAL`
+
+- Written by: `BCTCOUNT`
+- Read by: None
+- Impacted modules: `BCTCOUNT`
 
 ### `FEEWORK`
 
@@ -260,6 +295,36 @@ This report summarizes analysis results from the HLASM codebase. The system scan
 - Written by: `AUTHDEC`
 - Read by: `AUDWRITE`, `AUTHDEC`
 - Impacted modules: `AUDWRITE`, `AUTHDEC`
+
+### `IN_RECORD`
+
+- Written by: None
+- Read by: `VSAMPACK`
+- Impacted modules: `VSAMPACK`
+
+### `OUT_RECORD`
+
+- Written by: `VSAMPACK`
+- Read by: None
+- Impacted modules: `VSAMPACK`
+
+### `WS_PACKED_AMT`
+
+- Written by: None
+- Read by: `VSAMPACK`
+- Impacted modules: `VSAMPACK`
+
+### `WS_TAX_AMT`
+
+- Written by: `VSAMPACK`
+- Read by: `VSAMPACK`
+- Impacted modules: `VSAMPACK`
+
+### `WS_ZONED_TAX`
+
+- Written by: None
+- Read by: `VSAMPACK`
+- Impacted modules: `VSAMPACK`
 
 ## 10. Analyzer Notes / Modernization Risks
 

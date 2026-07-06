@@ -1,5 +1,11 @@
 import re
-from instruction_semantics import get_semantics
+try:
+    from instruction_semantics_updated_v3 import get_semantics
+except ImportError:
+    try:
+        from instruction_semantics_updated_v3 import get_semantics
+    except ImportError:
+        from instruction_semantics_updated_v3 import get_semantics
 
 
 class InstructionTranslator:
@@ -28,6 +34,11 @@ class InstructionTranslator:
         "BM": "isLow",
         "BNH": "isNotHigh",
         "BNL": "isNotLow",
+        "BNO": "isNotOverflow",
+        "BO": "isOverflow",
+        # Extended mnemonics frequently produced by HLASM.
+        "BNP": "isNotHigh",
+        "BNM": "isNotLow",
     }
 
     def __init__(
@@ -50,6 +61,100 @@ class InstructionTranslator:
             normalized[reg_text] = str(symbol).upper()
 
         return normalized
+
+
+    def _reg_num(self, register_text):
+        text = str(register_text).strip().upper().replace("R", "")
+        text = re.sub(r"[^0-9].*$", "", text)
+        return text if text.isdigit() else "0"
+
+    def _java_string(self, value):
+        return str(value).replace("\\", "\\\\").replace('"', '\\"')
+
+    def _strip_length_or_offset(self, operand):
+        text = operand.strip().upper()
+        plus_offset = re.match(r"^([A-Z0-9_#$@]+)\+\d+(?:\(\d+\))?$", text)
+        if plus_offset:
+            return plus_offset.group(1)
+
+        symbolic_len = re.match(r"^([A-Z0-9_#$@]+)\(\d+\)$", text)
+        if symbolic_len:
+            return symbolic_len.group(1)
+
+        return self._resolve_operand(text)
+
+    def _fullword_literal_value(self, operand):
+        text = operand.strip().upper()
+        if text.startswith("=F'") and text.endswith("'"):
+            return int(text[3:-1])
+        if text.startswith("F'") and text.endswith("'"):
+            return int(text[2:-1])
+        if text.startswith("=A(") and text.endswith(")"):
+            return None
+        if text.isdigit() or (text.startswith("-") and text[1:].isdigit()):
+            return int(text)
+        return None
+
+    def _immediate_byte_value(self, operand):
+        text = str(operand).strip().upper()
+        if text.startswith("X'") and text.endswith("'"):
+            try:
+                return int(text[2:-1], 16) & 0xFF
+            except ValueError:
+                return None
+        if text.startswith("=X'") and text.endswith("'"):
+            try:
+                return int(text[3:-1], 16) & 0xFF
+            except ValueError:
+                return None
+        if text.startswith("C'") and text.endswith("'") and len(text) >= 3:
+            return ord(text[2]) & 0xFF
+        if text.startswith("=C'") and text.endswith("'") and len(text) >= 4:
+            return ord(text[3]) & 0xFF
+        if text.isdigit():
+            return int(text) & 0xFF
+        return None
+
+    def _address_operand_java(self, operand):
+        """
+        Converts common HLASM address operands into a Java expression for the generated runtime.
+
+        Examples:
+            IN_RECORD      -> AsmRuntime.Address.ofField("IN_RECORD")
+            1(,R4)         -> AsmRuntime.Address.ofBaseOffset(registers, 4, 1)
+            100            -> AsmRuntime.Address.ofImmediate(100)
+        """
+        text = operand.strip().upper()
+
+        base_only = re.match(r"^(\d+)?\(,R?(\d+)\)$", text)
+        if base_only:
+            offset = int(base_only.group(1) or 0)
+            reg = self._reg_num(base_only.group(2))
+            return f"AsmRuntime.Address.ofBaseOffset(registers, {reg}, {offset})"
+
+        indexed = re.match(r"^(\d+)?\(R?(\d+),R?(\d+)\)$", text)
+        if indexed:
+            offset = int(indexed.group(1) or 0)
+            index_reg = self._reg_num(indexed.group(2))
+            base_reg = self._reg_num(indexed.group(3))
+            return f"AsmRuntime.Address.ofIndexed(registers, {base_reg}, {index_reg}, {offset})"
+
+        if text.isdigit():
+            return f"AsmRuntime.Address.ofImmediate({text})"
+
+        resolved = self._resolve_operand(text)
+        return f'AsmRuntime.Address.ofField("{self._java_string(resolved)}")'
+
+    def _io_operands_text(self, operands):
+        cleaned = []
+        for operand in operands:
+            text = operand.strip()
+            if text.startswith("(") and text.endswith(")"):
+                text = text[1:-1]
+            for part in self._split_operands(text):
+                if part:
+                    cleaned.append(part)
+        return cleaned
 
     # ============================================================
     # Public API: single-line translation
@@ -210,11 +315,14 @@ class InstructionTranslator:
                             output.append('    return ModuleResult.rc(4, "Rejected by translated branch logic");')
                             emitted_return = True
 
-                        # If source branches out of this block after non-error assignment,
-                        # preserve the current R15 return code instead of falling through.
+                        # Preserve branch intent as a branch marker. Do not emit a Java return here;
+                        # a plain HLASM B only changes control flow, and an early Java return can hide
+                        # later translated labels/instructions in the same source module.
                         if inner_opcode and inner_opcode.upper() == "B" and not emitted_return:
-                            output.append('    return ModuleResult.rc(registers.get(15), "Completed translated branch path");')
-                            emitted_return = True
+                            translated_branch = self.translate_line(inner_line)
+                            if translated_branch:
+                                for translated_line in translated_branch.splitlines():
+                                    output.append(f"    {translated_line}")
 
                         inner_idx += 1
 
@@ -231,6 +339,11 @@ class InstructionTranslator:
             translated = self.translate_line(line)
             if translated:
                 output.extend(translated.splitlines())
+                # Once a top-level terminal Java return is emitted, stop linear emission.
+                # Additional assembler labels after RETURN are alternate branch paths or declarations;
+                # emitting them sequentially causes unreachable Java statements.
+                if self._is_terminal_java(translated):
+                    break
 
             i += 1
 
@@ -251,6 +364,12 @@ class InstructionTranslator:
         }
 
         return negation.get(opcode.upper(), "isNotEqual")   
+
+    def _is_terminal_java(self, translated):
+        return any(
+            item.strip().startswith("return ModuleResult.rc")
+            for item in str(translated).splitlines()
+        )
 
     def _is_error_assignment_line(self, line):
         """
@@ -719,10 +838,19 @@ class InstructionTranslator:
             return f"// TODO invalid {op.upper()}: {clean}"
 
         target = self._resolve_operand(operands[0])
+        raw_source = operands[1].upper()
         source = self._resolve_operand(operands[1])
 
         digits = self._packed_digits(target)
         scale = self._packed_scale(target)
+
+        if self._is_packed_literal(raw_source):
+            literal = self._packed_literal_value(raw_source)
+            temp_name = f"{target}_{op.upper()}_LITERAL"
+            return (
+                f'ctx.setDecimal("{temp_name}", new java.math.BigDecimal("{literal}"));\n'
+                f'AsmRuntime.Packed.{op}(ctx, "{target}", "{temp_name}", {digits}, {scale}, cc);'
+            )
 
         return f'AsmRuntime.Packed.{op}(ctx, "{target}", "{source}", {digits}, {scale}, cc);'
 
@@ -746,10 +874,59 @@ class InstructionTranslator:
         return f'AsmRuntime.Packed.cp(ctx, "{left}", "{right_field}", cc);'
 
     def _translate_pack(self, operands, clean):
-        return f"// TODO PACK requires zoned/packed metadata: {clean}"
+        if len(operands) < 2:
+            return f"// TODO invalid PACK: {clean}"
+
+        target = self._resolve_operand(operands[0])
+        source = self._resolve_operand(operands[1])
+        target_len = self._length_from_operand(operands[0], default=self.symbol_metadata.get(target, {}).get("length", 8))
+        source_len = self._length_from_operand(operands[1], default=self.symbol_metadata.get(source, {}).get("length", 1))
+        digits = self._packed_digits(target)
+        scale = self._packed_scale(target)
+
+        return (
+            f'AsmRuntime.Packed.pack(ctx, "{target}", "{source}", '
+            f'{target_len}, {source_len}, {digits}, {scale}, cc);'
+        )
 
     def _translate_unpk(self, operands, clean):
-        return f"// TODO UNPK requires packed/zoned metadata: {clean}"
+        if len(operands) < 2:
+            return f"// TODO invalid UNPK: {clean}"
+
+        target = self._resolve_operand(operands[0])
+        source = self._resolve_operand(operands[1])
+        target_len = self._length_from_operand(operands[0], default=self.symbol_metadata.get(target, {}).get("length", 1))
+        source_len = self._length_from_operand(operands[1], default=self.symbol_metadata.get(source, {}).get("length", 8))
+        digits = self._packed_digits(source)
+        scale = self._packed_scale(source)
+
+        return (
+            f'AsmRuntime.Packed.unpk(ctx, "{target}", "{source}", '
+            f'{target_len}, {source_len}, {digits}, {scale});'
+        )
+
+    def _translate_srp(self, operands, clean):
+        if len(operands) < 3:
+            return f"// TODO invalid SRP: {clean}"
+
+        target = self._resolve_operand(operands[0])
+        shift_operand = operands[1].strip()
+        round_digit = operands[2].strip()
+
+        shift = self._extract_srp_shift(shift_operand)
+        if shift is None:
+            return f"// TODO SRP unsupported shift operand: {clean}"
+
+        if not round_digit.isdigit():
+            return f"// TODO SRP unsupported rounding operand: {clean}"
+
+        digits = self._packed_digits(target)
+        scale = self._packed_scale(target)
+
+        return (
+            f'AsmRuntime.Packed.srp(ctx, "{target}", {shift}, {int(round_digit)}, '
+            f'{digits}, {scale}, cc);'
+        )
 
     # ============================================================
     # Register and binary
@@ -759,8 +936,8 @@ class InstructionTranslator:
         if len(operands) < 2:
             return f"// TODO invalid XR: {clean}"
 
-        r1 = operands[0].strip()
-        r2 = operands[1].strip()
+        r1 = self._reg_num(operands[0])
+        r2 = self._reg_num(operands[1])
 
         if r1 == r2:
             return f"registers.clear({r1});"
@@ -771,8 +948,8 @@ class InstructionTranslator:
         if len(operands) < 2:
             return f"// TODO invalid SR: {clean}"
 
-        r1 = operands[0].strip()
-        r2 = operands[1].strip()
+        r1 = self._reg_num(operands[0])
+        r2 = self._reg_num(operands[1])
 
         if r1 == r2:
             return f"registers.clear({r1});"
@@ -783,13 +960,19 @@ class InstructionTranslator:
         if len(operands) < 2:
             return f"// TODO invalid AR: {clean}"
 
-        return f"AsmRuntime.Register.ar(registers, {operands[0]}, {operands[1]}, cc);"
+        return f"AsmRuntime.Register.ar(registers, {self._reg_num(operands[0])}, {self._reg_num(operands[1])}, cc);"
 
     def _translate_ltr(self, operands, clean):
         if len(operands) < 2:
             return f"// TODO invalid LTR: {clean}"
 
-        return f"AsmRuntime.Register.ltr(registers, {operands[0]}, {operands[1]}, cc);"
+        return f"AsmRuntime.Register.ltr(registers, {self._reg_num(operands[0])}, {self._reg_num(operands[1])}, cc);"
+
+    def _translate_lr(self, operands, clean):
+        if len(operands) < 2:
+            return f"// TODO invalid LR: {clean}"
+
+        return f"AsmRuntime.Register.lr(registers, {self._reg_num(operands[0])}, {self._reg_num(operands[1])});"
 
     def _translate_lh(self, operands, clean):
         return f"// TODO LH requires exact memory byte access before helper call: {clean}"
@@ -801,13 +984,13 @@ class InstructionTranslator:
         if len(operands) < 2:
             return f"// TODO invalid LA: {clean}"
 
-        reg = operands[0].strip()
+        reg = self._reg_num(operands[0])
         value = operands[1].strip()
 
         if value.isdigit():
-           return f"registers.set({reg}, {value});"
+            return f"registers.set({reg}, {value});"
 
-        return f"// TODO LA requires address/register model integration: {clean}"
+        return f"AsmRuntime.Address.la(ctx, registers, {reg}, {self._address_operand_java(value)});"
 
     def _translate_lm(self, operands, clean):
         return f"// TODO LM already handled by analyzer register_map when possible: {clean}"
@@ -823,6 +1006,386 @@ class InstructionTranslator:
 
     def _translate_stm(self, operands, clean):
         return f"// TODO STM requires multiple-register storage metadata: {clean}"
+
+
+    def _translate_a(self, operands, clean):
+        if len(operands) < 2:
+            return f"// TODO invalid A: {clean}"
+
+        reg = self._reg_num(operands[0])
+        value = self._fullword_literal_value(operands[1])
+        if value is not None:
+            return f"AsmRuntime.Register.aImmediate(registers, {reg}, {value}, cc);"
+
+        source = self._resolve_operand(operands[1])
+        return f'AsmRuntime.Register.a(ctx, registers, {reg}, "{source}", cc);'
+
+    def _translate_c(self, operands, clean):
+        if len(operands) < 2:
+            return f"// TODO invalid C: {clean}"
+
+        reg = self._reg_num(operands[0])
+        value = self._fullword_literal_value(operands[1])
+        if value is not None:
+            return f"AsmRuntime.Register.cImmediate(registers, {reg}, {value}, cc);"
+
+        source = self._resolve_operand(operands[1])
+        return f'AsmRuntime.Register.c(ctx, registers, {reg}, "{source}", cc);'
+
+    def _translate_cr(self, operands, clean):
+        if len(operands) < 2:
+            return f"// TODO invalid CR: {clean}"
+
+        return f"AsmRuntime.Register.cr(registers, {self._reg_num(operands[0])}, {self._reg_num(operands[1])}, cc);"
+
+    def _translate_tr(self, operands, clean):
+        if len(operands) < 2:
+            return f"// TODO invalid TR: {clean}"
+
+        target = self._resolve_operand(operands[0])
+        length = self._length_from_operand(operands[0], default=1)
+        table = self._strip_length_or_offset(operands[1])
+
+        return f'AsmRuntime.Memory.tr(ctx, "{target}", {length}, "{table}");'
+
+    def _translate_trt(self, operands, clean):
+        if len(operands) < 2:
+            return f"// TODO invalid TRT: {clean}"
+
+        target = self._resolve_operand(operands[0])
+        length = self._length_from_operand(operands[0], default=1)
+        table = self._strip_length_or_offset(operands[1])
+
+        return f'AsmRuntime.Memory.trt(ctx, "{target}", {length}, "{table}", registers, cc);'
+
+    def _translate_oi(self, operands, clean):
+        if len(operands) < 2:
+            return f"// TODO invalid OI: {clean}"
+
+        target = operands[0].strip().upper()
+        value = self._immediate_byte_value(operands[1])
+        if value is None:
+            return f"// TODO OI unsupported immediate operand: {clean}"
+
+        return f'AsmRuntime.Memory.oi(ctx, "{self._java_string(target)}", {value}, cc);'
+
+    def _translate_xi(self, operands, clean):
+        if len(operands) < 2:
+            return f"// TODO invalid XI: {clean}"
+
+        target = operands[0].strip().upper()
+        value = self._immediate_byte_value(operands[1])
+        if value is None:
+            return f"// TODO XI unsupported immediate operand: {clean}"
+
+        return f'AsmRuntime.Memory.xi(ctx, "{self._java_string(target)}", {value}, cc);'
+
+    def _translate_ni(self, operands, clean):
+        if len(operands) < 2:
+            return f"// TODO invalid NI: {clean}"
+
+        target = operands[0].strip().upper()
+        value = self._immediate_byte_value(operands[1])
+        if value is None:
+            return f"// TODO NI unsupported immediate operand: {clean}"
+
+        return f'AsmRuntime.Memory.ni(ctx, "{self._java_string(target)}", {value}, cc);'
+
+    def _translate_open(self, operands, clean):
+        items = self._io_operands_text(operands)
+        args = ", ".join(f'"{self._java_string(item)}"' for item in items)
+        return f"AsmRuntime.IO.open(ctx, cc, {args});"
+
+    def _translate_get(self, operands, clean):
+        items = self._io_operands_text(operands)
+        if len(items) >= 2:
+            #return f'AsmRuntime.IO.get(ctx, "{self._java_string(items[0])}", "{self._java_string(self._resolve_operand(items[1]))}", cc);'
+            return f'AsmRuntime.IO.get(ctx, "{self._java_string(items[0])}", "{self._java_string(self._resolve_operand(items[1]))}", cc); registers.clear(15);'
+        if len(items) == 1:
+           # return f'AsmRuntime.IO.get(ctx, "{self._java_string(items[0])}", "", cc);'
+           return f'AsmRuntime.IO.get(ctx, "{self._java_string(items[0])}", "", cc); registers.clear(15);'
+        return f"// TODO invalid GET: {clean}"
+
+    def _translate_put(self, operands, clean):
+        items = self._io_operands_text(operands)
+        if len(items) >= 2:
+            return f'AsmRuntime.IO.put(ctx, "{self._java_string(items[0])}", "{self._java_string(self._resolve_operand(items[1]))}", cc);'
+        return f"// TODO invalid PUT: {clean}"
+
+    def _translate_close(self, operands, clean):
+        items = self._io_operands_text(operands)
+        args = ", ".join(f'"{self._java_string(item)}"' for item in items if item)
+        return f"AsmRuntime.IO.close(ctx, cc, {args});"
+
+    def _translate_save(self, operands, clean):
+        return f"AsmRuntime.Program.save(registers);"
+
+    def _translate_return(self, operands, clean):
+        rc_match = re.search(r"RC=([0-9]+)", clean.upper())
+        if rc_match:
+            return f'return ModuleResult.rc({rc_match.group(1)}, "Returned by translated RETURN");'
+        return 'return ModuleResult.rc(registers.get(15), "Returned by translated RETURN");'
+
+
+    # ============================================================
+    # Additional global-list instruction handlers
+    # ============================================================
+
+    def _translate_afi(self, operands, clean):
+        return self._protected_instruction("AFI", operands, clean, "Add-immediate exact overflow/CC handling must be validated before Java emission.")
+
+    def _translate_ag(self, operands, clean):
+        return self._protected_instruction("AG", operands, clean, "64-bit add needs exact signed overflow and register-width semantics.")
+
+    def _translate_agf(self, operands, clean):
+        return self._protected_instruction("AGF", operands, clean, "64-bit/32-bit sign-extension semantics must be validated.")
+
+    def _translate_agfi(self, operands, clean):
+        return self._protected_instruction("AGFI", operands, clean, "64-bit immediate add exact overflow/CC handling required.")
+
+    def _translate_agrk(self, operands, clean):
+        return self._protected_instruction("AGRK", operands, clean, "Three-operand 64-bit arithmetic requires exact helper validation.")
+
+    def _translate_agsi(self, operands, clean):
+        return self._protected_instruction("AGSI", operands, clean, "Storage-immediate update must preserve memory width and serialization assumptions.")
+
+    def _translate_ah(self, operands, clean):
+        return self._protected_instruction("AH", operands, clean, "Halfword sign extension and overflow condition code must be exact.")
+
+    def _translate_asi(self, operands, clean):
+        return self._protected_instruction("ASI", operands, clean, "Storage-immediate update must preserve exact storage semantics.")
+
+    def _translate_ay(self, operands, clean):
+        return self._protected_instruction("AY", operands, clean, "Long-displacement storage add needs exact address resolution.")
+
+    def _translate_s(self, operands, clean):
+        return self._protected_instruction("S", operands, clean, "Signed subtract overflow/CC exactness required.")
+
+    def _translate_sh(self, operands, clean):
+        return self._protected_instruction("SH", operands, clean, "Halfword sign extension and overflow condition code must be exact.")
+
+    def _translate_sy(self, operands, clean):
+        return self._protected_instruction("SY", operands, clean, "Long-displacement subtract requires exact address resolution.")
+
+    def _translate_m(self, operands, clean):
+        return self._protected_instruction("M", operands, clean, "Multiply uses register-pair result semantics; not a simple Java multiply.")
+
+    def _translate_mr(self, operands, clean):
+        return self._protected_instruction("MR", operands, clean, "Register-pair result semantics required.")
+
+    def _translate_ms(self, operands, clean):
+        return self._protected_instruction("MS", operands, clean, "Multiply-single exact overflow and width semantics required.")
+
+    def _translate_msr(self, operands, clean):
+        return self._protected_instruction("MSR", operands, clean, "Multiply-single register exact semantics required.")
+
+    def _translate_mfy(self, operands, clean):
+        return self._protected_instruction("MFY", operands, clean, "Long-displacement multiply requires exact address resolution.")
+
+    def _translate_mg(self, operands, clean):
+        return self._protected_instruction("MG", operands, clean, "64-bit multiply result semantics required.")
+
+    def _translate_mgh(self, operands, clean):
+        return self._protected_instruction("MGH", operands, clean, "64-bit by halfword sign semantics required.")
+
+    def _translate_mh(self, operands, clean):
+        return self._protected_instruction("MH", operands, clean, "Halfword sign semantics required.")
+
+    def _translate_mhi(self, operands, clean):
+        return self._protected_instruction("MHI", operands, clean, "Immediate halfword multiply exactness required.")
+
+    def _translate_mhy(self, operands, clean):
+        return self._protected_instruction("MHY", operands, clean, "Long-displacement halfword multiply requires exact address resolution.")
+
+    def _translate_mgrk(self, operands, clean):
+        return self._protected_instruction("MGRK", operands, clean, "Three-operand 64-bit multiply requires exact helper validation.")
+
+    def _translate_d(self, operands, clean):
+        return self._protected_instruction("D", operands, clean, "Divide uses register-pair quotient/remainder semantics.")
+
+    def _translate_dr(self, operands, clean):
+        return self._protected_instruction("DR", operands, clean, "Register divide uses register-pair quotient/remainder semantics.")
+
+    def _translate_bakr(self, operands, clean):
+        return self._protected_instruction("BAKR", operands, clean, "Branch-and-stack requires linkage-stack/runtime support.")
+
+    def _translate_bas(self, operands, clean):
+        return self._protected_instruction("BAS", operands, clean, "Branch-and-save requires control-flow graph lowering.")
+
+    def _translate_bcr(self, operands, clean):
+        return self._protected_instruction("BCR", operands, clean, "Condition-mask branch-register needs CFG lowering.")
+
+    def _translate_bras(self, operands, clean):
+        return self._protected_instruction("BRAS", operands, clean, "Relative branch-and-save requires CFG lowering.")
+
+    def _translate_brasl(self, operands, clean):
+        return self._protected_instruction("BRASL", operands, clean, "Long relative branch-and-save requires CFG lowering.")
+
+    def _translate_brc(self, operands, clean):
+        return self._protected_instruction("BRC", operands, clean, "Relative condition-mask branch requires CFG lowering.")
+
+    def _translate_brcl(self, operands, clean):
+        return self._protected_instruction("BRCL", operands, clean, "Long relative condition-mask branch requires CFG lowering.")
+
+    def _translate_brct(self, operands, clean):
+        return self._protected_instruction("BRCT", operands, clean, "Relative count branch requires CFG loop lowering.")
+
+    def _translate_cgrb(self, operands, clean):
+        return self._protected_instruction("CGRB", operands, clean, "Compare-and-branch relative requires CFG lowering and exact signed/unsigned mode.")
+
+    def _translate_crb(self, operands, clean):
+        return self._protected_instruction("CRB", operands, clean, "Compare-register-and-branch relative requires CFG lowering.")
+
+    def _translate_cvb(self, operands, clean):
+        return self._protected_instruction("CVB", operands, clean, "Packed decimal to binary conversion must model sign, overflow, and storage width exactly.")
+
+    def _translate_cvd(self, operands, clean):
+        return self._protected_instruction("CVD", operands, clean, "Binary to packed decimal conversion must model storage width exactly.")
+
+    def _translate_ed(self, operands, clean):
+        return self._protected_instruction("ED", operands, clean, "Edit pattern/significance-start semantics need exact helper validation.")
+
+    def _translate_edmk(self, operands, clean):
+        return self._protected_instruction("EDMK", operands, clean, "Edit-and-mark also updates R1; needs exact helper validation.")
+
+    def _translate_ex(self, operands, clean):
+        return self._protected_instruction("EX", operands, clean, "Execute dynamically modifies the target instruction; requires IR-level support.")
+
+    def _translate_exrl(self, operands, clean):
+        return self._protected_instruction("EXRL", operands, clean, "Execute-relative-long requires IR-level support.")
+
+    def _translate_ic(self, operands, clean):
+        return self._protected_instruction("IC", operands, clean, "Insert-character must update only low byte of register exactly.")
+
+    def _translate_icm(self, operands, clean):
+        return self._protected_instruction("ICM", operands, clean, "Insert-under-mask updates selected bytes and CC; helper validation required.")
+
+    def _translate_laa(self, operands, clean):
+        return self._protected_instruction("LAA", operands, clean, "Atomic load-and-add cannot be lowered to simple Java without concurrency semantics.")
+
+    def _translate_larl(self, operands, clean):
+        return self._protected_instruction("LARL", operands, clean, "Relative address requires CFG/address-space model.")
+
+    def _translate_lay(self, operands, clean):
+        if len(operands) < 2:
+            return f"// TODO invalid LAY: {clean}"
+        reg = self._reg_num(operands[0])
+        return f"AsmRuntime.Address.la(ctx, registers, {reg}, {self._address_operand_java(operands[1])});"
+
+    def _translate_lb(self, operands, clean):
+        return self._protected_instruction("LB", operands, clean, "Signed byte load exactness required.")
+
+    def _translate_lbh(self, operands, clean):
+        return self._protected_instruction("LBH", operands, clean, "Byte-high load exactness required.")
+
+    def _translate_lcr(self, operands, clean):
+        return self._protected_instruction("LCR", operands, clean, "Load-complement overflow edge case needs exact CC handling.")
+
+    def _translate_lg(self, operands, clean):
+        return self._protected_instruction("LG", operands, clean, "64-bit register load requires 64-bit register model.")
+
+    def _translate_lnr(self, operands, clean):
+        return self._protected_instruction("LNR", operands, clean, "Load-negative condition-code edge cases need exact helper.")
+
+    def _translate_loc(self, operands, clean):
+        return self._protected_instruction("LOC", operands, clean, "Conditional load needs condition-mask decoding.")
+
+    def _translate_llgtr(self, operands, clean):
+        return self._protected_instruction("LLGTR", operands, clean, "Logical 32-to-64 load/test requires 64-bit register model.")
+
+    def _translate_llgt(self, operands, clean):
+        return self._protected_instruction("LLGT", operands, clean, "Logical 31-bit load requires precise mask semantics.")
+
+    def _translate_lpr(self, operands, clean):
+        return self._protected_instruction("LPR", operands, clean, "Load-positive overflow edge case needs exact CC handling.")
+
+    def _translate_lrl(self, operands, clean):
+        return self._protected_instruction("LRL", operands, clean, "Relative load requires CFG/address-space model.")
+
+    def _translate_ltgr(self, operands, clean):
+        return self._protected_instruction("LTGR", operands, clean, "64-bit load-and-test requires 64-bit register model.")
+
+    def _translate_ly(self, operands, clean):
+        return self._protected_instruction("LY", operands, clean, "Long-displacement load requires exact address resolution.")
+
+    def _translate_mvcl(self, operands, clean):
+        return self._protected_instruction("MVCL", operands, clean, "Move-long uses register pairs and partial completion semantics.")
+
+    def _translate_mvn(self, operands, clean):
+        return self._protected_instruction("MVN", operands, clean, "Nibble-level move requires byte-accurate memory model.")
+
+    def _translate_mvz(self, operands, clean):
+        return self._protected_instruction("MVZ", operands, clean, "Nibble-level zone move requires byte-accurate memory model.")
+
+    def _translate_n(self, operands, clean):
+        return self._protected_instruction("N", operands, clean, "Fullword logical memory operation requires byte-accurate storage model.")
+
+    def _translate_nr(self, operands, clean):
+        return self._protected_instruction("NR", operands, clean, "Register AND condition-code exactness required.")
+
+    def _translate_o(self, operands, clean):
+        return self._protected_instruction("O", operands, clean, "Fullword logical memory operation requires byte-accurate storage model.")
+
+    def _translate_oc(self, operands, clean):
+        return self._protected_instruction("OC", operands, clean, "OR-character length-byte operation requires byte-accurate storage model.")
+
+    def _translate_or(self, operands, clean):
+        return self._protected_instruction("OR", operands, clean, "Register OR condition-code exactness required.")
+
+    def _translate_sla(self, operands, clean):
+        return self._protected_instruction("SLA", operands, clean, "Arithmetic shift CC/overflow exactness required.")
+
+    def _translate_slda(self, operands, clean):
+        return self._protected_instruction("SLDA", operands, clean, "Double-register arithmetic shift requires pair-register model.")
+
+    def _translate_sldl(self, operands, clean):
+        return self._protected_instruction("SLDL", operands, clean, "Double-register logical shift requires pair-register model.")
+
+    def _translate_sll(self, operands, clean):
+        return self._protected_instruction("SLL", operands, clean, "Shift amount/address-field behavior requires exact helper.")
+
+    def _translate_spm(self, operands, clean):
+        return self._protected_instruction("SPM", operands, clean, "Program mask update must be modeled in runtime state.")
+
+    def _translate_sra(self, operands, clean):
+        return self._protected_instruction("SRA", operands, clean, "Arithmetic shift condition-code exactness required.")
+
+    def _translate_srda(self, operands, clean):
+        return self._protected_instruction("SRDA", operands, clean, "Double-register arithmetic shift requires pair-register model.")
+
+    def _translate_srdl(self, operands, clean):
+        return self._protected_instruction("SRDL", operands, clean, "Double-register logical shift requires pair-register model.")
+
+    def _translate_srl(self, operands, clean):
+        return self._protected_instruction("SRL", operands, clean, "Shift amount/address-field behavior requires exact helper.")
+
+    def _translate_srst(self, operands, clean):
+        return self._protected_instruction("SRST", operands, clean, "Search-string updates registers and CC; exact helper required.")
+
+    def _translate_stoc(self, operands, clean):
+        return self._protected_instruction("STOC", operands, clean, "Store-on-condition needs condition-mask decoding.")
+
+    def _translate_sty(self, operands, clean):
+        return self._protected_instruction("STY", operands, clean, "Long-displacement store requires exact address resolution.")
+
+    def _translate_tm(self, operands, clean):
+        return self._protected_instruction("TM", operands, clean, "Test-under-mask has mask-specific CC semantics.")
+
+    def _translate_tp(self, operands, clean):
+        return self._protected_instruction("TP", operands, clean, "Test-decimal must validate packed-zone/sign nibbles exactly.")
+
+    def _translate_x(self, operands, clean):
+        return self._protected_instruction("X", operands, clean, "Fullword XOR memory operation requires byte-accurate storage model.")
+
+    def _protected_instruction(self, opcode, operands, clean, reason=None):
+        semantics = get_semantics(opcode)
+        helper = semantics.get("java_helper", "NO_HELPER_DEFINED")
+        category = semantics.get("category", "unknown")
+        reason_text = reason or semantics.get("notes") or "Known instruction; helper intentionally protected until validated."
+        return (
+            f"// TODO protected semantic translation for {opcode}: {reason_text}\n"
+            f"//      category={category}; proposed_helper={helper}; source: {clean}"
+        )
 
     # ============================================================
     # Branching
@@ -846,7 +1409,7 @@ class InstructionTranslator:
         if len(operands) < 2:
             return f"// TODO invalid BCT: {clean}"
 
-        reg = operands[0]
+        reg = self._reg_num(operands[0])
         target = operands[1]
 
         return (
@@ -859,7 +1422,7 @@ class InstructionTranslator:
         if len(operands) < 2:
             return f"// TODO invalid BCTR: {clean}"
 
-        reg = operands[0]
+        reg = self._reg_num(operands[0])
         target = operands[1]
 
         return (
@@ -915,7 +1478,13 @@ class InstructionTranslator:
             def fallback(operands, clean):
                 semantics = get_semantics(opcode)
                 helper = semantics.get("java_helper", "NO_HELPER_DEFINED")
-                return f"// TODO {opcode} helper integration needed: {helper} // {clean}"
+                category = semantics.get("category", "unknown")
+                status = semantics.get("translation_status", "unknown")
+                notes = semantics.get("notes", "Known instruction; helper intentionally protected until validated.")
+                return (
+                    f"// TODO semantic helper integration for {opcode}: status={status}; category={category}; helper={helper}\n"
+                    f"//      reason={notes}; source: {clean}"
+                )
 
             return fallback
 
@@ -953,6 +1522,10 @@ if __name__ == "__main__":
         "ZAP   TXFEE,TXAMT",
         "AP    TXAMT,TXFEE",
         "BCT   5,LOOP",
+        "LR    R5,R4",
+        "OI    WS_ZONED_TAX+9,X'F0'",
+        "TRT   FIELD(10),TABLE",
+        "EDMK  OUT(12),AMOUNT",
     ]
 
     print("SINGLE LINE TRANSLATION")

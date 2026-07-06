@@ -4,17 +4,17 @@ This report compares expected assembler behavior against actual generated Java e
 
 ## Summary
 
-- Total test cases: `16`
-- Passed cases: `13`
+- Total test cases: `14`
+- Passed cases: `11`
 - Failed cases: `3`
-- Average behavior match score: `93.75%`
+- Average behavior match score: `90.05%`
 
 ## Batch Validation Summary
 
-- Batch records processed: `4`
-- Batch passed: `3`
+- Batch records processed: `1`
+- Batch passed: `0`
 - Batch failed: `1`
-- Failure customer IDs: `CUST000001`
+- Failure customer IDs: ``
 
 ## Validation Flow
 
@@ -490,7 +490,6 @@ No mismatches detected.
 }
 ```
 
-
 **Mismatches:**
 
 - `AUTHSTAT` expected `APPRV` but Java produced `REJCT`
@@ -546,8 +545,8 @@ No mismatches detected.
 - Mode: `application`
 - Module: `MAINDRV`
 - Description: End-to-end approval flow through MAINDRV.
-- Match score: `75.0%`
-- Fields matched: `3/4`
+- Match score: `25.0%`
+- Fields matched: `1/4`
 
 **Input:**
 
@@ -581,10 +580,10 @@ No mismatches detected.
 {
   "case_id": "APP_APPROVAL_FLOW_001",
   "module": "MAINDRV",
-  "RC": "0",
+  "RC": "4",
   "ERRCODE": "0000",
   "AUTHSTAT": "REJCT",
-  "TXFEE": "1.50",
+  "TXFEE": "0.00",
   "TXAMT": "100.00",
   "TXLIMIT": "500.00",
   "TXCUST": "CUST000001",
@@ -595,28 +594,27 @@ No mismatches detected.
 
 **Mismatches:**
 
+- `RC` expected `0` but Java produced `4`
 - `AUTHSTAT` expected `APPRV` but Java produced `REJCT`
+- `TXFEE` expected `1.50` but Java produced `0.00`
 
-### Test Case: `TX001`
+### Test Case: `TXREAD_LOCAL_PS_001`
 
-- Mode: `application`
-- Module: `MAINDRV`
-- Description: Batch transaction validation for TX001
-- Match score: `75.0%`
-- Fields matched: `3/4`
+- Mode: `module`
+- Module: `TXREAD`
+- Description: TXREAD reads the first local PS/QSAM-style transaction record and populates transaction fields.
+- Match score: `85.71%`
+- Fields matched: `6/7`
 
 **Input:**
 
 ```json
 {
-  "TXCUST": "CUST000001",
-  "TXSTAT": "A",
-  "TXAMT": "100.00",
-  "TXLIMIT": "500.00",
-  "TXTYPE": "PO",
-  "ERRCODE": "0000",
-  "AUTHSTAT": "",
-  "TXFEE": "0.00"
+  "IO_FORCE_READ": "true",
+  "INRPL_PATH": "test_cases/ps/txread_input.ps",
+  "INVSAM_PATH": "test_cases/ps/txread_input.ps",
+  "CURRTX_PATH": "test_cases/ps/txread_input.ps",
+  "ERRCODE": "0000"
 }
 ```
 
@@ -625,9 +623,12 @@ No mismatches detected.
 ```json
 {
   "RC": "0",
-  "ERRCODE": "0000",
-  "AUTHSTAT": "APPRV",
-  "TXFEE": "1.50"
+  "TXCUST": "CUST000001",
+  "TXSTAT": "A",
+  "TXAMT": "100.00",
+  "TXLIMIT": "500.00",
+  "TXTYPE": "PO",
+  "TXFEE": "0.00"
 }
 ```
 
@@ -635,46 +636,43 @@ No mismatches detected.
 
 ```json
 {
-  "case_id": "TX001",
-  "module": "MAINDRV",
-  "RC": "0",
-  "ERRCODE": "0000",
-  "AUTHSTAT": "REJCT",
-  "TXFEE": "1.50",
-  "TXAMT": "100.00",
-  "TXLIMIT": "500.00",
+  "case_id": "TXREAD_LOCAL_PS_001",
+  "module": "TXREAD",
+  "RC": "4",
   "TXCUST": "CUST000001",
   "TXSTAT": "A",
-  "TXTYPE": "PO"
+  "TXAMT": "100.00",
+  "TXLIMIT": "500.00",
+  "TXTYPE": "PO",
+  "TXFEE": "0.00",
+  "ERRCODE": "0000",
+  "AUTHSTAT": ""
 }
 ```
 
 **Mismatches:**
 
-**Failure customer ID:** `CUST000001`
+**Failure customer ID:** ``
 
-- `AUTHSTAT` expected `APPRV` but Java produced `REJCT`
+- `RC` expected `0` but Java produced `4`
 
-### Test Case: `TX002`
+### Test Case: `VSAMPACK_LOCAL_PS_SMOKE_001`
 
-- Mode: `application`
-- Module: `MAINDRV`
-- Description: Batch transaction validation for TX002
+- Mode: `module`
+- Module: `VSAMPACK`
+- Description: VSAMPACK opens local input/output files, reads a 100-byte record, and completes without Java runtime failure.
 - Match score: `100.0%`
-- Fields matched: `4/4`
+- Fields matched: `1/1`
 
 **Input:**
 
 ```json
 {
-  "TXCUST": "CUST000002",
-  "TXSTAT": "A",
-  "TXAMT": "700.00",
-  "TXLIMIT": "500.00",
-  "TXTYPE": "PO",
-  "ERRCODE": "0000",
-  "AUTHSTAT": "",
-  "TXFEE": "0.00"
+  "IO_FORCE_READ": "true",
+  "INVSAM_PATH": "test_cases/ps/vsampack_input.ps",
+  "VSAMIN_PATH": "test_cases/ps/vsampack_input.ps",
+  "OUTFILE_PATH": "test_cases/ps/vsampack_output.ps",
+  "OUTDD_PATH": "test_cases/ps/vsampack_output.ps"
 }
 ```
 
@@ -682,10 +680,7 @@ No mismatches detected.
 
 ```json
 {
-  "RC": "4",
-  "ERRCODE": "E003",
-  "AUTHSTAT": "REJCT",
-  "TXFEE": "0.00"
+  "RC": "0"
 }
 ```
 
@@ -693,125 +688,17 @@ No mismatches detected.
 
 ```json
 {
-  "case_id": "TX002",
-  "module": "MAINDRV",
-  "RC": "4",
-  "ERRCODE": "E003",
-  "AUTHSTAT": "REJCT",
-  "TXFEE": "0.00",
-  "TXAMT": "700.00",
-  "TXLIMIT": "500.00",
-  "TXCUST": "CUST000002",
-  "TXSTAT": "A",
-  "TXTYPE": "PO"
-}
-```
-
-No mismatches detected.
-
-### Test Case: `TX003`
-
-- Mode: `application`
-- Module: `MAINDRV`
-- Description: Batch transaction validation for TX003
-- Match score: `100.0%`
-- Fields matched: `4/4`
-
-**Input:**
-
-```json
-{
-  "TXCUST": "CUST000003",
-  "TXSTAT": "B",
-  "TXAMT": "100.00",
-  "TXLIMIT": "500.00",
-  "TXTYPE": "PO",
-  "ERRCODE": "0000",
+  "case_id": "VSAMPACK_LOCAL_PS_SMOKE_001",
+  "module": "VSAMPACK",
+  "RC": "0",
+  "ERRCODE": "",
   "AUTHSTAT": "",
-  "TXFEE": "0.00"
-}
-```
-
-**Expected ASM Output:**
-
-```json
-{
-  "RC": "4",
-  "ERRCODE": "E002",
-  "AUTHSTAT": "REJCT",
-  "TXFEE": "0.00"
-}
-```
-
-**Actual Java Output:**
-
-```json
-{
-  "case_id": "TX003",
-  "module": "MAINDRV",
-  "RC": "4",
-  "ERRCODE": "E002",
-  "AUTHSTAT": "REJCT",
-  "TXFEE": "0.00",
-  "TXAMT": "100.00",
-  "TXLIMIT": "500.00",
-  "TXCUST": "CUST000003",
-  "TXSTAT": "B",
-  "TXTYPE": "PO"
-}
-```
-
-No mismatches detected.
-
-### Test Case: `TX004`
-
-- Mode: `application`
-- Module: `MAINDRV`
-- Description: Batch transaction validation for TX004
-- Match score: `100.0%`
-- Fields matched: `4/4`
-
-**Input:**
-
-```json
-{
-  "TXCUST": "CUST000004",
-  "TXSTAT": "A",
-  "TXAMT": "600.00",
-  "TXLIMIT": "700.00",
-  "TXTYPE": "RE",
-  "ERRCODE": "0000",
-  "AUTHSTAT": "",
-  "TXFEE": "0.00"
-}
-```
-
-**Expected ASM Output:**
-
-```json
-{
-  "RC": "4",
-  "ERRCODE": "E004",
-  "AUTHSTAT": "REJCT",
-  "TXFEE": "0.00"
-}
-```
-
-**Actual Java Output:**
-
-```json
-{
-  "case_id": "TX004",
-  "module": "MAINDRV",
-  "RC": "4",
-  "ERRCODE": "E004",
-  "AUTHSTAT": "REJCT",
-  "TXFEE": "0.00",
-  "TXAMT": "600.00",
-  "TXLIMIT": "700.00",
-  "TXCUST": "CUST000004",
-  "TXSTAT": "A",
-  "TXTYPE": "RE"
+  "TXFEE": "",
+  "TXAMT": "",
+  "TXLIMIT": "",
+  "TXCUST": "",
+  "TXSTAT": "",
+  "TXTYPE": ""
 }
 ```
 
