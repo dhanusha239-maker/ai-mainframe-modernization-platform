@@ -46,12 +46,12 @@ public class Audwrite implements AssemblerModule {
         AsmRuntime.Memory.mvc(ctx, "LOGSTAT", 5, "AUTHSTAT");
         AsmRuntime.Memory.mvc(ctx, "LOGPAN", 16, "TXCARD");
         AsmRuntime.Memory.mvcLiteral(ctx, "LOGPAN", 8, "XXXXXXXX");
-        // TODO L requires memory/address resolution before exact helper call: L     5,26(,3)            Load raw 4-byte packed transaction amount
+        registers.set(5, ctx.getInt("TXAMT"));
         // TODO protected semantic translation for X: Fullword XOR memory operation requires byte-accurate storage model.
         //      category=logical_memory; proposed_helper=AsmRuntime.Logical.x; source: X     5,=X'EF7A9BC1'      Apply cryptographic verification matrix
-        // TODO ST requires register-to-memory metadata: ST    5,LOGMASK           Store value into target layout field
+        ctx.setInt("LOGMASK", registers.get(5));
         // TODO manual review required: MODCB RPL=(2),AREA=LOGBUFF,AREALEN=80 Connect record pointers
-        // TODO invalid PUT: PUT   RPL=(2)             Write audit entry out to target file
+        AsmRuntime.IO.put(ctx, "RPL=(2)", "", cc); registers.set(15, ctx.getInt("__LAST_IO_RC"));
         registers.clear(15);
         return ModuleResult.rc(registers.get(15), "Returned by translated PR");
 

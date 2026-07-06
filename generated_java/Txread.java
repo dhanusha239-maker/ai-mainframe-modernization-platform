@@ -35,17 +35,19 @@ public class Txread implements AssemblerModule {
         // subroutine call via BASR: BASR  12,0
         // USING directive: USING *,12
         // TODO LM already handled by analyzer register_map when possible: LM    2,3,0(1)            R2 = Addr of INRPL, R3 = Addr of CURRTX
-        AsmRuntime.IO.get(ctx, "RPL=(2)", "", cc); registers.clear(15);
+        AsmRuntime.IO.get(ctx, "RPL=(2)", "", cc); registers.set(15, ctx.getInt("__LAST_IO_RC"));
         AsmRuntime.Register.ltr(registers, 15, 15, cc);
-        // TODO manual review required: JZ    GET_SUCCESS         If 0, line extracted cleanly
-        // TODO L requires memory/address resolution before exact helper call: L     4,4(,2)             Access the RPL feedback control field
-        // TODO manual review required: CLM   4,B'0001',=X'04'    Is the specific feedback code End of File?
         if (AsmRuntime.Branch.isNotEqual(cc)) {
+            registers.set(4, ctx.getInt("INRPL"));
+            // TODO manual review required: CLM   4,B'0001',=X'04'    Is the specific feedback code End of File?
+            if (AsmRuntime.Branch.isEqual(cc)) {
+                // branch to GET_EOF
+            }
             registers.set(15, 8);
         }
-        // LABEL: GET_EOF
-        // DS declaration: GET_EOF  DS    0H
-        registers.set(15, 4);
+        // LABEL: GET_SUCCESS
+        // DS declaration: GET_SUCCESS DS 0H
+        registers.clear(15);
         return ModuleResult.rc(registers.get(15), "Returned by translated PR");
 
 

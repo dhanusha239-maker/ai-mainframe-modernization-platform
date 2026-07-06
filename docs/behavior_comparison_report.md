@@ -4,17 +4,17 @@ This report compares expected assembler behavior against actual generated Java e
 
 ## Summary
 
-- Total test cases: `14`
-- Passed cases: `11`
-- Failed cases: `3`
-- Average behavior match score: `90.05%`
+- Total test cases: `16`
+- Passed cases: `14`
+- Failed cases: `2`
+- Average behavior match score: `95.31%`
 
 ## Batch Validation Summary
 
 - Batch records processed: `1`
-- Batch passed: `0`
-- Batch failed: `1`
-- Failure customer IDs: ``
+- Batch passed: `1`
+- Batch failed: `0`
+- Failure customer IDs: `None`
 
 ## Validation Flow
 
@@ -60,14 +60,7 @@ This report compares expected assembler behavior against actual generated Java e
   "case_id": "CUSTVAL_VALID_001",
   "module": "CUSTVAL",
   "RC": "0",
-  "ERRCODE": "0000",
-  "AUTHSTAT": "",
-  "TXFEE": "",
-  "TXAMT": "",
-  "TXLIMIT": "",
-  "TXCUST": "CUST000001",
-  "TXSTAT": "",
-  "TXTYPE": ""
+  "ERRCODE": "0000"
 }
 ```
 
@@ -106,14 +99,7 @@ No mismatches detected.
   "case_id": "CUSTVAL_INVALID_001",
   "module": "CUSTVAL",
   "RC": "4",
-  "ERRCODE": "E001",
-  "AUTHSTAT": "",
-  "TXFEE": "",
-  "TXAMT": "",
-  "TXLIMIT": "",
-  "TXCUST": "BAD000001",
-  "TXSTAT": "",
-  "TXTYPE": ""
+  "ERRCODE": "E001"
 }
 ```
 
@@ -152,14 +138,7 @@ No mismatches detected.
   "case_id": "CARDSTAT_ACTIVE_001",
   "module": "CARDSTAT",
   "RC": "0",
-  "ERRCODE": "0000",
-  "AUTHSTAT": "",
-  "TXFEE": "",
-  "TXAMT": "",
-  "TXLIMIT": "",
-  "TXCUST": "",
-  "TXSTAT": "A",
-  "TXTYPE": ""
+  "ERRCODE": "0000"
 }
 ```
 
@@ -198,14 +177,7 @@ No mismatches detected.
   "case_id": "CARDSTAT_BLOCKED_001",
   "module": "CARDSTAT",
   "RC": "4",
-  "ERRCODE": "E002",
-  "AUTHSTAT": "",
-  "TXFEE": "",
-  "TXAMT": "",
-  "TXLIMIT": "",
-  "TXCUST": "",
-  "TXSTAT": "B",
-  "TXTYPE": ""
+  "ERRCODE": "E002"
 }
 ```
 
@@ -245,14 +217,7 @@ No mismatches detected.
   "case_id": "LIMITCHK_APPROVE_001",
   "module": "LIMITCHK",
   "RC": "0",
-  "ERRCODE": "0000",
-  "AUTHSTAT": "",
-  "TXFEE": "",
-  "TXAMT": "250.00",
-  "TXLIMIT": "500.00",
-  "TXCUST": "",
-  "TXSTAT": "",
-  "TXTYPE": ""
+  "ERRCODE": "0000"
 }
 ```
 
@@ -292,14 +257,7 @@ No mismatches detected.
   "case_id": "LIMITCHK_REJECT_001",
   "module": "LIMITCHK",
   "RC": "4",
-  "ERRCODE": "E003",
-  "AUTHSTAT": "",
-  "TXFEE": "",
-  "TXAMT": "750.00",
-  "TXLIMIT": "500.00",
-  "TXCUST": "",
-  "TXSTAT": "",
-  "TXTYPE": ""
+  "ERRCODE": "E003"
 }
 ```
 
@@ -339,14 +297,7 @@ No mismatches detected.
   "case_id": "FRDCHK_NORMAL_001",
   "module": "FRDCHK",
   "RC": "0",
-  "ERRCODE": "0000",
-  "AUTHSTAT": "",
-  "TXFEE": "",
-  "TXAMT": "100.00",
-  "TXLIMIT": "",
-  "TXCUST": "",
-  "TXSTAT": "",
-  "TXTYPE": "PO"
+  "ERRCODE": "0000"
 }
 ```
 
@@ -386,14 +337,7 @@ No mismatches detected.
   "case_id": "FRDCHK_REMOTE_HIGH_001",
   "module": "FRDCHK",
   "RC": "4",
-  "ERRCODE": "E004",
-  "AUTHSTAT": "",
-  "TXFEE": "",
-  "TXAMT": "600.00",
-  "TXLIMIT": "",
-  "TXCUST": "",
-  "TXSTAT": "",
-  "TXTYPE": "RE"
+  "ERRCODE": "E004"
 }
 ```
 
@@ -433,14 +377,7 @@ No mismatches detected.
   "case_id": "FEECALC_BASIC_001",
   "module": "FEECALC",
   "RC": "0",
-  "TXFEE": "1.50",
-  "ERRCODE": "0000",
-  "AUTHSTAT": "",
-  "TXAMT": "100.00",
-  "TXLIMIT": "",
-  "TXCUST": "",
-  "TXSTAT": "",
-  "TXTYPE": ""
+  "TXFEE": "1.50"
 }
 ```
 
@@ -479,14 +416,7 @@ No mismatches detected.
   "case_id": "AUTHDEC_APPROVE_001",
   "module": "AUTHDEC",
   "RC": "0",
-  "AUTHSTAT": "REJCT",
-  "ERRCODE": "0000",
-  "TXFEE": "",
-  "TXAMT": "",
-  "TXLIMIT": "",
-  "TXCUST": "",
-  "TXSTAT": "",
-  "TXTYPE": ""
+  "AUTHSTAT": "REJCT"
 }
 ```
 
@@ -527,14 +457,7 @@ No mismatches detected.
   "case_id": "AUTHDEC_REJECT_001",
   "module": "AUTHDEC",
   "RC": "0",
-  "AUTHSTAT": "REJCT",
-  "ERRCODE": "E003",
-  "TXFEE": "",
-  "TXAMT": "",
-  "TXLIMIT": "",
-  "TXCUST": "",
-  "TXSTAT": "",
-  "TXTYPE": ""
+  "AUTHSTAT": "REJCT"
 }
 ```
 
@@ -545,8 +468,8 @@ No mismatches detected.
 - Mode: `application`
 - Module: `MAINDRV`
 - Description: End-to-end approval flow through MAINDRV.
-- Match score: `25.0%`
-- Fields matched: `1/4`
+- Match score: `75.0%`
+- Fields matched: `3/4`
 
 **Input:**
 
@@ -580,40 +503,33 @@ No mismatches detected.
 {
   "case_id": "APP_APPROVAL_FLOW_001",
   "module": "MAINDRV",
-  "RC": "4",
+  "RC": "0",
   "ERRCODE": "0000",
   "AUTHSTAT": "REJCT",
-  "TXFEE": "0.00",
-  "TXAMT": "100.00",
-  "TXLIMIT": "500.00",
-  "TXCUST": "CUST000001",
-  "TXSTAT": "A",
-  "TXTYPE": "PO"
+  "TXFEE": "1.50"
 }
 ```
 
 **Mismatches:**
 
-- `RC` expected `0` but Java produced `4`
 - `AUTHSTAT` expected `APPRV` but Java produced `REJCT`
-- `TXFEE` expected `1.50` but Java produced `0.00`
 
 ### Test Case: `TXREAD_LOCAL_PS_001`
 
 - Mode: `module`
 - Module: `TXREAD`
-- Description: TXREAD reads the first local PS/QSAM-style transaction record and populates transaction fields.
-- Match score: `85.71%`
-- Fields matched: `6/7`
+- Description: TXREAD reads the first local PS/QSAM-style transaction record and returns RC=0 when a record is available.
+- Match score: `100.0%`
+- Fields matched: `7/7`
 
 **Input:**
 
 ```json
 {
   "IO_FORCE_READ": "true",
-  "INRPL_PATH": "test_cases/ps/txread_input.ps",
-  "INVSAM_PATH": "test_cases/ps/txread_input.ps",
-  "CURRTX_PATH": "test_cases/ps/txread_input.ps",
+  "INRPL_PATH": "test_cases/ps/INVSAM.txt",
+  "INVSAM_PATH": "test_cases/ps/INVSAM.txt",
+  "CURRTX_PATH": "test_cases/ps/INVSAM.txt",
   "ERRCODE": "0000"
 }
 ```
@@ -638,29 +554,23 @@ No mismatches detected.
 {
   "case_id": "TXREAD_LOCAL_PS_001",
   "module": "TXREAD",
-  "RC": "4",
+  "RC": "0",
   "TXCUST": "CUST000001",
   "TXSTAT": "A",
   "TXAMT": "100.00",
   "TXLIMIT": "500.00",
   "TXTYPE": "PO",
-  "TXFEE": "0.00",
-  "ERRCODE": "0000",
-  "AUTHSTAT": ""
+  "TXFEE": "0.00"
 }
 ```
 
-**Mismatches:**
-
-**Failure customer ID:** ``
-
-- `RC` expected `0` but Java produced `4`
+No mismatches detected.
 
 ### Test Case: `VSAMPACK_LOCAL_PS_SMOKE_001`
 
 - Mode: `module`
 - Module: `VSAMPACK`
-- Description: VSAMPACK opens local input/output files, reads a 100-byte record, and completes without Java runtime failure.
+- Description: VSAMPACK uses local fixed-width input/output files through the generated IO adapter.
 - Match score: `100.0%`
 - Fields matched: `1/1`
 
@@ -669,10 +579,12 @@ No mismatches detected.
 ```json
 {
   "IO_FORCE_READ": "true",
-  "INVSAM_PATH": "test_cases/ps/vsampack_input.ps",
-  "VSAMIN_PATH": "test_cases/ps/vsampack_input.ps",
-  "OUTFILE_PATH": "test_cases/ps/vsampack_output.ps",
-  "OUTDD_PATH": "test_cases/ps/vsampack_output.ps"
+  "IO_RECORD_FIELD": "IN_RECORD",
+  "IO_OUTPUT_RECORD_FIELD": "OUT_RECORD",
+  "INVSAM_PATH": "test_cases/ps/VSAMIN.txt",
+  "VSAMIN_PATH": "test_cases/ps/VSAMIN.txt",
+  "OUTFILE_PATH": "test_cases/ps/VSAMOUT.txt",
+  "OUTDD_PATH": "test_cases/ps/VSAMOUT.txt"
 }
 ```
 
@@ -691,14 +603,87 @@ No mismatches detected.
   "case_id": "VSAMPACK_LOCAL_PS_SMOKE_001",
   "module": "VSAMPACK",
   "RC": "0",
-  "ERRCODE": "",
-  "AUTHSTAT": "",
-  "TXFEE": "",
-  "TXAMT": "",
-  "TXLIMIT": "",
-  "TXCUST": "",
-  "TXSTAT": "",
-  "TXTYPE": ""
+  "IN_RECORD": "A123456789B000000000T0000010000X12345678------------------------------------------------------------",
+  "OUT_RECORD": "A123456789B000000000T0000010000X12345678------------------------------------------------------------",
+  "IO_ERROR": ""
+}
+```
+
+No mismatches detected.
+
+### Test Case: `BCTCOUNT_COUNT_5_001`
+
+- Mode: `module`
+- Module: `BCTCOUNT`
+- Description: BCTCOUNT should lower a backward BCT branch into a Java loop and accumulate 5+4+3+2+1.
+- Match score: `100.0%`
+- Fields matched: `2/2`
+
+**Input:**
+
+```json
+{
+  "COUNT": "5",
+  "TOTAL": "0"
+}
+```
+
+**Expected ASM Output:**
+
+```json
+{
+  "RC": "0",
+  "TOTAL": "15"
+}
+```
+
+**Actual Java Output:**
+
+```json
+{
+  "case_id": "BCTCOUNT_COUNT_5_001",
+  "module": "BCTCOUNT",
+  "RC": "0",
+  "TOTAL": "15"
+}
+```
+
+No mismatches detected.
+
+### Test Case: `BCTCOUNT_COUNT_3_001`
+
+- Mode: `module`
+- Module: `BCTCOUNT`
+- Description: BCTCOUNT should lower a backward BCT branch into a Java loop and accumulate 3+2+1.
+- Match score: `100.0%`
+- Fields matched: `2/2`
+
+**Input:**
+
+```json
+{
+  "COUNT": "3",
+  "TOTAL": "0"
+}
+```
+
+**Expected ASM Output:**
+
+```json
+{
+  "RC": "0",
+  "TOTAL": "6"
+}
+```
+
+**Actual Java Output:**
+
+```json
+{
+  "case_id": "BCTCOUNT_COUNT_3_001",
+  "module": "BCTCOUNT",
+  "RC": "0",
+  "TOTAL": "6"
 }
 ```
 

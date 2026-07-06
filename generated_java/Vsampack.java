@@ -49,7 +49,7 @@ public class Vsampack implements AssemblerModule {
         }
         // LABEL: READ_REC
         // EQU declaration: READ_REC EQU   *
-        AsmRuntime.IO.get(ctx, "INVSAM", "IN_RECORD", cc); registers.clear(15);
+        AsmRuntime.IO.get(ctx, "INVSAM", "IN_RECORD", cc); registers.set(15, ctx.getInt("__LAST_IO_RC"));
         AsmRuntime.Address.la(ctx, registers, 4, AsmRuntime.Address.ofField("IN_RECORD"));
         AsmRuntime.Address.la(ctx, registers, 6, AsmRuntime.Address.ofField("IN_RECORD"));
         AsmRuntime.Register.aImmediate(registers, 6, 100, cc);
@@ -105,7 +105,7 @@ public class Vsampack implements AssemblerModule {
         // LABEL: WRITE_REC
         // EQU declaration: WRITE_REC EQU  *
         AsmRuntime.Memory.mvc(ctx, "OUT_RECORD", 100, "IN_RECORD");
-        AsmRuntime.IO.put(ctx, "OUTFILE", "OUT_RECORD", cc);
+        AsmRuntime.IO.put(ctx, "OUTFILE", "OUT_RECORD", cc); registers.set(15, ctx.getInt("__LAST_IO_RC"));
         // branch target: READ_REC
         // LABEL: EOF_ROUTINE
         // EQU declaration: EOF_ROUTINE EQU *

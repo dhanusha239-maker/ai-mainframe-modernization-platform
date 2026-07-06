@@ -26,8 +26,12 @@ class InstructionTranslator:
     BRANCH_ALIASES = {
         "BE": "isEqual",
         "BZ": "isEqual",
+        "JE": "isEqual",
+        "JZ": "isEqual",
         "BNE": "isNotEqual",
         "BNZ": "isNotEqual",
+        "JNE": "isNotEqual",
+        "JNZ": "isNotEqual",
         "BH": "isHigh",
         "BP": "isHigh",
         "BL": "isLow",
@@ -247,6 +251,15 @@ class InstructionTranslator:
             if label:
                 label_positions[label] = idx
 
+        # Global CFG lowering for backward BCT loops.
+        # This is intentionally not tied to any module or field name.
+        # It converts:
+        #     LABEL ...
+        #        <loop body>
+        #        BCT Rn,LABEL
+        # into an exact BCT do/while loop with a safety guard.
+        bct_loop_regions = self._find_backward_bct_regions(lines, label_positions)
+
         i = 0
         while i < len(lines):
             line = lines[i]
@@ -261,6 +274,47 @@ class InstructionTranslator:
             label = self._extract_label(line)
             if label:
                 output.append(f"// LABEL: {label}")
+
+            if i in bct_loop_regions:
+                region = bct_loop_regions[i]
+                loop_id = len([item for item in output if "Backward BCT loop lowered" in item])
+                output.append(
+                    f"// Backward BCT loop lowered from CFG target {region['target_label']} "
+                    f"to BCT at source index {region['end_idx']}."
+                )
+                output.append(f"int __bctLoopGuard{loop_id} = 0;")
+                output.append("do {")
+
+                body_idx = i + 1 if label else i
+                while body_idx < region["end_idx"]:
+                    body_line = lines[body_idx]
+                    body_opcode, _ = self._parse_instruction(body_line)
+
+                    # Label-only declarations inside the loop are represented by the loop itself.
+                    if self._extract_label(body_line) or (body_opcode and body_opcode.upper() in {"DS", "DC", "EQU"}):
+                        body_idx += 1
+                        continue
+
+                    translated_body = self.translate_line(body_line)
+                    if translated_body:
+                        for translated_line in translated_body.splitlines():
+                            if translated_line.strip().startswith("return ModuleResult.rc"):
+                                output.append("    // return inside lowered BCT loop suppressed for structured loop emission")
+                            else:
+                                output.append(f"    {translated_line}")
+
+                    body_idx += 1
+
+                output.append(
+                    f"    if (++__bctLoopGuard{loop_id} > AsmRuntime.Branch.MAX_LOOP_ITERATIONS) {{"
+                )
+                output.append(
+                    '        throw new IllegalStateException("BCT loop exceeded safety limit; possible infinite assembler loop");'
+                )
+                output.append("    }")
+                output.append(f"}} while (AsmRuntime.Branch.bct(registers, {region['register']}));")
+                i = region["end_idx"] + 1
+                continue
 
             if opcode in {"DS", "DC", "EQU"}:
                 translated = self.translate_line(line)
@@ -349,12 +403,67 @@ class InstructionTranslator:
 
         return output
 
+
+    def _find_backward_bct_regions(self, lines, label_positions):
+        """
+        Finds backward BCT branches using CFG structure, not module names.
+
+        A region is emitted only when BCT targets an earlier label.  The generated
+        Java uses do/while because the assembler loop body has already executed
+        before BCT decrements and tests the counter register.
+        """
+        regions = {}
+
+        for idx, line in enumerate(lines):
+            opcode, operands = self._parse_instruction(line)
+
+            if not opcode or opcode.upper() != "BCT" or len(operands) < 2:
+                continue
+
+            target_label = operands[1].strip().upper()
+            target_idx = label_positions.get(target_label)
+
+            if target_idx is None or target_idx >= idx:
+                continue
+
+            # Avoid overlapping/nested regions in this first global lowering pass.
+            if target_idx in regions:
+                continue
+
+            regions[target_idx] = {
+                "target_label": target_label,
+                "end_idx": idx,
+                "register": self._reg_num(operands[0]),
+            }
+
+        return regions
+
+    def _direct_symbol_name(self, operand):
+        text = str(operand).strip().upper()
+        text = self._resolve_operand(text)
+
+        if self._is_literal(text):
+            return None
+
+        if re.match(r"^[A-Z][A-Z0-9_#$@]*$", text):
+            return text
+
+        return None
+
+    def _is_fullword_symbol(self, symbol):
+        meta = self.symbol_metadata.get(str(symbol).upper(), {})
+        return meta.get("type") in {"fullword", "fullword_array"}
+
     def _negated_branch_method(self, opcode):
         negation = {
             "BE": "isNotEqual",
             "BZ": "isNotEqual",
+            "JE": "isNotEqual",
+            "JZ": "isNotEqual",
             "BNE": "isEqual",
             "BNZ": "isEqual",
+            "JNE": "isEqual",
+            "JNZ": "isEqual",
             "BH": "isNotHigh",
             "BP": "isNotHigh",
             "BL": "isNotLow",
@@ -978,7 +1087,32 @@ class InstructionTranslator:
         return f"// TODO LH requires exact memory byte access before helper call: {clean}"
 
     def _translate_l(self, operands, clean):
-        return f"// TODO L requires memory/address resolution before exact helper call: {clean}"
+        """
+        Global fullword load support.
+
+        Examples:
+            L R4,COUNT   -> registers.set(4, ctx.getInt("COUNT"))
+            L R5,=F'10'  -> registers.set(5, 10)
+
+        This is intentionally global for simple fullword symbols.
+        Complex address expressions remain protected TODOs.
+        """
+        if len(operands) < 2:
+            return f"// TODO invalid L: {clean}"
+
+        reg = self._reg_num(operands[0])
+        source_operand = operands[1].strip()
+
+        literal_value = self._fullword_literal_value(source_operand)
+        if literal_value is not None:
+            return f"registers.set({reg}, {literal_value});"
+
+        source = self._resolve_operand(source_operand).upper()
+
+        if re.match(r"^[A-Z_#$@][A-Z0-9_#$@]*$", source):
+            return f'registers.set({reg}, ctx.getInt("{self._java_string(source)}"));'
+
+        return f"// TODO L requires unresolved memory/address support before exact helper call: {clean}"
 
     def _translate_la(self, operands, clean):
         if len(operands) < 2:
@@ -996,7 +1130,25 @@ class InstructionTranslator:
         return f"// TODO LM already handled by analyzer register_map when possible: {clean}"
 
     def _translate_st(self, operands, clean):
-        return f"// TODO ST requires register-to-memory metadata: {clean}"
+        """
+        Global fullword store support.
+
+        Example:
+            ST R3,TOTAL -> ctx.setInt("TOTAL", registers.get(3))
+
+        This is intentionally global for simple fullword symbols.
+        Complex address expressions remain protected TODOs.
+        """
+        if len(operands) < 2:
+            return f"// TODO invalid ST: {clean}"
+
+        reg = self._reg_num(operands[0])
+        target = self._resolve_operand(operands[1]).upper()
+
+        if re.match(r"^[A-Z_#$@][A-Z0-9_#$@]*$", target):
+            return f'ctx.setInt("{self._java_string(target)}", registers.get({reg}));'
+
+        return f"// TODO ST requires unresolved memory/address support before exact helper call: {clean}"
 
     def _translate_sth(self, operands, clean):
         return f"// TODO STH requires register-to-halfword metadata: {clean}"
@@ -1099,17 +1251,17 @@ class InstructionTranslator:
     def _translate_get(self, operands, clean):
         items = self._io_operands_text(operands)
         if len(items) >= 2:
-            #return f'AsmRuntime.IO.get(ctx, "{self._java_string(items[0])}", "{self._java_string(self._resolve_operand(items[1]))}", cc);'
-            return f'AsmRuntime.IO.get(ctx, "{self._java_string(items[0])}", "{self._java_string(self._resolve_operand(items[1]))}", cc); registers.clear(15);'
+            return f'AsmRuntime.IO.get(ctx, "{self._java_string(items[0])}", "{self._java_string(self._resolve_operand(items[1]))}", cc); registers.set(15, ctx.getInt("__LAST_IO_RC"));'
         if len(items) == 1:
-           # return f'AsmRuntime.IO.get(ctx, "{self._java_string(items[0])}", "", cc);'
-           return f'AsmRuntime.IO.get(ctx, "{self._java_string(items[0])}", "", cc); registers.clear(15);'
+            return f'AsmRuntime.IO.get(ctx, "{self._java_string(items[0])}", "", cc); registers.set(15, ctx.getInt("__LAST_IO_RC"));'
         return f"// TODO invalid GET: {clean}"
 
     def _translate_put(self, operands, clean):
         items = self._io_operands_text(operands)
         if len(items) >= 2:
-            return f'AsmRuntime.IO.put(ctx, "{self._java_string(items[0])}", "{self._java_string(self._resolve_operand(items[1]))}", cc);'
+            return f'AsmRuntime.IO.put(ctx, "{self._java_string(items[0])}", "{self._java_string(self._resolve_operand(items[1]))}", cc); registers.set(15, ctx.getInt("__LAST_IO_RC"));'
+        if len(items) == 1:
+            return f'AsmRuntime.IO.put(ctx, "{self._java_string(items[0])}", "", cc); registers.set(15, ctx.getInt("__LAST_IO_RC"));'
         return f"// TODO invalid PUT: {clean}"
 
     def _translate_close(self, operands, clean):

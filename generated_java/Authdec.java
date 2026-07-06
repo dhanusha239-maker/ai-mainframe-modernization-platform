@@ -35,7 +35,7 @@ public class Authdec implements AssemblerModule {
         // subroutine call via BASR: BASR  12,0
         // USING directive: USING *,12
         // TODO LM already handled by analyzer register_map when possible: LM    2,3,4(1)            R2 = Addr of CURRTX, R3 = Addr of ERRCODE
-        // TODO L requires memory/address resolution before exact helper call: L     4,8(,1)             R4 = Addr of TARGET AUTHSTAT BUFFER
+        // TODO L requires unresolved memory/address support before exact helper call: L     4,8(,1)             R4 = Addr of TARGET AUTHSTAT BUFFER
         AsmRuntime.Memory.clcLiteral(ctx, "AUTHSTAT", 4, "0000", cc);
         if (AsmRuntime.Branch.isEqual(cc)) {
             AsmRuntime.Memory.mvcLiteral(ctx, "AUTHSTAT", 5, "APPRV");

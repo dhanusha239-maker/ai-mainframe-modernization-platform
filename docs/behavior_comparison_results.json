@@ -16,14 +16,7 @@
       "case_id": "CUSTVAL_VALID_001",
       "module": "CUSTVAL",
       "RC": "0",
-      "ERRCODE": "0000",
-      "AUTHSTAT": "",
-      "TXFEE": "",
-      "TXAMT": "",
-      "TXLIMIT": "",
-      "TXCUST": "CUST000001",
-      "TXSTAT": "",
-      "TXTYPE": ""
+      "ERRCODE": "0000"
     },
     "comparison": {
       "total_fields": 2,
@@ -51,14 +44,7 @@
       "case_id": "CUSTVAL_INVALID_001",
       "module": "CUSTVAL",
       "RC": "4",
-      "ERRCODE": "E001",
-      "AUTHSTAT": "",
-      "TXFEE": "",
-      "TXAMT": "",
-      "TXLIMIT": "",
-      "TXCUST": "BAD000001",
-      "TXSTAT": "",
-      "TXTYPE": ""
+      "ERRCODE": "E001"
     },
     "comparison": {
       "total_fields": 2,
@@ -86,14 +72,7 @@
       "case_id": "CARDSTAT_ACTIVE_001",
       "module": "CARDSTAT",
       "RC": "0",
-      "ERRCODE": "0000",
-      "AUTHSTAT": "",
-      "TXFEE": "",
-      "TXAMT": "",
-      "TXLIMIT": "",
-      "TXCUST": "",
-      "TXSTAT": "A",
-      "TXTYPE": ""
+      "ERRCODE": "0000"
     },
     "comparison": {
       "total_fields": 2,
@@ -121,14 +100,7 @@
       "case_id": "CARDSTAT_BLOCKED_001",
       "module": "CARDSTAT",
       "RC": "4",
-      "ERRCODE": "E002",
-      "AUTHSTAT": "",
-      "TXFEE": "",
-      "TXAMT": "",
-      "TXLIMIT": "",
-      "TXCUST": "",
-      "TXSTAT": "B",
-      "TXTYPE": ""
+      "ERRCODE": "E002"
     },
     "comparison": {
       "total_fields": 2,
@@ -157,14 +129,7 @@
       "case_id": "LIMITCHK_APPROVE_001",
       "module": "LIMITCHK",
       "RC": "0",
-      "ERRCODE": "0000",
-      "AUTHSTAT": "",
-      "TXFEE": "",
-      "TXAMT": "250.00",
-      "TXLIMIT": "500.00",
-      "TXCUST": "",
-      "TXSTAT": "",
-      "TXTYPE": ""
+      "ERRCODE": "0000"
     },
     "comparison": {
       "total_fields": 2,
@@ -193,14 +158,7 @@
       "case_id": "LIMITCHK_REJECT_001",
       "module": "LIMITCHK",
       "RC": "4",
-      "ERRCODE": "E003",
-      "AUTHSTAT": "",
-      "TXFEE": "",
-      "TXAMT": "750.00",
-      "TXLIMIT": "500.00",
-      "TXCUST": "",
-      "TXSTAT": "",
-      "TXTYPE": ""
+      "ERRCODE": "E003"
     },
     "comparison": {
       "total_fields": 2,
@@ -229,14 +187,7 @@
       "case_id": "FRDCHK_NORMAL_001",
       "module": "FRDCHK",
       "RC": "0",
-      "ERRCODE": "0000",
-      "AUTHSTAT": "",
-      "TXFEE": "",
-      "TXAMT": "100.00",
-      "TXLIMIT": "",
-      "TXCUST": "",
-      "TXSTAT": "",
-      "TXTYPE": "PO"
+      "ERRCODE": "0000"
     },
     "comparison": {
       "total_fields": 2,
@@ -265,14 +216,7 @@
       "case_id": "FRDCHK_REMOTE_HIGH_001",
       "module": "FRDCHK",
       "RC": "4",
-      "ERRCODE": "E004",
-      "AUTHSTAT": "",
-      "TXFEE": "",
-      "TXAMT": "600.00",
-      "TXLIMIT": "",
-      "TXCUST": "",
-      "TXSTAT": "",
-      "TXTYPE": "RE"
+      "ERRCODE": "E004"
     },
     "comparison": {
       "total_fields": 2,
@@ -301,14 +245,7 @@
       "case_id": "FEECALC_BASIC_001",
       "module": "FEECALC",
       "RC": "0",
-      "TXFEE": "1.50",
-      "ERRCODE": "0000",
-      "AUTHSTAT": "",
-      "TXAMT": "100.00",
-      "TXLIMIT": "",
-      "TXCUST": "",
-      "TXSTAT": "",
-      "TXTYPE": ""
+      "TXFEE": "1.50"
     },
     "comparison": {
       "total_fields": 2,
@@ -336,14 +273,7 @@
       "case_id": "AUTHDEC_APPROVE_001",
       "module": "AUTHDEC",
       "RC": "0",
-      "AUTHSTAT": "REJCT",
-      "ERRCODE": "0000",
-      "TXFEE": "",
-      "TXAMT": "",
-      "TXLIMIT": "",
-      "TXCUST": "",
-      "TXSTAT": "",
-      "TXTYPE": ""
+      "AUTHSTAT": "REJCT"
     },
     "comparison": {
       "total_fields": 2,
@@ -377,14 +307,7 @@
       "case_id": "AUTHDEC_REJECT_001",
       "module": "AUTHDEC",
       "RC": "0",
-      "AUTHSTAT": "REJCT",
-      "ERRCODE": "E003",
-      "TXFEE": "",
-      "TXAMT": "",
-      "TXLIMIT": "",
-      "TXCUST": "",
-      "TXSTAT": "",
-      "TXTYPE": ""
+      "AUTHSTAT": "REJCT"
     },
     "comparison": {
       "total_fields": 2,
@@ -419,37 +342,22 @@
     "actual_java_output": {
       "case_id": "APP_APPROVAL_FLOW_001",
       "module": "MAINDRV",
-      "RC": "4",
+      "RC": "0",
       "ERRCODE": "0000",
       "AUTHSTAT": "REJCT",
-      "TXFEE": "0.00",
-      "TXAMT": "100.00",
-      "TXLIMIT": "500.00",
-      "TXCUST": "CUST000001",
-      "TXSTAT": "A",
-      "TXTYPE": "PO"
+      "TXFEE": "1.50"
     },
     "comparison": {
       "total_fields": 4,
-      "matched_fields": 1,
+      "matched_fields": 3,
       "mismatched_fields": [
-        {
-          "field": "RC",
-          "expected": "0",
-          "actual": "4"
-        },
         {
           "field": "AUTHSTAT",
           "expected": "APPRV",
           "actual": "REJCT"
-        },
-        {
-          "field": "TXFEE",
-          "expected": "1.50",
-          "actual": "0.00"
         }
       ],
-      "match_score": 25.0
+      "match_score": 75.0
     },
     "source": "",
     "customer_id": "CUST000001"
@@ -458,12 +366,12 @@
     "case_id": "TXREAD_LOCAL_PS_001",
     "mode": "module",
     "module": "TXREAD",
-    "description": "TXREAD reads the first local PS/QSAM-style transaction record and populates transaction fields.",
+    "description": "TXREAD reads the first local PS/QSAM-style transaction record and returns RC=0 when a record is available.",
     "input": {
       "IO_FORCE_READ": "true",
-      "INRPL_PATH": "test_cases/ps/txread_input.ps",
-      "INVSAM_PATH": "test_cases/ps/txread_input.ps",
-      "CURRTX_PATH": "test_cases/ps/txread_input.ps",
+      "INRPL_PATH": "test_cases/ps/INVSAM.txt",
+      "INVSAM_PATH": "test_cases/ps/INVSAM.txt",
+      "CURRTX_PATH": "test_cases/ps/INVSAM.txt",
       "ERRCODE": "0000"
     },
     "expected_asm_output": {
@@ -478,27 +386,19 @@
     "actual_java_output": {
       "case_id": "TXREAD_LOCAL_PS_001",
       "module": "TXREAD",
-      "RC": "4",
+      "RC": "0",
       "TXCUST": "CUST000001",
       "TXSTAT": "A",
       "TXAMT": "100.00",
       "TXLIMIT": "500.00",
       "TXTYPE": "PO",
-      "TXFEE": "0.00",
-      "ERRCODE": "0000",
-      "AUTHSTAT": ""
+      "TXFEE": "0.00"
     },
     "comparison": {
       "total_fields": 7,
-      "matched_fields": 6,
-      "mismatched_fields": [
-        {
-          "field": "RC",
-          "expected": "0",
-          "actual": "4"
-        }
-      ],
-      "match_score": 85.71
+      "matched_fields": 7,
+      "mismatched_fields": [],
+      "match_score": 100.0
     },
     "source": "",
     "customer_id": ""
@@ -507,13 +407,15 @@
     "case_id": "VSAMPACK_LOCAL_PS_SMOKE_001",
     "mode": "module",
     "module": "VSAMPACK",
-    "description": "VSAMPACK opens local input/output files, reads a 100-byte record, and completes without Java runtime failure.",
+    "description": "VSAMPACK uses local fixed-width input/output files through the generated IO adapter.",
     "input": {
       "IO_FORCE_READ": "true",
-      "INVSAM_PATH": "test_cases/ps/vsampack_input.ps",
-      "VSAMIN_PATH": "test_cases/ps/vsampack_input.ps",
-      "OUTFILE_PATH": "test_cases/ps/vsampack_output.ps",
-      "OUTDD_PATH": "test_cases/ps/vsampack_output.ps"
+      "IO_RECORD_FIELD": "IN_RECORD",
+      "IO_OUTPUT_RECORD_FIELD": "OUT_RECORD",
+      "INVSAM_PATH": "test_cases/ps/VSAMIN.txt",
+      "VSAMIN_PATH": "test_cases/ps/VSAMIN.txt",
+      "OUTFILE_PATH": "test_cases/ps/VSAMOUT.txt",
+      "OUTDD_PATH": "test_cases/ps/VSAMOUT.txt"
     },
     "expected_asm_output": {
       "RC": "0"
@@ -522,18 +424,69 @@
       "case_id": "VSAMPACK_LOCAL_PS_SMOKE_001",
       "module": "VSAMPACK",
       "RC": "0",
-      "ERRCODE": "",
-      "AUTHSTAT": "",
-      "TXFEE": "",
-      "TXAMT": "",
-      "TXLIMIT": "",
-      "TXCUST": "",
-      "TXSTAT": "",
-      "TXTYPE": ""
+      "IN_RECORD": "A123456789B000000000T0000010000X12345678------------------------------------------------------------",
+      "OUT_RECORD": "A123456789B000000000T0000010000X12345678------------------------------------------------------------",
+      "IO_ERROR": ""
     },
     "comparison": {
       "total_fields": 1,
       "matched_fields": 1,
+      "mismatched_fields": [],
+      "match_score": 100.0
+    },
+    "source": "",
+    "customer_id": ""
+  },
+  {
+    "case_id": "BCTCOUNT_COUNT_5_001",
+    "mode": "module",
+    "module": "BCTCOUNT",
+    "description": "BCTCOUNT should lower a backward BCT branch into a Java loop and accumulate 5+4+3+2+1.",
+    "input": {
+      "COUNT": "5",
+      "TOTAL": "0"
+    },
+    "expected_asm_output": {
+      "RC": "0",
+      "TOTAL": "15"
+    },
+    "actual_java_output": {
+      "case_id": "BCTCOUNT_COUNT_5_001",
+      "module": "BCTCOUNT",
+      "RC": "0",
+      "TOTAL": "15"
+    },
+    "comparison": {
+      "total_fields": 2,
+      "matched_fields": 2,
+      "mismatched_fields": [],
+      "match_score": 100.0
+    },
+    "source": "",
+    "customer_id": ""
+  },
+  {
+    "case_id": "BCTCOUNT_COUNT_3_001",
+    "mode": "module",
+    "module": "BCTCOUNT",
+    "description": "BCTCOUNT should lower a backward BCT branch into a Java loop and accumulate 3+2+1.",
+    "input": {
+      "COUNT": "3",
+      "TOTAL": "0"
+    },
+    "expected_asm_output": {
+      "RC": "0",
+      "TOTAL": "6"
+    },
+    "actual_java_output": {
+      "case_id": "BCTCOUNT_COUNT_3_001",
+      "module": "BCTCOUNT",
+      "RC": "0",
+      "TOTAL": "6"
+    },
+    "comparison": {
+      "total_fields": 2,
+      "matched_fields": 2,
       "mismatched_fields": [],
       "match_score": 100.0
     },

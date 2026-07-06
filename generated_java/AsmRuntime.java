@@ -527,6 +527,18 @@ public class AsmRuntime {
             registers.set(register, fullword);
         }
 
+        public static void loadFullword(ExecutionContext ctx, Registers registers, int register, String field) {
+            registers.set(register, ctx.getInt(field));
+        }
+
+        public static void storeFullword(ExecutionContext ctx, Registers registers, int register, String field) {
+            ctx.setInt(field, registers.get(register));
+        }
+
+        public static void storeStringFromRegister(ExecutionContext ctx, Registers registers, int register, String field) {
+            ctx.setString(field, String.valueOf(registers.get(register)));
+        }
+
         public static void aImmediate(Registers registers, int register, int value, ConditionCode cc) {
             int result = registers.get(register) + value;
             registers.set(register, result);
@@ -623,32 +635,33 @@ public class AsmRuntime {
         /*
          * Local DDNAME adapter for validation.
          *
-         * The generated translator still emits generic mainframe-style calls:
+         * The generated translator emits generic mainframe-style calls:
          *   OPEN / GET / PUT / CLOSE
          *
-         * During local validation, this adapter maps DDNAME/resource names to
-         * fixed-width test files under test_cases/ps. In a real z/OS deployment,
-         * this class can be replaced with a JCL/DDNAME or JZOS-backed adapter.
+         * This adapter maps those calls to local fixed-width files.  It also
+         * records the last I/O return code in __LAST_IO_RC so translated code
+         * can move that value into R15 and use normal LTR/JZ/BNZ branch flow.
          */
 
         public static void open(ExecutionContext ctx, ConditionCode cc, String... resources) {
             ctx.set("IO_OPEN", String.join(",", resources));
+            ctx.setInt("__LAST_IO_RC", 0);
             cc.setEqual();
         }
 
         public static void close(ExecutionContext ctx, ConditionCode cc, String... resources) {
             ctx.set("IO_CLOSE", String.join(",", resources));
+            ctx.setInt("__LAST_IO_RC", 0);
             cc.setEqual();
         }
 
         public static void get(ExecutionContext ctx, String resource, String recordField, ConditionCode cc) {
-            String effectiveRecordField = effectiveRecordField(resource, recordField);
+            String effectiveRecordField = effectiveInputRecordField(ctx, resource, recordField);
             String force = ctx.getString("IO_FORCE_READ");
 
-            // Behavior-comparator CSV mode already preloads business fields.
-            // In that mode TXREAD should behave as "record already available"
-            // unless IO_FORCE_READ=true is explicitly set in the test case.
+            // Behavior-comparator context mode: data is already staged in ctx.
             if (!"true".equalsIgnoreCase(force) && contextAlreadyHasTransaction(ctx)) {
+                ctx.setInt("__LAST_IO_RC", 0);
                 cc.setEqual();
                 return;
             }
@@ -656,6 +669,7 @@ public class AsmRuntime {
             String staged = ctx.getString(resource + "_NEXT");
             if (staged != null && !staged.isEmpty()) {
                 storeRecord(ctx, effectiveRecordField, staged);
+                ctx.setInt("__LAST_IO_RC", 0);
                 cc.setEqual();
                 return;
             }
@@ -663,6 +677,7 @@ public class AsmRuntime {
             String path = resolveInputPath(ctx, resource, effectiveRecordField);
 
             if (path == null || path.isEmpty()) {
+                ctx.setInt("__LAST_IO_RC", 8);
                 cc.setHigh();
                 return;
             }
@@ -671,15 +686,21 @@ public class AsmRuntime {
                 java.nio.file.Path filePath = existingPath(path);
 
                 if (filePath == null || !java.nio.file.Files.exists(filePath)) {
+                    ctx.setString("IO_ERROR", "Input file not found: " + path);
+                    ctx.setInt("__LAST_IO_RC", 8);
                     cc.setHigh();
                     return;
                 }
 
-                java.util.List<String> lines = java.nio.file.Files.readAllLines(filePath);
-                String cursorKey = "IO_CURSOR_" + resource + "_" + effectiveRecordField;
+                java.util.List<String> lines = java.nio.file.Files.readAllLines(
+                        filePath,
+                        java.nio.charset.StandardCharsets.UTF_8);
+
+                String cursorKey = "IO_CURSOR_" + sanitizeKey(resource) + "_" + sanitizeKey(effectiveRecordField);
                 int pos = ctx.getInt(cursorKey);
 
                 if (pos >= lines.size()) {
+                    ctx.setInt("__LAST_IO_RC", 4);
                     cc.setHigh();
                     return;
                 }
@@ -687,21 +708,33 @@ public class AsmRuntime {
                 String record = lines.get(pos);
                 ctx.setInt(cursorKey, pos + 1);
                 storeRecord(ctx, effectiveRecordField, record);
+                ctx.setInt("__LAST_IO_RC", 0);
                 cc.setEqual();
 
             } catch (Exception ex) {
                 ctx.setString("IO_ERROR", ex.getMessage() == null ? ex.toString() : ex.getMessage());
+                ctx.setInt("__LAST_IO_RC", 8);
                 cc.setHigh();
             }
         }
 
         public static void put(ExecutionContext ctx, String resource, String recordField, ConditionCode cc) {
-            String record = ctx.getString(recordField);
+            String effectiveRecordField = effectiveOutputRecordField(ctx, resource, recordField);
+            String record = ctx.getString(effectiveRecordField);
+
+            if (record == null || record.isEmpty()) {
+                record = ctx.getString("IN_RECORD");
+            }
+            if (record == null) {
+                record = "";
+            }
+
             ctx.setString(resource + "_LAST_WRITE", record);
 
-            String path = resolveOutputPath(ctx, resource, recordField);
+            String path = resolveOutputPath(ctx, resource, effectiveRecordField);
 
             if (path == null || path.isEmpty()) {
+                ctx.setInt("__LAST_IO_RC", 0);
                 cc.setEqual();
                 return;
             }
@@ -721,27 +754,66 @@ public class AsmRuntime {
                         java.nio.file.StandardOpenOption.CREATE,
                         java.nio.file.StandardOpenOption.APPEND);
 
+                ctx.setInt("__LAST_IO_RC", 0);
                 cc.setEqual();
 
             } catch (Exception ex) {
                 ctx.setString("IO_ERROR", ex.getMessage() == null ? ex.toString() : ex.getMessage());
+                ctx.setInt("__LAST_IO_RC", 8);
                 cc.setHigh();
             }
         }
 
-
-        private static String effectiveRecordField(String resource, String recordField) {
+        private static String effectiveInputRecordField(ExecutionContext ctx, String resource, String recordField) {
             if (recordField != null && !recordField.isEmpty()) {
                 return recordField;
             }
 
+            String explicit = ctx.getString("IO_RECORD_FIELD");
+            if (!explicit.isEmpty()) {
+                return explicit;
+            }
+
             String text = resource == null ? "" : resource.toUpperCase();
 
-            if (text.contains("RPL") || text.contains("CURRTX")) {
+            if (!ctx.getString("VSAMIN_PATH").isEmpty()) {
+                return "IN_RECORD";
+            }
+
+            if (text.contains("RPL") || text.contains("CURRTX") || !ctx.getString("CURRTX_PATH").isEmpty()) {
                 return "CURRTX";
             }
 
-            return recordField == null ? "" : recordField;
+            if (!ctx.getString("IN_RECORD_PATH").isEmpty()) {
+                return "IN_RECORD";
+            }
+
+            return "IN_RECORD";
+        }
+
+        private static String effectiveOutputRecordField(ExecutionContext ctx, String resource, String recordField) {
+            if (recordField != null && !recordField.isEmpty()) {
+                return recordField;
+            }
+
+            String explicit = ctx.getString("IO_OUTPUT_RECORD_FIELD");
+            if (!explicit.isEmpty()) {
+                return explicit;
+            }
+
+            if (!ctx.getString("OUT_RECORD").isEmpty()) {
+                return "OUT_RECORD";
+            }
+
+            if (!ctx.getString("IN_RECORD").isEmpty()) {
+                return "IN_RECORD";
+            }
+
+            if (!ctx.getString("CURRTX").isEmpty()) {
+                return "CURRTX";
+            }
+
+            return "OUT_RECORD";
         }
 
         private static boolean contextAlreadyHasTransaction(ExecutionContext ctx) {
@@ -760,12 +832,15 @@ public class AsmRuntime {
             if ("CURRTX".equalsIgnoreCase(recordField)) {
                 parseCurrentTransactionRecord(ctx, record);
             }
+
+            if ("IN_RECORD".equalsIgnoreCase(recordField) && ctx.getString("OUT_RECORD").isEmpty()) {
+                ctx.setString("OUT_RECORD", record);
+            }
         }
 
         private static void parseCurrentTransactionRecord(ExecutionContext ctx, String record) {
             /*
              * Local TXREAD fixed-width validation layout:
-             *
              * TXCARD   0-15   16 chars
              * TXCUST   16-25  10 chars
              * TXAMT    26-33   8 chars, cents
@@ -800,43 +875,97 @@ public class AsmRuntime {
         }
 
         private static String resolveInputPath(ExecutionContext ctx, String resource, String recordField) {
-            String resourcePath = ctx.getString(resource + "_PATH");
+            String safeResource = resource == null ? "" : resource;
+            String safeRecordField = recordField == null ? "" : recordField;
+
+            String resourcePath = ctx.getString(safeResource + "_PATH");
             if (!resourcePath.isEmpty()) {
                 return resourcePath;
             }
 
-            String fieldPath = ctx.getString(recordField + "_PATH");
+            String fieldPath = ctx.getString(safeRecordField + "_PATH");
             if (!fieldPath.isEmpty()) {
                 return fieldPath;
             }
 
-            if ("CURRTX".equalsIgnoreCase(recordField)) {
-                return "test_cases/ps/txread_input.ps";
+            String resourceDdname = ctx.getString(safeResource + "_DDNAME");
+            if (!resourceDdname.isEmpty()) {
+                return "test_cases/ps/" + resourceDdname.toUpperCase() + ".txt";
             }
 
-            if ("IN_RECORD".equalsIgnoreCase(recordField)) {
-                return "test_cases/ps/vsampack_input.ps";
+            String fieldDdname = ctx.getString(safeRecordField + "_DDNAME");
+            if (!fieldDdname.isEmpty()) {
+                return "test_cases/ps/" + fieldDdname.toUpperCase() + ".txt";
             }
 
-            return "test_cases/ps/" + resource.toLowerCase() + ".ps";
+            if ("CURRTX".equalsIgnoreCase(safeRecordField)) {
+                return "test_cases/ps/INVSAM.txt";
+            }
+
+            if ("IN_RECORD".equalsIgnoreCase(safeRecordField)) {
+                return "test_cases/ps/VSAMIN.txt";
+            }
+
+            if ("INRPL".equalsIgnoreCase(safeResource) || "INACB".equalsIgnoreCase(safeResource)) {
+                return "test_cases/ps/INVSAM.txt";
+            }
+
+            if (safeResource.matches("[A-Za-z0-9_#$@]+")) {
+                return "test_cases/ps/" + safeResource.toUpperCase() + ".txt";
+            }
+
+            return "";
         }
 
+
         private static String resolveOutputPath(ExecutionContext ctx, String resource, String recordField) {
-            String resourcePath = ctx.getString(resource + "_PATH");
+            String safeResource = resource == null ? "" : resource;
+            String safeRecordField = recordField == null ? "" : recordField;
+
+            String resourcePath = ctx.getString(safeResource + "_PATH");
             if (!resourcePath.isEmpty()) {
                 return resourcePath;
             }
 
-            String fieldPath = ctx.getString(recordField + "_PATH");
+            String fieldPath = ctx.getString(safeRecordField + "_PATH");
             if (!fieldPath.isEmpty()) {
                 return fieldPath;
             }
 
-            if ("OUTFILE".equalsIgnoreCase(resource) || "OUTDD".equalsIgnoreCase(resource)) {
-                return "test_cases/ps/vsampack_output.ps";
+            String resourceDdname = ctx.getString(safeResource + "_DDNAME");
+            if (!resourceDdname.isEmpty()) {
+                return "test_cases/ps/" + resourceDdname.toUpperCase() + ".txt";
             }
 
-            return "test_cases/ps/" + resource.toLowerCase() + "_output.ps";
+            String fieldDdname = ctx.getString(safeRecordField + "_DDNAME");
+            if (!fieldDdname.isEmpty()) {
+                return "test_cases/ps/" + fieldDdname.toUpperCase() + ".txt";
+            }
+
+            if ("LOGBUFF".equalsIgnoreCase(safeRecordField)
+                    || "OUTRPL".equalsIgnoreCase(safeResource)
+                    || "OUTACB".equalsIgnoreCase(safeResource)) {
+                return "test_cases/ps/OUTVSAM.txt";
+            }
+
+            if ("OUT_RECORD".equalsIgnoreCase(safeRecordField)
+                    || "OUTFILE".equalsIgnoreCase(safeResource)) {
+                return "test_cases/ps/VSAMOUT.txt";
+            }
+
+            if (safeResource.matches("[A-Za-z0-9_#$@]+")) {
+                return "test_cases/ps/" + safeResource.toUpperCase() + ".txt";
+            }
+
+            return "";
+        }
+
+
+        private static String sanitizeKey(String value) {
+            if (value == null || value.isEmpty()) {
+                return "RESOURCE";
+            }
+            return value.replaceAll("[^A-Za-z0-9_#$@]", "_");
         }
 
         private static java.nio.file.Path existingPath(String path) {
@@ -874,6 +1003,8 @@ public class AsmRuntime {
     }
 
     public static class Branch {
+
+        public static final int MAX_LOOP_ITERATIONS = 100000;
 
         public static boolean isEqual(ConditionCode cc) {
             return cc.get() == ConditionCode.EQUAL;

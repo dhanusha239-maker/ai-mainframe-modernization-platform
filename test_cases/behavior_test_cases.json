@@ -172,24 +172,24 @@
       "ERRCODE": "0000",
       "AUTHSTAT": "",
       "TXFEE": "0.00"
-  },
-  "expected_asm_output": {
-    "RC": "0",
-    "ERRCODE": "0000",
-    "AUTHSTAT": "APPRV",
-    "TXFEE": "1.50"
-  }
+    },
+    "expected_asm_output": {
+      "RC": "0",
+      "ERRCODE": "0000",
+      "AUTHSTAT": "APPRV",
+      "TXFEE": "1.50"
+    }
   },
   {
     "case_id": "TXREAD_LOCAL_PS_001",
     "mode": "module",
     "module": "TXREAD",
-    "description": "TXREAD reads the first local PS/QSAM-style transaction record and populates transaction fields.",
+    "description": "TXREAD reads the first local PS/QSAM-style transaction record and returns RC=0 when a record is available.",
     "input": {
       "IO_FORCE_READ": "true",
-      "INRPL_PATH": "test_cases/ps/txread_input.ps",
-      "INVSAM_PATH": "test_cases/ps/txread_input.ps",
-      "CURRTX_PATH": "test_cases/ps/txread_input.ps",
+      "INRPL_PATH": "test_cases/ps/INVSAM.txt",
+      "INVSAM_PATH": "test_cases/ps/INVSAM.txt",
+      "CURRTX_PATH": "test_cases/ps/INVSAM.txt",
       "ERRCODE": "0000"
     },
     "expected_asm_output": {
@@ -206,16 +206,51 @@
     "case_id": "VSAMPACK_LOCAL_PS_SMOKE_001",
     "mode": "module",
     "module": "VSAMPACK",
-    "description": "VSAMPACK opens local input/output files, reads a 100-byte record, and completes without Java runtime failure.",
+    "description": "VSAMPACK uses local fixed-width input/output files through the generated IO adapter.",
     "input": {
       "IO_FORCE_READ": "true",
-      "INVSAM_PATH": "test_cases/ps/vsampack_input.ps",
-      "VSAMIN_PATH": "test_cases/ps/vsampack_input.ps",
-      "OUTFILE_PATH": "test_cases/ps/vsampack_output.ps",
-      "OUTDD_PATH": "test_cases/ps/vsampack_output.ps"
+      "IO_RECORD_FIELD": "IN_RECORD",
+      "IO_OUTPUT_RECORD_FIELD": "OUT_RECORD",
+      "INVSAM_PATH": "test_cases/ps/VSAMIN.txt",
+      "VSAMIN_PATH": "test_cases/ps/VSAMIN.txt",
+      "OUTFILE_PATH": "test_cases/ps/VSAMOUT.txt",
+      "OUTDD_PATH": "test_cases/ps/VSAMOUT.txt"
     },
     "expected_asm_output": {
       "RC": "0"
+    },
+    "capture_fields": [
+      "IN_RECORD",
+      "OUT_RECORD",
+      "IO_ERROR"
+    ]
+  },
+  {
+    "case_id": "BCTCOUNT_COUNT_5_001",
+    "mode": "module",
+    "module": "BCTCOUNT",
+    "description": "BCTCOUNT should lower a backward BCT branch into a Java loop and accumulate 5+4+3+2+1.",
+    "input": {
+      "COUNT": "5",
+      "TOTAL": "0"
+    },
+    "expected_asm_output": {
+      "RC": "0",
+      "TOTAL": "15"
+    }
+  },
+  {
+    "case_id": "BCTCOUNT_COUNT_3_001",
+    "mode": "module",
+    "module": "BCTCOUNT",
+    "description": "BCTCOUNT should lower a backward BCT branch into a Java loop and accumulate 3+2+1.",
+    "input": {
+      "COUNT": "3",
+      "TOTAL": "0"
+    },
+    "expected_asm_output": {
+      "RC": "0",
+      "TOTAL": "6"
     }
   }
 ]

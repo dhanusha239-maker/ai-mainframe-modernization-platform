@@ -31,14 +31,17 @@ public class Bctcount implements AssemblerModule {
         // subroutine call via BASR: BASR  R12,0              Establish base register
         // USING directive: USING *,R12              Establish addressability
         registers.clear(3);
-        // TODO L requires memory/address resolution before exact helper call: L     R4,COUNT           R4 = 10 (Loop counter)
+        registers.set(4, ctx.getInt("COUNT"));
         // LABEL: LOOPSTART
-        // EQU declaration: LOOPSTART EQU    *
-        AsmRuntime.Register.ar(registers, 3, 4, cc);
-        if (AsmRuntime.Branch.bct(registers, 4)) {
-            // branch to LOOPSTART
-        }
-        // TODO ST requires register-to-memory metadata: ST    R3,TOTAL
+        // Backward BCT loop lowered from CFG target LOOPSTART to BCT at source index 7.
+        int __bctLoopGuard0 = 0;
+        do {
+            AsmRuntime.Register.ar(registers, 3, 4, cc);
+            if (++__bctLoopGuard0 > AsmRuntime.Branch.MAX_LOOP_ITERATIONS) {
+                throw new IllegalStateException("BCT loop exceeded safety limit; possible infinite assembler loop");
+            }
+        } while (AsmRuntime.Branch.bct(registers, 4));
+        ctx.setInt("TOTAL", registers.get(3));
         registers.clear(15);
         return ModuleResult.rc(registers.get(15), "Returned by translated BR");
 
