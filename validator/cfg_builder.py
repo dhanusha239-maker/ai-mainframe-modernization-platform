@@ -39,7 +39,8 @@ class CFGBuilder:
         self.branch_ops = {
             "B", "BE", "BNE", "BNZ", "BZ",
             "BH", "BL", "BNH", "BNL",
-            "JZ", "JNZ"
+            "JZ", "JNZ", "JE", "JNE",
+            "BCT", "BCTR", "BRCT"
         }
 
         # Declaration/control-block opcodes.
@@ -211,17 +212,26 @@ class CFGBuilder:
         if len(parts) < 2:
             return None
 
+        def branch_target(op, operand_text):
+            op = op.upper()
+            if op in {"BCT", "BCTR", "BRCT"}:
+                pieces = [item.strip() for item in operand_text.split(",")]
+                if len(pieces) >= 2:
+                    return pieces[-1].upper()
+                return None
+            return operand_text.replace(",", "").upper()
+
         op = parts[0].upper()
 
-        # B TARGET / BNZ TARGET
+        # B TARGET / BNZ TARGET / BCT Rn,TARGET
         if op in self.branch_ops:
-            return parts[1].replace(",", "").upper()
+            return branch_target(op, parts[1])
 
-        # LABEL B TARGET / LABEL BNZ TARGET
+        # LABEL B TARGET / LABEL BNZ TARGET / LABEL BCT Rn,TARGET
         if len(parts) >= 3:
             op = parts[1].upper()
             if op in self.branch_ops:
-                return parts[2].replace(",", "").upper()
+                return branch_target(op, parts[2])
 
         return None
 

@@ -65,7 +65,8 @@ class PDGBuilder:
 
         self.branch_ops = {
             "B", "BE", "BNE", "BNZ", "BZ",
-            "BH", "BL", "BNH", "BNL", "JZ", "JNZ"
+            "BH", "BL", "BNH", "BNL", "JZ", "JNZ", "JE", "JNE",
+            "BCT", "BCTR", "BRCT"
         }
 
         self.known_opcodes = {
@@ -74,7 +75,8 @@ class PDGBuilder:
             "LM", "XR", "BALR", "BASR", "BAL", "BAS",
             "GET", "PUT", "OPEN", "CLOSE", "MODCB",
             "PR", "BR", "B", "BE", "BNE", "BNZ", "BZ",
-            "BH", "BL", "BNH", "BNL", "JZ", "JNZ"
+            "BH", "BL", "BNH", "BNL", "JZ", "JNZ", "JE", "JNE",
+            "BCT", "BCTR", "BRCT"
         }
 
     def _add_unique(self, items, value):
@@ -710,9 +712,16 @@ class PDGBuilder:
         if not operands:
             return None
 
+        if opcode in {"BCT", "BCTR", "BRCT"}:
+            if len(operands) < 2:
+                return None
+            target = operands[1].upper()
+        else:
+            target = operands[0].upper()
+
         return {
             "branch_op": opcode,
-            "target": operands[0].upper(),
+            "target": target,
             "line": clean,
         }
 

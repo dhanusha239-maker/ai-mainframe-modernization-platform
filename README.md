@@ -297,11 +297,16 @@ The project is not just a translator and not just an ML model. It is an integrat
 python tests/test_scanner.py    -- to get list of called modules (asm_scanner.py)
 python tests/test_cfg_builder.py -- to get CFG of all 11 modules with branches(cfg_builder.py)
 python tests/test_pdg_builder.py--pdg_builder.py
-python impact_analyzer.py
-python documentation_generator.py
-python instruction_translator.py
-python java_generator.py
-python tests/asm_runtime_tests.py
+python validator/impact_analyzer.py
+python validator/documentation_generator.py
+python validator/instruction_translator_updated_v3.py
+python validator\java_generator_updated_v4_local_io.py
+## To verify synatx errors
+cd generated_java
+javac *.java
+###
+cd ..
+python tests/asm_runtime_tests.py    (only when instruction updates in symantic and translator)
 python validator/behavior_comparator.py
 python validator/modernization_dashboard.py
 streamlit run dashboard/app.py

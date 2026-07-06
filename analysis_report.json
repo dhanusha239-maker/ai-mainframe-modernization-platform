@@ -196,8 +196,8 @@
     },
     "OUTFILE": {
       "module": "VSAMPACK",
-      "ddname": "OUTDD",
-      "line": "OUTFILE  RPL   MACRF=(PM),DDNAME=OUTDD"
+      "ddname": "VSAMOUT",
+      "line": "OUTFILE  RPL   MACRF=(PM),DDNAME=VSAMOUT"
     }
   },
   "rpl_areas": {

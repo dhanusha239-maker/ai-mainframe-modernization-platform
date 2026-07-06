@@ -1,6 +1,6 @@
 # Legacy Program Intelligence + Verification Report
 
-Generated on: `2026-07-05 22:14:09`
+Generated on: `2026-07-06 13:00:45`
 
 ## 1. Project Purpose
 
@@ -33,7 +33,7 @@ This report summarizes analysis results from the HLASM codebase. The system scan
 - `INACB` references DDNAME `INVSAM` in module `MAINDRV`
 - `OUTACB` references DDNAME `OUTVSAM` in module `MAINDRV`
 - `INVSAM` references DDNAME `VSAMIN` in module `VSAMPACK`
-- `OUTFILE` references DDNAME `OUTDD` in module `VSAMPACK`
+- `OUTFILE` references DDNAME `VSAMOUT` in module `VSAMPACK`
 
 ## 4. Parameter Passing Summary
 
