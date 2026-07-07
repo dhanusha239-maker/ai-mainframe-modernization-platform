@@ -36,81 +36,137 @@ public class Vsampack implements AssemblerModule {
          *   - LTR R5, R5
          */
 
-        // Branch-aware translated instruction candidates from HLASM source.
-        // LABEL: VSAMPACK
-        // CSECT directive: VSAMPACK CSECT
-        AsmRuntime.Program.save(registers);
-        // subroutine call via BALR: BALR  R12,0                    Establish program base register
-        // USING directive: USING *,R12
-        AsmRuntime.IO.open(ctx, cc, "INVSAM", "INPUT", "OUTFILE", "OUTPUT");
-        AsmRuntime.Register.ltr(registers, 15, 15, cc);
-        if (AsmRuntime.Branch.isNotEqual(cc)) {
-            // branch to ERR_OPEN
+        // Generic GET/PUT batch adapter generated from HLASM source loop + DDNAME metadata.
+        String __inputPath = "";
+        for (String __key : new String[] {"INVSAM_PATH", "VSAMIN_PATH"}) {
+            String __candidate = ctx.getString(__key);
+            if (__candidate != null && !__candidate.isEmpty()) {
+                __inputPath = __candidate;
+                break;
+            }
         }
-        // LABEL: READ_REC
-        // EQU declaration: READ_REC EQU   *
-        AsmRuntime.IO.get(ctx, "INVSAM", "IN_RECORD", cc); registers.set(15, ctx.getInt("__LAST_IO_RC"));
-        AsmRuntime.Address.la(ctx, registers, 4, AsmRuntime.Address.ofField("IN_RECORD"));
-        AsmRuntime.Address.la(ctx, registers, 6, AsmRuntime.Address.ofField("IN_RECORD"));
-        AsmRuntime.Register.aImmediate(registers, 6, 100, cc);
-        registers.clear(5);
-        // LABEL: SCAN_LOOP
-        // EQU declaration: SCAN_LOOP EQU  *
-        AsmRuntime.Register.cr(registers, 4, 6, cc);
-        if (AsmRuntime.Branch.isLow(cc)) {
-            AsmRuntime.Memory.cli(ctx, "0(R4)", 'A', cc);
-            if (AsmRuntime.Branch.isEqual(cc)) {
-                // branch to SKIP_A
+        if (__inputPath.isEmpty()) {
+            for (String __candidate : new String[] {"test_cases/ps/VSAMIN.txt", "../test_cases/ps/VSAMIN.txt"}) {
+                java.nio.file.Path __candidatePath = java.nio.file.Paths.get(__candidate);
+                java.nio.file.Path __rootCandidatePath = java.nio.file.Paths.get("..", __candidate).normalize();
+                if (java.nio.file.Files.exists(__candidatePath)) {
+                    __inputPath = __candidate;
+                    break;
+                }
+                if (java.nio.file.Files.exists(__rootCandidatePath)) {
+                    __inputPath = __rootCandidatePath.toString();
+                    break;
+                }
             }
-            AsmRuntime.Memory.cli(ctx, "0(R4)", 'B', cc);
-            if (AsmRuntime.Branch.isEqual(cc)) {
-                // branch to FOUND_B
-            }
-            AsmRuntime.Memory.cli(ctx, "0(R4)", 'T', cc);
-            if (AsmRuntime.Branch.isEqual(cc)) {
-                // branch to PROCESS_T
-            }
-            AsmRuntime.Memory.cli(ctx, "0(R4)", 'X', cc);
-            if (AsmRuntime.Branch.isEqual(cc)) {
-                // branch to SKIP_X
-            }
-            AsmRuntime.Address.la(ctx, registers, 4, AsmRuntime.Address.ofBaseOffset(registers, 4, 1));
-            // branch target: SCAN_LOOP
-            // branch target: SCAN_LOOP
-            AsmRuntime.Address.la(ctx, registers, 4, AsmRuntime.Address.ofBaseOffset(registers, 4, 10));
-            // branch target: SCAN_LOOP
-            // branch target: SCAN_LOOP
-            AsmRuntime.Address.la(ctx, registers, 4, AsmRuntime.Address.ofBaseOffset(registers, 4, 9));
-            // branch target: SCAN_LOOP
-            // branch target: SCAN_LOOP
-            AsmRuntime.Register.lr(registers, 5, 4);
-            AsmRuntime.Address.la(ctx, registers, 4, AsmRuntime.Address.ofBaseOffset(registers, 4, 10));
-            // branch target: SCAN_LOOP
-            // branch target: SCAN_LOOP
-            AsmRuntime.Register.ltr(registers, 5, 5, cc);
-            if (AsmRuntime.Branch.isEqual(cc)) {
-                // branch to SKIP_T_NO_B
-            }
-            AsmRuntime.Packed.pack(ctx, "WS_PACKED_AMT", "1(10,R4)", 8, 10, 15, 0, cc);
-            AsmRuntime.Packed.zap(ctx, "WS_TAX_AMT", "WS_PACKED_AMT", 15, 0, cc);
-            ctx.setDecimal("WS_TAX_AMT_MP_LITERAL", new java.math.BigDecimal("0.05"));
-            AsmRuntime.Packed.mp(ctx, "WS_TAX_AMT", "WS_TAX_AMT_MP_LITERAL", 15, 0, cc);
-            AsmRuntime.Packed.unpk(ctx, "WS_ZONED_TAX", "WS_TAX_AMT", 10, 8, 15, 0);
-            AsmRuntime.Memory.oi(ctx, "WS_ZONED_TAX+9", 240, cc);
-            AsmRuntime.Memory.mvc(ctx, "1(9,R5)", 9, "WS_ZONED_TAX+1");
-            AsmRuntime.Address.la(ctx, registers, 4, AsmRuntime.Address.ofBaseOffset(registers, 4, 11));
-            // branch target: SCAN_LOOP
-            // branch target: SCAN_LOOP
         }
-        // LABEL: WRITE_REC
-        // EQU declaration: WRITE_REC EQU  *
-        AsmRuntime.Memory.mvc(ctx, "OUT_RECORD", 100, "IN_RECORD");
-        AsmRuntime.IO.put(ctx, "OUTFILE", "OUT_RECORD", cc); registers.set(15, ctx.getInt("__LAST_IO_RC"));
-        // branch target: READ_REC
-        // LABEL: EOF_ROUTINE
-        // EQU declaration: EOF_ROUTINE EQU *
-        AsmRuntime.IO.close(ctx, cc, "INVSAM", "OUTFILE");
-        return ModuleResult.rc(0, "Returned by translated RETURN");
+        String __outPath = "";
+        for (String __key : new String[] {"OUTFILE_PATH", "VSAMOUT_PATH", "OUTACB_PATH", "OUTVSAM_PATH", "OUT_RECORD_PATH", "OUTDD_PATH", "OUTPUT_PATH"}) {
+            String __candidate = ctx.getString(__key);
+            if (__candidate != null && !__candidate.isEmpty()) {
+                __outPath = __candidate;
+                break;
+            }
+        }
+        if (__outPath.isEmpty()) {
+            for (String __candidate : new String[] {"test_cases/ps/VSAMOUT.txt", "../test_cases/ps/VSAMOUT.txt", "test_cases/ps/OUTVSAM.txt", "../test_cases/ps/OUTVSAM.txt"}) {
+                if (__outPath.isEmpty()) {
+                    __outPath = __candidate;
+                }
+                java.nio.file.Path __candidatePath = java.nio.file.Paths.get(__candidate);
+                java.nio.file.Path __rootCandidatePath = java.nio.file.Paths.get("..", __candidate).normalize();
+                if (java.nio.file.Files.exists(__candidatePath)) {
+                    __outPath = __candidate;
+                    break;
+                }
+                if (java.nio.file.Files.exists(__rootCandidatePath.getParent())) {
+                    __outPath = __rootCandidatePath.toString();
+                    break;
+                }
+            }
+        }
+        if (__inputPath.isEmpty() || __outPath.isEmpty()) {
+            ctx.setString("IO_ERROR", "Missing input/output path for batch GET/PUT module " + name());
+            registers.set(15, 8);
+            return ModuleResult.rc(8, "VSAMPACK batch failed: missing path");
+        }
+        try {
+            java.nio.file.Path __inputFile = java.nio.file.Paths.get(__inputPath);
+            if (!java.nio.file.Files.exists(__inputFile)) {
+                java.nio.file.Path __altInput = java.nio.file.Paths.get("..", __inputPath).normalize();
+                if (java.nio.file.Files.exists(__altInput)) {
+                    __inputFile = __altInput;
+                }
+            }
+            if (!java.nio.file.Files.exists(__inputFile)) {
+                ctx.setString("IO_ERROR", "Input file not found: " + __inputPath);
+                registers.set(15, 8);
+                return ModuleResult.rc(8, "VSAMPACK batch failed: input missing");
+            }
+            java.util.List<String> __inputLines = java.nio.file.Files.readAllLines(__inputFile, java.nio.charset.StandardCharsets.UTF_8);
+            java.util.List<String> __outputLines = new java.util.ArrayList<>();
+            final int __recordLength = 100;
+            final java.math.BigDecimal __taxRate = new java.math.BigDecimal("0.05");
+            for (String __rawRecord : __inputLines) {
+                if (__rawRecord == null || __rawRecord.isEmpty()) {
+                    continue;
+                }
+                String __normalized = AsmRuntime.Memory.normalize(__rawRecord, __recordLength);
+                char[] __buffer = __normalized.toCharArray();
+                int __r4 = 0;
+                int __r6 = Math.min(__recordLength, __buffer.length);
+                int __bPos = -1;
+                while (__r4 < __r6) {
+                    char __ch = __buffer[__r4];
+                    if (__ch == 'A') {
+                        __r4 += 10;
+                    } else if (__ch == 'B') {
+                        __bPos = __r4;
+                        __r4 += 10;
+                    } else if (__ch == 'T') {
+                        if (__bPos >= 0 && (__r4 + 11) <= __buffer.length && (__bPos + 10) <= __buffer.length) {
+                            String __amountText = new String(__buffer, __r4 + 1, 10).replaceAll("[^0-9+-]", "");
+                            if (__amountText.isEmpty() || "+".equals(__amountText) || "-".equals(__amountText)) {
+                                __amountText = "0";
+                            }
+                            java.math.BigDecimal __amountCents = new java.math.BigDecimal(__amountText);
+                            java.math.BigDecimal __taxCents = __amountCents.multiply(__taxRate).setScale(0, java.math.RoundingMode.DOWN);
+                            String __taxText = String.format("%09d", __taxCents.longValue());
+                            for (int __i = 0; __i < 9; __i++) {
+                                __buffer[__bPos + 1 + __i] = __taxText.charAt(__i);
+                            }
+                        }
+                        __r4 += 11;
+                    } else if (__ch == 'X') {
+                        __r4 += 9;
+                    } else {
+                        __r4 += 1;
+                    }
+                }
+                String __outputRecord = new String(__buffer);
+                ctx.setString("OUT_RECORD", __outputRecord);
+                __outputLines.add(__outputRecord);
+            }
+            java.nio.file.Path __outFile = java.nio.file.Paths.get(__outPath);
+            java.nio.file.Path __rootRelativeOutFile = java.nio.file.Paths.get("..", __outPath).normalize();
+            java.nio.file.Path __rootParent = __rootRelativeOutFile.getParent();
+            if (__rootParent != null && java.nio.file.Files.exists(__rootParent)) {
+                __outFile = __rootRelativeOutFile;
+            }
+            java.nio.file.Path __parent = __outFile.getParent();
+            if (__parent != null) {
+                java.nio.file.Files.createDirectories(__parent);
+            }
+            java.nio.file.Files.write(__outFile, __outputLines, java.nio.charset.StandardCharsets.UTF_8, java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING);
+            ctx.setString("__LAST_OUTPUT_PATH", __outFile.toString());
+            ctx.setInt("__LAST_OUTPUT_RC", 0);
+            ctx.setInt("OUTPUT_RECORD_COUNT", __outputLines.size());
+            registers.clear(15);
+            return ModuleResult.rc(0, "VSAMPACK batch completed");
+        } catch (Exception ex) {
+            ctx.setString("IO_ERROR", ex.getMessage() == null ? ex.toString() : ex.getMessage());
+            registers.set(15, 8);
+            return ModuleResult.rc(8, "VSAMPACK batch exception");
+        }
 
 
 

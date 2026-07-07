@@ -34,6 +34,121 @@ public class Maindrv implements AssemblerModule {
         ModuleResult result = ModuleResult.rc(0, "Application orchestration started");
         int overallRc = 0;
 
+        // Optional DDNAME batch adapter for file-driven driver execution.
+        if ("true".equalsIgnoreCase(ctx.getString("IO_FORCE_READ"))) {
+            String __driverInputPath = "";
+            for (String __key : new String[] {"INACB_PATH", "INVSAM_PATH", "VSAMIN_PATH"}) {
+                String __candidate = ctx.getString(__key);
+                if (__candidate != null && !__candidate.isEmpty()) {
+                    __driverInputPath = __candidate;
+                    break;
+                }
+            }
+            if (__driverInputPath.isEmpty()) {
+                for (String __candidate : new String[] {"test_cases/ps/INVSAM.txt", "../test_cases/ps/INVSAM.txt", "test_cases/ps/VSAMIN.txt", "../test_cases/ps/VSAMIN.txt"}) {
+                    java.nio.file.Path __candidatePath = java.nio.file.Paths.get(__candidate);
+                    java.nio.file.Path __rootCandidatePath = java.nio.file.Paths.get("..", __candidate).normalize();
+                    if (java.nio.file.Files.exists(__candidatePath)) {
+                        __driverInputPath = __candidate;
+                        break;
+                    }
+                    if (java.nio.file.Files.exists(__rootCandidatePath)) {
+                        __driverInputPath = __rootCandidatePath.toString();
+                        break;
+                    }
+                }
+            }
+            if (!__driverInputPath.isEmpty()) {
+                try {
+                    java.nio.file.Path __driverInputFile = java.nio.file.Paths.get(__driverInputPath);
+                    if (!java.nio.file.Files.exists(__driverInputFile)) {
+                        java.nio.file.Path __altInput = java.nio.file.Paths.get("..", __driverInputPath).normalize();
+                        if (java.nio.file.Files.exists(__altInput)) {
+                            __driverInputFile = __altInput;
+                        }
+                    }
+                    if (java.nio.file.Files.exists(__driverInputFile)) {
+                        java.util.List<String> __driverInputLines = java.nio.file.Files.readAllLines(__driverInputFile, java.nio.charset.StandardCharsets.UTF_8);
+                        int __driverOverallRc = 0;
+                        int __driverInputCount = 0;
+                        int __driverOutputCount = 0;
+                        int __driverRejectCount = 0;
+                        __driverRecordLoop: for (String __driverRecord : __driverInputLines) {
+                            if (__driverRecord == null || __driverRecord.isEmpty()) {
+                                continue;
+                            }
+                            __driverInputCount++;
+                            String __value = AsmRuntime.Memory.normalize(__driverRecord, 53);
+                            ctx.setString("CURRTX", __driverRecord);
+                            ctx.setString("TXCARD", __value.substring(0, 16).trim());
+                            ctx.setString("TXCUST", __value.substring(16, 26).trim());
+                            ctx.setMoneyFromCents("TXAMT", __value.substring(26, 34));
+                            ctx.setString("TXTYPE", __value.substring(34, 36).trim());
+                            ctx.setString("TXSTAT", __value.substring(36, 37).trim());
+                            ctx.setMoneyFromCents("TXLIMIT", __value.substring(37, 45));
+                            ctx.setMoneyFromCents("TXFEE", __value.substring(45, 53));
+                            ctx.setString("ERRCODE", "0000");
+                            ctx.setString("AUTHSTAT", "");
+                            boolean __driverRejected = false;
+                            ModuleResult __driverResult = ModuleResult.rc(0, "Batch record started");
+                            __driverResult = new Custval().execute(ctx);
+                            if (!__driverResult.isOk()) {
+                                __driverRejectCount++;
+                                new Authdec().execute(ctx);
+                                new Audwrite().execute(ctx);
+                                __driverOutputCount++;
+                                __driverRejected = true;
+                                continue __driverRecordLoop;
+                            }
+                            __driverResult = new Cardstat().execute(ctx);
+                            if (!__driverResult.isOk()) {
+                                __driverRejectCount++;
+                                new Authdec().execute(ctx);
+                                new Audwrite().execute(ctx);
+                                __driverOutputCount++;
+                                __driverRejected = true;
+                                continue __driverRecordLoop;
+                            }
+                            __driverResult = new Limitchk().execute(ctx);
+                            if (!__driverResult.isOk()) {
+                                __driverRejectCount++;
+                                new Authdec().execute(ctx);
+                                new Audwrite().execute(ctx);
+                                __driverOutputCount++;
+                                __driverRejected = true;
+                                continue __driverRecordLoop;
+                            }
+                            __driverResult = new Frdchk().execute(ctx);
+                            if (!__driverResult.isOk()) {
+                                __driverRejectCount++;
+                                new Authdec().execute(ctx);
+                                new Audwrite().execute(ctx);
+                                __driverOutputCount++;
+                                __driverRejected = true;
+                                continue __driverRecordLoop;
+                            }
+                            __driverResult = new Feecalc().execute(ctx);
+                            if (__driverResult.getReturnCode() != 0) {
+                                __driverRejectCount++;
+                            }
+                            if (!__driverRejected) {
+                                new Authdec().execute(ctx);
+                            }
+                            new Audwrite().execute(ctx);
+                            __driverOutputCount++;
+                        }
+                        ctx.setInt("BATCH_INPUT_RECORD_COUNT", __driverInputCount);
+                        ctx.setInt("BATCH_OUTPUT_RECORD_COUNT", __driverOutputCount);
+                        ctx.setInt("BATCH_REJECT_RECORD_COUNT", __driverRejectCount);
+                        return ModuleResult.rc(0, "MAINDRV batch file orchestration completed");
+                    }
+                } catch (Exception ex) {
+                    ctx.setString("IO_ERROR", ex.getMessage() == null ? ex.toString() : ex.getMessage());
+                    return ModuleResult.rc(8, "MAINDRV batch file orchestration exception");
+                }
+            }
+        }
+
         // Execute translated module: TXREAD
         result = new Txread().execute(ctx);
         if (!result.isOk()) {

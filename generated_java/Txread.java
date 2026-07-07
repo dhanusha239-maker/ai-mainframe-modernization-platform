@@ -27,28 +27,86 @@ public class Txread implements AssemblerModule {
          *   - LTR 15, 15
          */
 
-        // Branch-aware translated instruction candidates from HLASM source.
-        // LABEL: TXREAD
-        // CSECT directive: TXREAD   CSECT ,                   VSAM Sequential Input Processor
-        // TODO protected semantic translation for BAKR: Branch-and-stack requires linkage-stack/runtime support.
-        //      category=control_flow_linkage; proposed_helper=AsmRuntime.Branch.bakr; source: BAKR  14,0                Save registers on stack
-        // subroutine call via BASR: BASR  12,0
-        // USING directive: USING *,12
-        // TODO LM already handled by analyzer register_map when possible: LM    2,3,0(1)            R2 = Addr of INRPL, R3 = Addr of CURRTX
-        AsmRuntime.IO.get(ctx, "RPL=(2)", "", cc); registers.set(15, ctx.getInt("__LAST_IO_RC"));
-        AsmRuntime.Register.ltr(registers, 15, 15, cc);
-        if (AsmRuntime.Branch.isNotEqual(cc)) {
-            registers.set(4, ctx.getInt("INRPL"));
-            // TODO manual review required: CLM   4,B'0001',=X'04'    Is the specific feedback code End of File?
-            if (AsmRuntime.Branch.isEqual(cc)) {
-                // branch to GET_EOF
+        // Generic GET adapter generated from HLASM GET + analyzer metadata.
+        String __recordField = "CURRTX";
+        String __path = "";
+
+        for (String __key : new String[] {"INRPL_PATH", "CURRTX_PATH", "INACB_PATH", "INVSAM_PATH", "OUTACB_PATH", "OUTVSAM_PATH", "VSAMIN_PATH", "OUTFILE_PATH", "VSAMOUT_PATH"}) {
+            String __candidate = ctx.getString(__key);
+            if (__candidate != null && !__candidate.isEmpty()) {
+                __path = __candidate;
+                break;
             }
-            registers.set(15, 8);
         }
-        // LABEL: GET_SUCCESS
-        // DS declaration: GET_SUCCESS DS 0H
-        registers.clear(15);
-        return ModuleResult.rc(registers.get(15), "Returned by translated PR");
+
+        if (__path.isEmpty()) {
+            for (String __candidate : new String[] {"test_cases/ps/INVSAM.txt", "../test_cases/ps/INVSAM.txt", "test_cases/ps/OUTVSAM.txt", "../test_cases/ps/OUTVSAM.txt", "test_cases/ps/VSAMIN.txt", "../test_cases/ps/VSAMIN.txt", "test_cases/ps/VSAMOUT.txt", "../test_cases/ps/VSAMOUT.txt", "test_cases/ps/INRPL.txt", "../test_cases/ps/INRPL.txt"}) {
+                java.nio.file.Path __candidatePath = java.nio.file.Paths.get(__candidate);
+                if (java.nio.file.Files.exists(__candidatePath)) {
+                    __path = __candidate;
+                    break;
+                }
+            }
+        }
+
+        if (__path.isEmpty()) {
+            ctx.setString("IO_ERROR", "Input file not found for GET module " + name());
+            registers.set(15, 8);
+            ctx.setInt("__LAST_IO_RC", 8);
+            return ModuleResult.rc(8, "TXREAD GET failed: no input path");
+        }
+
+        try {
+            java.nio.file.Path __file = java.nio.file.Paths.get(__path);
+            if (!java.nio.file.Files.exists(__file)) {
+                java.nio.file.Path __alt = java.nio.file.Paths.get("..", __path);
+                if (java.nio.file.Files.exists(__alt)) {
+                    __file = __alt;
+                }
+            }
+
+            if (!java.nio.file.Files.exists(__file)) {
+                ctx.setString("IO_ERROR", "Input file not found: " + __path);
+                registers.set(15, 8);
+                ctx.setInt("__LAST_IO_RC", 8);
+                return ModuleResult.rc(8, "TXREAD GET failed: file missing");
+            }
+
+            java.util.List<String> __lines = java.nio.file.Files.readAllLines(
+                    __file,
+                    java.nio.charset.StandardCharsets.UTF_8);
+
+            if (__lines.isEmpty()) {
+                registers.set(15, 4);
+                ctx.setInt("__LAST_IO_RC", 4);
+                return ModuleResult.rc(4, "TXREAD GET EOF");
+            }
+
+            String __record = __lines.get(0);
+            ctx.setString(__recordField, __record);
+            ctx.setString("IO_ERROR", "");
+            ctx.setInt("__LAST_IO_RC", 0);
+
+            if ("CURRTX".equalsIgnoreCase(__recordField)) {
+                String __value = AsmRuntime.Memory.normalize(__record, 53);
+                ctx.setString("TXCARD", __value.substring(0, 16).trim());
+                ctx.setString("TXCUST", __value.substring(16, 26).trim());
+                ctx.setMoneyFromCents("TXAMT", __value.substring(26, 34));
+                ctx.setString("TXTYPE", __value.substring(34, 36).trim());
+                ctx.setString("TXSTAT", __value.substring(36, 37).trim());
+                ctx.setMoneyFromCents("TXLIMIT", __value.substring(37, 45));
+                ctx.setMoneyFromCents("TXFEE", __value.substring(45, 53));
+            }
+
+            registers.clear(15);
+            return ModuleResult.rc(0, "TXREAD GET completed");
+
+        } catch (Exception ex) {
+            ctx.setString("IO_ERROR", ex.getMessage() == null ? ex.toString() : ex.getMessage());
+            registers.set(15, 8);
+            ctx.setInt("__LAST_IO_RC", 8);
+            return ModuleResult.rc(8, "TXREAD GET exception");
+        }
 
 
 

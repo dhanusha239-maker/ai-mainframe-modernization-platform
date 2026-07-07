@@ -24,6 +24,7 @@ public class BehaviorTestRunner {
         results.add(runCase13());
         results.add(runCase14());
         results.add(runCase15());
+        results.add(runCase16());
 
         writeJson(results);
     }
@@ -67,7 +68,7 @@ public class BehaviorTestRunner {
             return "";
         }
 
-        return value.replace(String.valueOf((char) 92), String.valueOf((char) 92) + String.valueOf((char) 92)).replace(String.valueOf((char) 34), String.valueOf((char) 92) + String.valueOf((char) 34));
+        return value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
 
@@ -78,10 +79,10 @@ public class BehaviorTestRunner {
         ctx.setString("ERRCODE", "0000");
 
 
-        AssemblerModule module = new Custval();
-        ModuleResult result = module.execute(ctx);
-        int rc = result.getReturnCode();
-
+                AssemblerModule module = new Custval();
+                ModuleResult result = module.execute(ctx);
+                int rc = result.getReturnCode();
+        
 
         java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
         output.put("case_id", "CUSTVAL_VALID_001");
@@ -89,6 +90,13 @@ public class BehaviorTestRunner {
         output.put("RC", String.valueOf(rc));
 
         output.put("ERRCODE", ctx.getString("ERRCODE"));
+        output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
+        output.put("TXFEE", ctx.getString("TXFEE"));
+        output.put("TXAMT", ctx.getString("TXAMT"));
+        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
+        output.put("TXCUST", ctx.getString("TXCUST"));
+        output.put("TXSTAT", ctx.getString("TXSTAT"));
+        output.put("TXTYPE", ctx.getString("TXTYPE"));
 
         return output;
     }
@@ -101,10 +109,10 @@ public class BehaviorTestRunner {
         ctx.setString("ERRCODE", "0000");
 
 
-        AssemblerModule module = new Custval();
-        ModuleResult result = module.execute(ctx);
-        int rc = result.getReturnCode();
-
+                AssemblerModule module = new Custval();
+                ModuleResult result = module.execute(ctx);
+                int rc = result.getReturnCode();
+        
 
         java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
         output.put("case_id", "CUSTVAL_INVALID_001");
@@ -112,6 +120,13 @@ public class BehaviorTestRunner {
         output.put("RC", String.valueOf(rc));
 
         output.put("ERRCODE", ctx.getString("ERRCODE"));
+        output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
+        output.put("TXFEE", ctx.getString("TXFEE"));
+        output.put("TXAMT", ctx.getString("TXAMT"));
+        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
+        output.put("TXCUST", ctx.getString("TXCUST"));
+        output.put("TXSTAT", ctx.getString("TXSTAT"));
+        output.put("TXTYPE", ctx.getString("TXTYPE"));
 
         return output;
     }
@@ -124,10 +139,10 @@ public class BehaviorTestRunner {
         ctx.setString("ERRCODE", "0000");
 
 
-        AssemblerModule module = new Cardstat();
-        ModuleResult result = module.execute(ctx);
-        int rc = result.getReturnCode();
-
+                AssemblerModule module = new Cardstat();
+                ModuleResult result = module.execute(ctx);
+                int rc = result.getReturnCode();
+        
 
         java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
         output.put("case_id", "CARDSTAT_ACTIVE_001");
@@ -135,6 +150,13 @@ public class BehaviorTestRunner {
         output.put("RC", String.valueOf(rc));
 
         output.put("ERRCODE", ctx.getString("ERRCODE"));
+        output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
+        output.put("TXFEE", ctx.getString("TXFEE"));
+        output.put("TXAMT", ctx.getString("TXAMT"));
+        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
+        output.put("TXCUST", ctx.getString("TXCUST"));
+        output.put("TXSTAT", ctx.getString("TXSTAT"));
+        output.put("TXTYPE", ctx.getString("TXTYPE"));
 
         return output;
     }
@@ -147,10 +169,10 @@ public class BehaviorTestRunner {
         ctx.setString("ERRCODE", "0000");
 
 
-        AssemblerModule module = new Cardstat();
-        ModuleResult result = module.execute(ctx);
-        int rc = result.getReturnCode();
-
+                AssemblerModule module = new Cardstat();
+                ModuleResult result = module.execute(ctx);
+                int rc = result.getReturnCode();
+        
 
         java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
         output.put("case_id", "CARDSTAT_BLOCKED_001");
@@ -158,6 +180,13 @@ public class BehaviorTestRunner {
         output.put("RC", String.valueOf(rc));
 
         output.put("ERRCODE", ctx.getString("ERRCODE"));
+        output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
+        output.put("TXFEE", ctx.getString("TXFEE"));
+        output.put("TXAMT", ctx.getString("TXAMT"));
+        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
+        output.put("TXCUST", ctx.getString("TXCUST"));
+        output.put("TXSTAT", ctx.getString("TXSTAT"));
+        output.put("TXTYPE", ctx.getString("TXTYPE"));
 
         return output;
     }
@@ -171,10 +200,10 @@ public class BehaviorTestRunner {
         ctx.setString("ERRCODE", "0000");
 
 
-        AssemblerModule module = new Limitchk();
-        ModuleResult result = module.execute(ctx);
-        int rc = result.getReturnCode();
-
+                AssemblerModule module = new Limitchk();
+                ModuleResult result = module.execute(ctx);
+                int rc = result.getReturnCode();
+        
 
         java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
         output.put("case_id", "LIMITCHK_APPROVE_001");
@@ -182,6 +211,13 @@ public class BehaviorTestRunner {
         output.put("RC", String.valueOf(rc));
 
         output.put("ERRCODE", ctx.getString("ERRCODE"));
+        output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
+        output.put("TXFEE", ctx.getString("TXFEE"));
+        output.put("TXAMT", ctx.getString("TXAMT"));
+        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
+        output.put("TXCUST", ctx.getString("TXCUST"));
+        output.put("TXSTAT", ctx.getString("TXSTAT"));
+        output.put("TXTYPE", ctx.getString("TXTYPE"));
 
         return output;
     }
@@ -195,10 +231,10 @@ public class BehaviorTestRunner {
         ctx.setString("ERRCODE", "0000");
 
 
-        AssemblerModule module = new Limitchk();
-        ModuleResult result = module.execute(ctx);
-        int rc = result.getReturnCode();
-
+                AssemblerModule module = new Limitchk();
+                ModuleResult result = module.execute(ctx);
+                int rc = result.getReturnCode();
+        
 
         java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
         output.put("case_id", "LIMITCHK_REJECT_001");
@@ -206,6 +242,13 @@ public class BehaviorTestRunner {
         output.put("RC", String.valueOf(rc));
 
         output.put("ERRCODE", ctx.getString("ERRCODE"));
+        output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
+        output.put("TXFEE", ctx.getString("TXFEE"));
+        output.put("TXAMT", ctx.getString("TXAMT"));
+        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
+        output.put("TXCUST", ctx.getString("TXCUST"));
+        output.put("TXSTAT", ctx.getString("TXSTAT"));
+        output.put("TXTYPE", ctx.getString("TXTYPE"));
 
         return output;
     }
@@ -219,10 +262,10 @@ public class BehaviorTestRunner {
         ctx.setString("ERRCODE", "0000");
 
 
-        AssemblerModule module = new Frdchk();
-        ModuleResult result = module.execute(ctx);
-        int rc = result.getReturnCode();
-
+                AssemblerModule module = new Frdchk();
+                ModuleResult result = module.execute(ctx);
+                int rc = result.getReturnCode();
+        
 
         java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
         output.put("case_id", "FRDCHK_NORMAL_001");
@@ -230,6 +273,13 @@ public class BehaviorTestRunner {
         output.put("RC", String.valueOf(rc));
 
         output.put("ERRCODE", ctx.getString("ERRCODE"));
+        output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
+        output.put("TXFEE", ctx.getString("TXFEE"));
+        output.put("TXAMT", ctx.getString("TXAMT"));
+        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
+        output.put("TXCUST", ctx.getString("TXCUST"));
+        output.put("TXSTAT", ctx.getString("TXSTAT"));
+        output.put("TXTYPE", ctx.getString("TXTYPE"));
 
         return output;
     }
@@ -243,10 +293,10 @@ public class BehaviorTestRunner {
         ctx.setString("ERRCODE", "0000");
 
 
-        AssemblerModule module = new Frdchk();
-        ModuleResult result = module.execute(ctx);
-        int rc = result.getReturnCode();
-
+                AssemblerModule module = new Frdchk();
+                ModuleResult result = module.execute(ctx);
+                int rc = result.getReturnCode();
+        
 
         java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
         output.put("case_id", "FRDCHK_REMOTE_HIGH_001");
@@ -254,6 +304,13 @@ public class BehaviorTestRunner {
         output.put("RC", String.valueOf(rc));
 
         output.put("ERRCODE", ctx.getString("ERRCODE"));
+        output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
+        output.put("TXFEE", ctx.getString("TXFEE"));
+        output.put("TXAMT", ctx.getString("TXAMT"));
+        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
+        output.put("TXCUST", ctx.getString("TXCUST"));
+        output.put("TXSTAT", ctx.getString("TXSTAT"));
+        output.put("TXTYPE", ctx.getString("TXTYPE"));
 
         return output;
     }
@@ -267,10 +324,10 @@ public class BehaviorTestRunner {
         ctx.setString("ERRCODE", "0000");
 
 
-        AssemblerModule module = new Feecalc();
-        ModuleResult result = module.execute(ctx);
-        int rc = result.getReturnCode();
-
+                AssemblerModule module = new Feecalc();
+                ModuleResult result = module.execute(ctx);
+                int rc = result.getReturnCode();
+        
 
         java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
         output.put("case_id", "FEECALC_BASIC_001");
@@ -278,6 +335,13 @@ public class BehaviorTestRunner {
         output.put("RC", String.valueOf(rc));
 
         output.put("TXFEE", ctx.getString("TXFEE"));
+        output.put("ERRCODE", ctx.getString("ERRCODE"));
+        output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
+        output.put("TXAMT", ctx.getString("TXAMT"));
+        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
+        output.put("TXCUST", ctx.getString("TXCUST"));
+        output.put("TXSTAT", ctx.getString("TXSTAT"));
+        output.put("TXTYPE", ctx.getString("TXTYPE"));
 
         return output;
     }
@@ -290,10 +354,10 @@ public class BehaviorTestRunner {
         ctx.setString("AUTHSTAT", "");
 
 
-        AssemblerModule module = new Authdec();
-        ModuleResult result = module.execute(ctx);
-        int rc = result.getReturnCode();
-
+                AssemblerModule module = new Authdec();
+                ModuleResult result = module.execute(ctx);
+                int rc = result.getReturnCode();
+        
 
         java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
         output.put("case_id", "AUTHDEC_APPROVE_001");
@@ -301,6 +365,13 @@ public class BehaviorTestRunner {
         output.put("RC", String.valueOf(rc));
 
         output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
+        output.put("ERRCODE", ctx.getString("ERRCODE"));
+        output.put("TXFEE", ctx.getString("TXFEE"));
+        output.put("TXAMT", ctx.getString("TXAMT"));
+        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
+        output.put("TXCUST", ctx.getString("TXCUST"));
+        output.put("TXSTAT", ctx.getString("TXSTAT"));
+        output.put("TXTYPE", ctx.getString("TXTYPE"));
 
         return output;
     }
@@ -313,10 +384,10 @@ public class BehaviorTestRunner {
         ctx.setString("AUTHSTAT", "");
 
 
-        AssemblerModule module = new Authdec();
-        ModuleResult result = module.execute(ctx);
-        int rc = result.getReturnCode();
-
+                AssemblerModule module = new Authdec();
+                ModuleResult result = module.execute(ctx);
+                int rc = result.getReturnCode();
+        
 
         java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
         output.put("case_id", "AUTHDEC_REJECT_001");
@@ -324,6 +395,13 @@ public class BehaviorTestRunner {
         output.put("RC", String.valueOf(rc));
 
         output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
+        output.put("ERRCODE", ctx.getString("ERRCODE"));
+        output.put("TXFEE", ctx.getString("TXFEE"));
+        output.put("TXAMT", ctx.getString("TXAMT"));
+        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
+        output.put("TXCUST", ctx.getString("TXCUST"));
+        output.put("TXSTAT", ctx.getString("TXSTAT"));
+        output.put("TXTYPE", ctx.getString("TXTYPE"));
 
         return output;
     }
@@ -342,10 +420,10 @@ public class BehaviorTestRunner {
         ctx.setDecimal("TXFEE", new java.math.BigDecimal("0.00"));
 
 
-        AssemblerModule application = new Maindrv();
-        ModuleResult result = application.execute(ctx);
-        int rc = result.getReturnCode();
-
+                AssemblerModule application = new Maindrv();
+                ModuleResult result = application.execute(ctx);
+                int rc = result.getReturnCode();
+        
 
         java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
         output.put("case_id", "APP_APPROVAL_FLOW_001");
@@ -355,6 +433,11 @@ public class BehaviorTestRunner {
         output.put("ERRCODE", ctx.getString("ERRCODE"));
         output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
         output.put("TXFEE", ctx.getString("TXFEE"));
+        output.put("TXAMT", ctx.getString("TXAMT"));
+        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
+        output.put("TXCUST", ctx.getString("TXCUST"));
+        output.put("TXSTAT", ctx.getString("TXSTAT"));
+        output.put("TXTYPE", ctx.getString("TXTYPE"));
 
         return output;
     }
@@ -370,10 +453,10 @@ public class BehaviorTestRunner {
         ctx.setString("ERRCODE", "0000");
 
 
-        AssemblerModule module = new Txread();
-        ModuleResult result = module.execute(ctx);
-        int rc = result.getReturnCode();
-
+                AssemblerModule module = new Txread();
+                ModuleResult result = module.execute(ctx);
+                int rc = result.getReturnCode();
+        
 
         java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
         output.put("case_id", "TXREAD_LOCAL_PS_001");
@@ -386,6 +469,8 @@ public class BehaviorTestRunner {
         output.put("TXLIMIT", ctx.getString("TXLIMIT"));
         output.put("TXTYPE", ctx.getString("TXTYPE"));
         output.put("TXFEE", ctx.getString("TXFEE"));
+        output.put("ERRCODE", ctx.getString("ERRCODE"));
+        output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
 
         return output;
     }
@@ -403,19 +488,24 @@ public class BehaviorTestRunner {
         ctx.setString("OUTDD_PATH", "test_cases/ps/VSAMOUT.txt");
 
 
-        AssemblerModule module = new Vsampack();
-        ModuleResult result = module.execute(ctx);
-        int rc = result.getReturnCode();
-
+                AssemblerModule module = new Vsampack();
+                ModuleResult result = module.execute(ctx);
+                int rc = result.getReturnCode();
+        
 
         java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
         output.put("case_id", "VSAMPACK_LOCAL_PS_SMOKE_001");
         output.put("module", "VSAMPACK");
         output.put("RC", String.valueOf(rc));
 
-        output.put("IN_RECORD", ctx.getString("IN_RECORD"));
-        output.put("OUT_RECORD", ctx.getString("OUT_RECORD"));
-        output.put("IO_ERROR", ctx.getString("IO_ERROR"));
+        output.put("ERRCODE", ctx.getString("ERRCODE"));
+        output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
+        output.put("TXFEE", ctx.getString("TXFEE"));
+        output.put("TXAMT", ctx.getString("TXAMT"));
+        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
+        output.put("TXCUST", ctx.getString("TXCUST"));
+        output.put("TXSTAT", ctx.getString("TXSTAT"));
+        output.put("TXTYPE", ctx.getString("TXTYPE"));
 
         return output;
     }
@@ -428,10 +518,10 @@ public class BehaviorTestRunner {
         ctx.setString("TOTAL", "0");
 
 
-        AssemblerModule module = new Bctcount();
-        ModuleResult result = module.execute(ctx);
-        int rc = result.getReturnCode();
-
+                AssemblerModule module = new Bctcount();
+                ModuleResult result = module.execute(ctx);
+                int rc = result.getReturnCode();
+        
 
         java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
         output.put("case_id", "BCTCOUNT_COUNT_5_001");
@@ -439,6 +529,14 @@ public class BehaviorTestRunner {
         output.put("RC", String.valueOf(rc));
 
         output.put("TOTAL", ctx.getString("TOTAL"));
+        output.put("ERRCODE", ctx.getString("ERRCODE"));
+        output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
+        output.put("TXFEE", ctx.getString("TXFEE"));
+        output.put("TXAMT", ctx.getString("TXAMT"));
+        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
+        output.put("TXCUST", ctx.getString("TXCUST"));
+        output.put("TXSTAT", ctx.getString("TXSTAT"));
+        output.put("TXTYPE", ctx.getString("TXTYPE"));
 
         return output;
     }
@@ -451,10 +549,10 @@ public class BehaviorTestRunner {
         ctx.setString("TOTAL", "0");
 
 
-        AssemblerModule module = new Bctcount();
-        ModuleResult result = module.execute(ctx);
-        int rc = result.getReturnCode();
-
+                AssemblerModule module = new Bctcount();
+                ModuleResult result = module.execute(ctx);
+                int rc = result.getReturnCode();
+        
 
         java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
         output.put("case_id", "BCTCOUNT_COUNT_3_001");
@@ -462,6 +560,50 @@ public class BehaviorTestRunner {
         output.put("RC", String.valueOf(rc));
 
         output.put("TOTAL", ctx.getString("TOTAL"));
+        output.put("ERRCODE", ctx.getString("ERRCODE"));
+        output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
+        output.put("TXFEE", ctx.getString("TXFEE"));
+        output.put("TXAMT", ctx.getString("TXAMT"));
+        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
+        output.put("TXCUST", ctx.getString("TXCUST"));
+        output.put("TXSTAT", ctx.getString("TXSTAT"));
+        output.put("TXTYPE", ctx.getString("TXTYPE"));
+
+        return output;
+    }
+
+
+    private static java.util.Map<String, String> runCase16() {
+        ExecutionContext ctx = new ExecutionContext();
+
+        ctx.setString("IO_FORCE_READ", "true");
+        ctx.setString("INRPL_PATH", "test_cases/ps/INVSAM.txt");
+        ctx.setString("INVSAM_PATH", "test_cases/ps/INVSAM.txt");
+        ctx.setString("CURRTX_PATH", "test_cases/ps/INVSAM.txt");
+        ctx.setString("OUTRPL_PATH", "test_cases/ps/OUTVSAM.txt");
+        ctx.setString("OUTACB_PATH", "test_cases/ps/OUTVSAM.txt");
+        ctx.setString("LOGBUFF_PATH", "test_cases/ps/OUTVSAM.txt");
+        ctx.setString("ERRCODE", "0000");
+
+
+                AssemblerModule application = new Maindrv();
+                ModuleResult result = application.execute(ctx);
+                int rc = result.getReturnCode();
+        
+
+        java.util.Map<String, String> output = new java.util.LinkedHashMap<>();
+        output.put("case_id", "MAINDRV_DDNAME_FILE_FLOW_001");
+        output.put("module", "MAINDRV");
+        output.put("RC", String.valueOf(rc));
+
+        output.put("ERRCODE", ctx.getString("ERRCODE"));
+        output.put("AUTHSTAT", ctx.getString("AUTHSTAT"));
+        output.put("TXFEE", ctx.getString("TXFEE"));
+        output.put("TXAMT", ctx.getString("TXAMT"));
+        output.put("TXLIMIT", ctx.getString("TXLIMIT"));
+        output.put("TXCUST", ctx.getString("TXCUST"));
+        output.put("TXSTAT", ctx.getString("TXSTAT"));
+        output.put("TXTYPE", ctx.getString("TXTYPE"));
 
         return output;
     }

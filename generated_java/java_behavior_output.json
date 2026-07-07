@@ -145,10 +145,10 @@
   {
     "case_id": "APP_APPROVAL_FLOW_001",
     "module": "MAINDRV",
-    "RC": "4",
+    "RC": "0",
     "ERRCODE": "0000",
     "AUTHSTAT": "REJCT",
-    "TXFEE": "0.00",
+    "TXFEE": "1.50",
     "TXAMT": "100.00",
     "TXLIMIT": "500.00",
     "TXCUST": "CUST000001",
@@ -158,7 +158,7 @@
   {
     "case_id": "TXREAD_LOCAL_PS_001",
     "module": "TXREAD",
-    "RC": "4",
+    "RC": "0",
     "TXCUST": "CUST000001",
     "TXSTAT": "A",
     "TXAMT": "100.00",
@@ -180,5 +180,46 @@
     "TXCUST": "",
     "TXSTAT": "",
     "TXTYPE": ""
+  },
+  {
+    "case_id": "BCTCOUNT_COUNT_5_001",
+    "module": "BCTCOUNT",
+    "RC": "0",
+    "TOTAL": "15",
+    "ERRCODE": "",
+    "AUTHSTAT": "",
+    "TXFEE": "",
+    "TXAMT": "",
+    "TXLIMIT": "",
+    "TXCUST": "",
+    "TXSTAT": "",
+    "TXTYPE": ""
+  },
+  {
+    "case_id": "BCTCOUNT_COUNT_3_001",
+    "module": "BCTCOUNT",
+    "RC": "0",
+    "TOTAL": "6",
+    "ERRCODE": "",
+    "AUTHSTAT": "",
+    "TXFEE": "",
+    "TXAMT": "",
+    "TXLIMIT": "",
+    "TXCUST": "",
+    "TXSTAT": "",
+    "TXTYPE": ""
+  },
+  {
+    "case_id": "MAINDRV_DDNAME_FILE_FLOW_001",
+    "module": "MAINDRV",
+    "RC": "0",
+    "ERRCODE": "E004",
+    "AUTHSTAT": "REJCT",
+    "TXFEE": "0.00",
+    "TXAMT": "600.00",
+    "TXLIMIT": "700.00",
+    "TXCUST": "CUST000004",
+    "TXSTAT": "A",
+    "TXTYPE": "RE"
   }
 ]

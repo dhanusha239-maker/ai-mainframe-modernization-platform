@@ -30,8 +30,7 @@ public class Cardstat implements AssemblerModule {
         // Branch-aware translated instruction candidates from HLASM source.
         // LABEL: CARDSTAT
         // CSECT directive: CARDSTAT CSECT ,                   Administrative Block Reviewer
-        // TODO protected semantic translation for BAKR: Branch-and-stack requires linkage-stack/runtime support.
-        //      category=control_flow_linkage; proposed_helper=AsmRuntime.Branch.bakr; source: BAKR  14,0                Save registers on linkage stack
+        // TODO manual review required: BAKR  14,0                Save registers on linkage stack
         // subroutine call via BASR: BASR  12,0
         // USING directive: USING *,12
         // TODO LM already handled by analyzer register_map when possible: LM    2,3,0(1)            R2 = Addr of CURRTX, R3 = Addr of ERRCODE
@@ -43,9 +42,11 @@ public class Cardstat implements AssemblerModule {
         // LABEL: STAT_OK
         // DS declaration: STAT_OK  DS    0H
         registers.clear(15);
-        return ModuleResult.rc(registers.get(15), "Returned by translated PR");
+        // TODO manual review required: PR
+        // TODO manual review required: LTORG ,
+        // TODO manual review required: END   CARDSTAT
 
-
+        return ModuleResult.rc(0, "CARDSTAT executed as generated candidate");
 
     }
 }

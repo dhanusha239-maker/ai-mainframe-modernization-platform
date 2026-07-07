@@ -39,7 +39,13 @@ public class ExecutionContext {
             return (BigDecimal) value;
         }
 
-        return new BigDecimal(value.toString());
+        String text = value.toString().trim();
+
+        if (text.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+
+        return new BigDecimal(text);
     }
 
     public void setDecimal(String fieldName, BigDecimal value) {
@@ -57,11 +63,31 @@ public class ExecutionContext {
             return ((Number) value).intValue();
         }
 
-        return Integer.parseInt(value.toString().trim());
+        String text = value.toString().trim();
+
+        if (text.isEmpty()) {
+            return 0;
+        }
+
+        return Integer.parseInt(text);
     }
 
     public void setInt(String fieldName, int value) {
         fields.put(fieldName, value);
+    }
+
+    public void setMoneyFromCents(String fieldName, String centsText) {
+        String cleaned = centsText == null ? "" : centsText.replaceAll("[^0-9+-]", "");
+
+        if (cleaned.isEmpty() || "+".equals(cleaned) || "-".equals(cleaned)) {
+            cleaned = "0";
+        }
+
+        BigDecimal value = new BigDecimal(cleaned)
+                .movePointLeft(2)
+                .setScale(2, java.math.RoundingMode.HALF_UP);
+
+        setDecimal(fieldName, value);
     }
 
     public Map<String, Object> snapshot() {

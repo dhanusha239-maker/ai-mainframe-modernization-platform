@@ -25,25 +25,20 @@ public class Bctcount implements AssemblerModule {
          *   - TOTAL
          */
 
-        // Branch-aware translated instruction candidates from HLASM source.
-        // LABEL: BCTCOUNT
-        // CSECT directive: BCTCOUNT  CSECT
-        // subroutine call via BASR: BASR  R12,0              Establish base register
-        // USING directive: USING *,R12              Establish addressability
-        registers.clear(3);
-        registers.set(4, ctx.getInt("COUNT"));
-        // LABEL: LOOPSTART
-        // Backward BCT loop lowered from CFG target LOOPSTART to BCT at source index 7.
-        int __bctLoopGuard0 = 0;
-        do {
-            AsmRuntime.Register.ar(registers, 3, 4, cc);
-            if (++__bctLoopGuard0 > AsmRuntime.Branch.MAX_LOOP_ITERATIONS) {
-                throw new IllegalStateException("BCT loop exceeded safety limit; possible infinite assembler loop");
-            }
-        } while (AsmRuntime.Branch.bct(registers, 4));
-        ctx.setInt("TOTAL", registers.get(3));
+
+        // Generic BCT accumulator loop reconstructed from BCT back-edge pattern.
+        int __counter = ctx.getInt("COUNT");
+        int __total = 0;
+
+        while (__counter > 0) {
+            __total += __counter;
+            __counter--;
+        }
+
+        ctx.setInt("TOTAL", __total);
         registers.clear(15);
-        return ModuleResult.rc(registers.get(15), "Returned by translated BR");
+        return ModuleResult.rc(0, "BCTCOUNT BCT loop completed");
+
 
 
 
