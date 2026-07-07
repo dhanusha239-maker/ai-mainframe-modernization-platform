@@ -4,10 +4,10 @@ This report compares expected assembler behavior against actual generated Java e
 
 ## Summary
 
-- Total test cases: `16`
-- Passed cases: `14`
+- Total test cases: `17`
+- Passed cases: `15`
 - Failed cases: `2`
-- Average behavior match score: `95.31%`
+- Average behavior match score: `95.59%`
 
 ## Batch Validation Summary
 
@@ -60,7 +60,14 @@ This report compares expected assembler behavior against actual generated Java e
   "case_id": "CUSTVAL_VALID_001",
   "module": "CUSTVAL",
   "RC": "0",
-  "ERRCODE": "0000"
+  "ERRCODE": "0000",
+  "AUTHSTAT": "",
+  "TXFEE": "",
+  "TXAMT": "",
+  "TXLIMIT": "",
+  "TXCUST": "CUST000001",
+  "TXSTAT": "",
+  "TXTYPE": ""
 }
 ```
 
@@ -99,7 +106,14 @@ No mismatches detected.
   "case_id": "CUSTVAL_INVALID_001",
   "module": "CUSTVAL",
   "RC": "4",
-  "ERRCODE": "E001"
+  "ERRCODE": "E001",
+  "AUTHSTAT": "",
+  "TXFEE": "",
+  "TXAMT": "",
+  "TXLIMIT": "",
+  "TXCUST": "BAD000001",
+  "TXSTAT": "",
+  "TXTYPE": ""
 }
 ```
 
@@ -138,7 +152,14 @@ No mismatches detected.
   "case_id": "CARDSTAT_ACTIVE_001",
   "module": "CARDSTAT",
   "RC": "0",
-  "ERRCODE": "0000"
+  "ERRCODE": "0000",
+  "AUTHSTAT": "",
+  "TXFEE": "",
+  "TXAMT": "",
+  "TXLIMIT": "",
+  "TXCUST": "",
+  "TXSTAT": "A",
+  "TXTYPE": ""
 }
 ```
 
@@ -177,7 +198,14 @@ No mismatches detected.
   "case_id": "CARDSTAT_BLOCKED_001",
   "module": "CARDSTAT",
   "RC": "4",
-  "ERRCODE": "E002"
+  "ERRCODE": "E002",
+  "AUTHSTAT": "",
+  "TXFEE": "",
+  "TXAMT": "",
+  "TXLIMIT": "",
+  "TXCUST": "",
+  "TXSTAT": "B",
+  "TXTYPE": ""
 }
 ```
 
@@ -217,7 +245,14 @@ No mismatches detected.
   "case_id": "LIMITCHK_APPROVE_001",
   "module": "LIMITCHK",
   "RC": "0",
-  "ERRCODE": "0000"
+  "ERRCODE": "0000",
+  "AUTHSTAT": "",
+  "TXFEE": "",
+  "TXAMT": "250.00",
+  "TXLIMIT": "500.00",
+  "TXCUST": "",
+  "TXSTAT": "",
+  "TXTYPE": ""
 }
 ```
 
@@ -257,7 +292,14 @@ No mismatches detected.
   "case_id": "LIMITCHK_REJECT_001",
   "module": "LIMITCHK",
   "RC": "4",
-  "ERRCODE": "E003"
+  "ERRCODE": "E003",
+  "AUTHSTAT": "",
+  "TXFEE": "",
+  "TXAMT": "750.00",
+  "TXLIMIT": "500.00",
+  "TXCUST": "",
+  "TXSTAT": "",
+  "TXTYPE": ""
 }
 ```
 
@@ -297,7 +339,14 @@ No mismatches detected.
   "case_id": "FRDCHK_NORMAL_001",
   "module": "FRDCHK",
   "RC": "0",
-  "ERRCODE": "0000"
+  "ERRCODE": "0000",
+  "AUTHSTAT": "",
+  "TXFEE": "",
+  "TXAMT": "100.00",
+  "TXLIMIT": "",
+  "TXCUST": "",
+  "TXSTAT": "",
+  "TXTYPE": "PO"
 }
 ```
 
@@ -337,7 +386,14 @@ No mismatches detected.
   "case_id": "FRDCHK_REMOTE_HIGH_001",
   "module": "FRDCHK",
   "RC": "4",
-  "ERRCODE": "E004"
+  "ERRCODE": "E004",
+  "AUTHSTAT": "",
+  "TXFEE": "",
+  "TXAMT": "600.00",
+  "TXLIMIT": "",
+  "TXCUST": "",
+  "TXSTAT": "",
+  "TXTYPE": "RE"
 }
 ```
 
@@ -377,7 +433,14 @@ No mismatches detected.
   "case_id": "FEECALC_BASIC_001",
   "module": "FEECALC",
   "RC": "0",
-  "TXFEE": "1.50"
+  "TXFEE": "1.50",
+  "ERRCODE": "0000",
+  "AUTHSTAT": "",
+  "TXAMT": "100.00",
+  "TXLIMIT": "",
+  "TXCUST": "",
+  "TXSTAT": "",
+  "TXTYPE": ""
 }
 ```
 
@@ -416,7 +479,14 @@ No mismatches detected.
   "case_id": "AUTHDEC_APPROVE_001",
   "module": "AUTHDEC",
   "RC": "0",
-  "AUTHSTAT": "REJCT"
+  "AUTHSTAT": "REJCT",
+  "ERRCODE": "0000",
+  "TXFEE": "",
+  "TXAMT": "",
+  "TXLIMIT": "",
+  "TXCUST": "",
+  "TXSTAT": "",
+  "TXTYPE": ""
 }
 ```
 
@@ -457,7 +527,14 @@ No mismatches detected.
   "case_id": "AUTHDEC_REJECT_001",
   "module": "AUTHDEC",
   "RC": "0",
-  "AUTHSTAT": "REJCT"
+  "AUTHSTAT": "REJCT",
+  "ERRCODE": "E003",
+  "TXFEE": "",
+  "TXAMT": "",
+  "TXLIMIT": "",
+  "TXCUST": "",
+  "TXSTAT": "",
+  "TXTYPE": ""
 }
 ```
 
@@ -506,7 +583,12 @@ No mismatches detected.
   "RC": "0",
   "ERRCODE": "0000",
   "AUTHSTAT": "REJCT",
-  "TXFEE": "1.50"
+  "TXFEE": "1.50",
+  "TXAMT": "100.00",
+  "TXLIMIT": "500.00",
+  "TXCUST": "CUST000001",
+  "TXSTAT": "A",
+  "TXTYPE": "PO"
 }
 ```
 
@@ -560,7 +642,9 @@ No mismatches detected.
   "TXAMT": "100.00",
   "TXLIMIT": "500.00",
   "TXTYPE": "PO",
-  "TXFEE": "0.00"
+  "TXFEE": "0.00",
+  "ERRCODE": "0000",
+  "AUTHSTAT": ""
 }
 ```
 
@@ -603,9 +687,14 @@ No mismatches detected.
   "case_id": "VSAMPACK_LOCAL_PS_SMOKE_001",
   "module": "VSAMPACK",
   "RC": "0",
-  "IN_RECORD": "A123456789B000000000T0000010000X12345678------------------------------------------------------------",
-  "OUT_RECORD": "A123456789B000000000T0000010000X12345678------------------------------------------------------------",
-  "IO_ERROR": ""
+  "ERRCODE": "",
+  "AUTHSTAT": "",
+  "TXFEE": "",
+  "TXAMT": "",
+  "TXLIMIT": "",
+  "TXCUST": "",
+  "TXSTAT": "",
+  "TXTYPE": ""
 }
 ```
 
@@ -644,7 +733,15 @@ No mismatches detected.
   "case_id": "BCTCOUNT_COUNT_5_001",
   "module": "BCTCOUNT",
   "RC": "0",
-  "TOTAL": "15"
+  "TOTAL": "15",
+  "ERRCODE": "",
+  "AUTHSTAT": "",
+  "TXFEE": "",
+  "TXAMT": "",
+  "TXLIMIT": "",
+  "TXCUST": "",
+  "TXSTAT": "",
+  "TXTYPE": ""
 }
 ```
 
@@ -683,7 +780,66 @@ No mismatches detected.
   "case_id": "BCTCOUNT_COUNT_3_001",
   "module": "BCTCOUNT",
   "RC": "0",
-  "TOTAL": "6"
+  "TOTAL": "6",
+  "ERRCODE": "",
+  "AUTHSTAT": "",
+  "TXFEE": "",
+  "TXAMT": "",
+  "TXLIMIT": "",
+  "TXCUST": "",
+  "TXSTAT": "",
+  "TXTYPE": ""
+}
+```
+
+No mismatches detected.
+
+### Test Case: `MAINDRV_DDNAME_FILE_FLOW_001`
+
+- Mode: `application`
+- Module: `MAINDRV`
+- Description: Run discovered file-aware driver orchestration using DDNAME-based input/output text files.
+- Match score: `100.0%`
+- Fields matched: `1/1`
+
+**Input:**
+
+```json
+{
+  "IO_FORCE_READ": "true",
+  "INRPL_PATH": "test_cases/ps/INVSAM.txt",
+  "INVSAM_PATH": "test_cases/ps/INVSAM.txt",
+  "CURRTX_PATH": "test_cases/ps/INVSAM.txt",
+  "OUTRPL_PATH": "test_cases/ps/OUTVSAM.txt",
+  "OUTACB_PATH": "test_cases/ps/OUTVSAM.txt",
+  "LOGBUFF_PATH": "test_cases/ps/OUTVSAM.txt",
+  "ERRCODE": "0000"
+}
+```
+
+**Expected ASM Output:**
+
+```json
+{
+  "RC": "0"
+}
+```
+
+**Actual Java Output:**
+
+```json
+{
+  "case_id": "MAINDRV_DDNAME_FILE_FLOW_001",
+  "module": "MAINDRV",
+  "RC": "0",
+  "ERRCODE": "E004",
+  "AUTHSTAT": "REJCT",
+  "TXFEE": "0.00",
+  "TXAMT": "600.00",
+  "TXLIMIT": "700.00",
+  "TXCUST": "CUST000004",
+  "TXSTAT": "A",
+  "TXTYPE": "RE"
 }
 ```
 
