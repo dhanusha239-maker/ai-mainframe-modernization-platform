@@ -252,5 +252,30 @@
       "RC": "0",
       "TOTAL": "6"
     }
+  },
+  {
+    "case_id": "MAINDRV_DDNAME_FILE_FLOW_001",
+    "mode": "application",
+    "module": "MAINDRV",
+    "entry_module": "MAINDRV",
+    "description": "Run discovered file-aware driver orchestration using DDNAME-based input/output text files.",
+    "input": {
+      "IO_FORCE_READ": "true",
+      "INRPL_PATH": "test_cases/ps/INVSAM.txt",
+      "INVSAM_PATH": "test_cases/ps/INVSAM.txt",
+      "CURRTX_PATH": "test_cases/ps/INVSAM.txt",
+      "OUTRPL_PATH": "test_cases/ps/OUTVSAM.txt",
+      "OUTACB_PATH": "test_cases/ps/OUTVSAM.txt",
+      "LOGBUFF_PATH": "test_cases/ps/OUTVSAM.txt",
+      "ERRCODE": "0000"
+    },
+    "expected_asm_output": {
+      "RC": "0"
+    },
+    "capture_fields": [
+      "INPUT_RECORD_COUNT",
+      "OUTPUT_RECORD_COUNT",
+      "IO_ERROR"
+    ]
   }
 ]

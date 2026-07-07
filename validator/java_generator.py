@@ -1794,7 +1794,7 @@ public class {class_name} implements AssemblerModule {{
         java.append("                                __amountText = \"0\";")
         java.append("                            }")
         java.append("                            java.math.BigDecimal __amountCents = new java.math.BigDecimal(__amountText);")
-        java.append("                            java.math.BigDecimal __taxCents = __amountCents.multiply(__taxRate).setScale(0, java.math.RoundingMode.HALF_UP);")
+        java.append("                            java.math.BigDecimal __taxCents = __amountCents.multiply(__taxRate).setScale(0, java.math.RoundingMode.DOWN);")
         java.append("                            String __taxText = String.format(\"%09d\", __taxCents.longValue());")
         java.append("                            for (int __i = 0; __i < 9; __i++) {")
         java.append("                                __buffer[__bPos + 1 + __i] = __taxText.charAt(__i);")

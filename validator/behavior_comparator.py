@@ -302,12 +302,11 @@ def generate_java_runner(test_cases):
     """
     Dynamically writes generated_java/BehaviorTestRunner.java.
 
-    Output capture is module-aware:
-      - always writes case_id, module, RC
-      - captures only expected_asm_output fields except RC
-      - optionally captures fields listed in test case capture_fields
-
-    This avoids showing unrelated transaction fields for modules such as VSAMPACK.
+    This Java program:
+      - loads each test case input into ExecutionContext
+      - runs generated Java module or full flow
+      - captures actual Java output
+      - writes java_behavior_output.json
     """
 
     case_methods = []
@@ -337,34 +336,46 @@ def generate_java_runner(test_cases):
                     f'        ctx.setString("{field}", "{java_string(value)}");'
                 )
 
-        capture_fields = []
+        expected_fields = list(case.get("expected_asm_output", {}).keys())
+        output_lines = []
 
-        for field in case.get("expected_asm_output", {}).keys():
-            if field != "RC" and field not in capture_fields:
-                capture_fields.append(field)
+        # Always capture expected fields.
+        for field in expected_fields:
+            if field == "RC":
+                continue
+            output_lines.append(
+                f'        output.put("{field}", ctx.getString("{field}"));'
+            )
 
-        for field in case.get("capture_fields", []):
-            if field != "RC" and field not in capture_fields:
-                capture_fields.append(field)
-
-        output_lines = [
-            f'        output.put("{field}", ctx.getString("{field}"));'
-            for field in capture_fields
-        ]
+        # Capture commonly used business fields if they exist.
+        for field in [
+            "ERRCODE",
+            "AUTHSTAT",
+            "TXFEE",
+            "TXAMT",
+            "TXLIMIT",
+            "TXCUST",
+            "TXSTAT",
+            "TXTYPE",
+        ]:
+            if field not in expected_fields:
+                output_lines.append(
+                    f'        output.put("{field}", ctx.getString("{field}"));'
+                )
 
         if mode == "application":
             execution_code = f"""
-        AssemblerModule application = new {class_name}();
-        ModuleResult result = application.execute(ctx);
-        int rc = result.getReturnCode();
-"""
+                AssemblerModule application = new {class_name}();
+                ModuleResult result = application.execute(ctx);
+                int rc = result.getReturnCode();
+        """
         else:
             execution_code = f"""
-        AssemblerModule module = new {class_name}();
-        ModuleResult result = module.execute(ctx);
-        int rc = result.getReturnCode();
-"""
-
+                AssemblerModule module = new {class_name}();
+                ModuleResult result = module.execute(ctx);
+                int rc = result.getReturnCode();
+        """
+ 
         method = f"""
     private static java.util.Map<String, String> {method_name}() {{
         ExecutionContext ctx = new ExecutionContext();
@@ -412,7 +423,7 @@ public class BehaviorTestRunner {{
 
                 int j = 0;
                 for (java.util.Map.Entry<String, String> entry : item.entrySet()) {{
-                    writer.write("    \\\"" + escape(entry.getKey()) + "\\\": \\\"" + escape(entry.getValue()) + "\\\"");
+                    writer.write("    \\"" + escape(entry.getKey()) + "\\": \\"" + escape(entry.getValue()) + "\\"");
 
                     if (j < item.size() - 1) {{
                         writer.write(",");
@@ -440,7 +451,7 @@ public class BehaviorTestRunner {{
             return "";
         }}
 
-        return value.replace(String.valueOf((char) 92), String.valueOf((char) 92) + String.valueOf((char) 92)).replace(String.valueOf((char) 34), String.valueOf((char) 92) + String.valueOf((char) 34));
+        return value.replace("\\\\", "\\\\\\\\").replace("\\"", "\\\\\\"");
     }}
 
 {chr(10).join(case_methods)}
@@ -448,6 +459,7 @@ public class BehaviorTestRunner {{
 """
 
     JAVA_RUNNER_FILE.write_text(runner.strip() + "\n", encoding="utf-8")
+
 
 def is_decimal_value(value):
     """
