@@ -1,321 +1,499 @@
-### AI-Powered Legacy Software Intelligence & Modernization Platform
-# 2-Week Sprint Plan
-Week 1: "Which HLASM modules are risky to modernize?"
-Week 2: "How do we modernize them safely and verify the translated behavior?"
+# AI-Powered Legacy Software Intelligence & Modernization Platform
 
-**Scope:**  ML-based legacy code risk prediction, HLASM-to-Java modernization, behavioral validation, and AI-assisted modernization reporting
-**Duration:** 2 Weeks
-**Project Type:** Enterprise Legacy Modernization Platform
-________________________________________
+## Executive Summary
 
-## 1. Problem Definition
+This project is an AI-powered legacy modernization platform that analyzes HLASM assembler modules, predicts modernization risk, generates Java code for supported logic, validates generated behavior, and produces AI-assisted modernization recommendations through a Streamlit dashboard.
 
-Many enterprises still depend on legacy mainframe systems written in HLASM, COBOL, PL/I, and other older technologies. These systems are business-critical, but modernization is difficult because the code often contains complex branching, interlinked modules, packed decimal operations, external calls, file handling, and limited documentation.
-Before converting legacy code into a modern language, organizations need to understand:
+The goal is not only to translate legacy code. The goal is to modernize safely by understanding risk, preserving business behavior, identifying source-code issues, and giving engineers evidence-based recommendations.
 
-•	Which modules are risky to modernize?
-•	Why are those modules risky?
-•	Can the business logic be preserved after translation?
-•	What modernization steps should engineers follow?
+---
 
-This project builds an integrated platform that uses Machine Learning to predict modernization risk and AI to assist with HLASM-to-Java modernization and engineering recommendations.
+## Project Status
 
-________________________________________
+Current implementation status:
 
-## 2. Project Objective
+| Area | Current Status |
+|---|---|
+| HLASM modules analyzed | 11 modules |
+| Java generation | Working for supported HLASM patterns |
+| Behavior validation | 15 / 17 tests passed |
+| Behavior match score | 95.59% |
+| Known issue | AUTHDEC approval-path behavior documented as source issue |
+| AI reporting | OpenAI LLM integration supported |
+| Dashboard | Streamlit dashboard available |
+| Production generator | `validator/java_generator.py` |
+| AI files | `validator/ai_modernization_engine.py`, `validator/modernization_dashboard.py` |
 
-The objective is to build a platform that performs two major functions:
+---
 
-# 1. ML-Based Legacy Code Risk Intelligence
+## Business Problem
 
-This component analyses legacy HLASM modules and predicts modernization risk using machine learning.
-Rather than relying only on module size, the model learns from multiple software engineering characteristics, including:
-•	Lines of Code (LOC) 
-•	Branch Instruction Count 
-•	Called Module Count 
-•	Calling Module Count 
-•	File I/O Operations 
-•	Database Access Operations 
-•	Macro Call Count 
-•	Packed Decimal Instruction Count 
-•	Historical Defect Count 
-•	Change Count (Last 12 Months) 
-•	Comment Ratio 
-•	Unsupported Instruction Count 
-**Output**
-•	 Modernization Risk Level: Low / Medium / High
-•	 Prediction Confidence Score
-•	 Top Risk Factors
-•	 Feature Importance Explanation
-•	 SHAP-based Sample Prediction Explanation
-**Important**
-The model does not classify risk based only on Lines of Code.
-For example:
-•	A 6,000-line reporting module can still be Low Risk if it has simple logic, few dependencies, low defect history, and good documentation. 
-•	A 400-line authorization module can be High Risk if it contains deep branching, unsupported instructions, frequent changes, and complex dependencies. 
+Many enterprises still depend on mainframe systems written in HLASM, COBOL, PL/I, and other legacy technologies. These systems are business-critical, but modernization is risky because legacy code often contains:
 
-________________________________________
+- Complex branching and loops
+- Interlinked modules and parameter passing
+- Packed decimal arithmetic
+- File and VSAM-style I/O
+- External calls and macros
+- Limited documentation
+- Business rules hidden inside technical instructions
 
-# 2. AI-Powered HLASM-to-Java Modernization
+Before modernizing legacy applications, engineers need to answer:
 
-This component analyzes HLASM modules, translates supported logic into Java, validates behavior, and generates modernization recommendations.
+- Which modules are risky to modernize?
+- Why are those modules risky?
+- Can generated Java preserve the original behavior?
+- Which fields and modules are impacted by a change?
+- Which modernization steps should engineers follow?
 
-It performs:
-•	HLASM parsing
-•	Intermediate representation creation
-•	Java code generation
-•	Behavioral validation
-•	AI-assisted explanation
-•	Modernization report generation
+This project addresses those questions using ML-style risk intelligence, static analysis, Java generation, behavior validation, and AI-assisted reporting.
 
-# Output:
+---
 
-Generated Java Code
-Behavior Match Score
-Translation Summary
-Modernization Recommendations
-Estimated Migration Effort
-________________________________________
+## What This Platform Does
 
-## 3. System Architecture
+The platform performs five major functions:
 
-Legacy HLASM / Legacy Code
-        |
-        v
-Static Feature Extraction
-        |
-        v
-ML Risk Prediction Engine
-        |
-        v
-Risk Score + Top Risk Factors
-        |
-        v
-HLASM Parser + Java Generator
-        |
-        v
-Behavioral Validation Engine
-        |
-        v
-AI Modernization Intelligence Layer
-        |
-        v
-Final Modernization Report / Dashboard
+1. **ML-Based Risk Intelligence**  
+   Evaluates modernization risk using engineering features such as LOC, branching, dependencies, file I/O, packed decimal usage, unsupported instructions, defect/change indicators, and documentation quality.
 
-The ML model predicts how risky the module is.
-The AI modernization layer explains why it is risky, validates translated behavior, and recommends how to modernize it safely.
-________________________________________
+2. **HLASM Static Analysis**  
+   Parses HLASM modules and identifies labels, opcodes, operands, branches, calls, data declarations, packed decimal operations, and file I/O behavior.
 
-## 4. Two-Week Sprint Plan
+3. **HLASM-to-Java Modernization**  
+   Generates Java code for supported HLASM patterns, including validation logic, packed decimal-style operations, DDNAME-based local I/O, BCT loop behavior, and batch record processing.
 
-# Week 1: ML-Based Legacy Code Risk Prediction
-**Goal**
-Develop an ML pipeline that predicts modernization risk for legacy HLASM software modules.
+4. **Behavioral Validation**  
+   Runs test cases against generated Java output and compares behavior with expected legacy outcomes.
 
-# 1A.	Enterprise Dataset Design
-Develop a realistic enterprise banking dataset where each record represents one HLASM module.
-**Example columns:**
-application_name
-business_process
-module_name
-module_role
-lines_of_code
-branch_instruction_count
-called_module_count
-calling_module_count
-file_io_count
-database_access_count
-macro_call_count
-packed_decimal_instruction_count
-historical_defect_count
-change_count_last_12_months
-comment_ratio
-unsupported_instruction_count
+5. **AI Modernization Intelligence**  
+   Uses project artifacts and an optional OpenAI LLM integration to produce modernization reports, failure diagnostics, field impact explanations, and dashboard-based recommendations.
 
+---
 
-**Target variable**
-risk_level
-Low
-Medium
-High
+## Architecture
 
-________________________________________
-
-# 1B.	Data Preparation
-
-Perform data preprocessing before model training.
-Activities include:
-•	Feature selection 
-•	Categorical feature encoding (One-Hot Encoding) 
-•	Numerical feature preparation 
-•	Train/Test split 
-•	ML pipeline construction using Scikit-learn 
-
-________________________________________
-
-# 1C.	 Model Development
-
-Train and compare multiple machine learning models:
-•	Logistic Regression (Baseline) 
-•	Decision Tree 
-•	Random Forest 
-•	• XGBoost Classifier
-Perform hyperparameter tuning using:
-•	GridSearchCV 
-•	5-Fold Cross Validation 
-Select the Final model as the production model.
-
-________________________________________
-## 1D.   Model Evaluation
-
-Evaluate each model using:
-•	Accuracy 
-•	Precision 
-•	Recall 
-•	F1-Score 
-•	Confusion Matrix 
-•	Cross-Validation Accuracy 
-Compare baseline and tuned models to select the most reliable model.
-________________________________________
-
-
-# 1E.	Explainability
-
-Interpret model predictions using:
-• Feature Importance Ranking
-• SHAP-based sample prediction explanation
-____________________________________
-
-
-**Week 1 Deliverables**
-•	Enterprise Banking HLASM Risk Dataset 
-•	Data Dictionary 
-•	Data Preprocessing Pipeline 
-•	Trained ML Models 
-•	Hyperparameter Tuning Results 
-•	Model Evaluation Report 
-•	Feature Importance Analysis 
-•	Sample Modernization Risk Predictions 
-•	Saved Model Artifacts for Week 2 Integration 
-
-________________________________________
-
-## Week 2: AI-Powered Legacy Software Modernization Platform
-**Goal**
-Integrate the ML risk engine with the HLASM-to-Java modernization system and generate engineering-level modernization reports.
-
-Main Activities
-
-# 2A.	HLASM Parser
-Parse HLASM source code and identify:
-•	Labels
-•	Opcodes
-•	Operands
-•	Branch instructions
-•	External calls
-•	Data declarations
-•	Packed decimal operations
-•	File/VSAM operations
-Output:
-Structured representation of the HLASM module
-________________________________________
-
-# 2B.	Intermediate Representation and Java Generation
-
-Convert parsed HLASM logic into a language-neutral structure, then generate readable Java code.
-Example:
-HLASM packed decimal comparison
+```text
+HLASM/*.asm.txt
         ↓
-Intermediate business rule
+Scanner / CFG / PDG Analysis
         ↓
-Java BigDecimal comparison
-________________________________________
+analysis_report.json
+        ↓
+Instruction Semantics + Instruction Translator
+        ↓
+Java Generator
+        ↓
+generated_java/*.java
+        ↓
+Behavior Comparator
+        ↓
+docs/behavior_comparison_report.md
+docs/behavior_comparison_results.json
+        ↓
+AI Modernization Engine
+        ↓
+docs/ai_modernization_report.md
+docs/ai_llm_integration_details.json
+        ↓
+Streamlit Modernization Dashboard
+```
 
-# 2C.	Behavioral Validation
+---
 
-Run test cases against the generated Java logic to verify that the business behavior matches the original HLASM logic.
-Example:
-Total Test Cases: 25
-Passed: 23
-Failed: 2
-Behavior Match Score: 92%
-________________________________________
+## Week 1: ML-Based Legacy Code Risk Intelligence
 
-# 2D.	AI Modernization Intelligence Layer
+The Week 1 component focuses on predicting modernization risk before translation begins.
 
-Use the ML prediction, extracted features, SHAP explanation, generated Java, and validation result to create a modernization report.
-Example output:
-Module: LIMITCHK.ASM
+The risk model is designed to learn from multiple software engineering signals, not just module size.
 
-ML Risk Prediction:
-Medium Risk, 78% confidence
+Example risk features:
 
-Behavior Validation:
-92% behavior match
+- Lines of code
+- Branch instruction count
+- Called module count
+- Calling module count
+- File I/O operation count
+- Database access operation count
+- Macro call count
+- Packed decimal instruction count
+- Historical defect count
+- Change count in the last 12 months
+- Comment ratio
+- Unsupported instruction count
 
-Primary Risk Factors:
-- Packed decimal comparison
-- Shared transaction structure
-- Error code dependency
-- Limited comments
+Risk output:
 
-Recommended Actions:
-1. Add boundary test cases.
-2. Review packed decimal rounding behavior.
-3. Convert error codes into typed Java responses.
-4. Isolate validation logic into a Java service class.
+- Low / Medium / High modernization risk
+- Prediction confidence
+- Top risk factors
+- Feature importance explanation
+- SHAP-style sample explanation when model artifacts are available
 
-# Estimated Migration Effort:
-Medium
+Important idea:
 
-**Week 2 Deliverables**
-•	HLASM parser
-•	Java generation engine
-•	Behavioral validation engine
-•	AI modernization report generator
-•	API or dashboard interface
-•	Final modernization report sample
-________________________________________
+> A large reporting module can be low risk if it has simple logic and few dependencies. A small authorization module can be high risk if it has deep branching, frequent changes, packed decimal logic, unsupported instructions, or business-critical dependencies.
 
-# 2E. Final Platform Deliverables
-At the end of the sprint, the platform should include:
-•	ML-based modernization risk predictor
-•	Realistic legacy code risk dataset
-•	Feature extraction pipeline
-•	HLASM-to-Java modernization engine
-•	Behavioral validation system
-•	AI modernization recommendation engine
-•	Final modernization report
-•	Technical documentation
-________________________________________
+---
 
-## 5. Conclusion
+## Week 2: HLASM-to-Java Modernization and Validation
 
-The project is not just a translator and not just an ML model. It is an integrated modernization platform that predicts risk, modernizes code, validates behavior, and provides engineering guidance.
+The Week 2 component modernizes supported HLASM modules and validates behavior.
 
-### Power shall commands:
-python tests/test_scanner.py    -- to get list of called modules (asm_scanner.py)
-python tests/test_cfg_builder.py -- to get CFG of all 11 modules with branches(cfg_builder.py)
-python tests/test_pdg_builder.py--pdg_builder.py
-python validator/impact_analyzer.py
-python validator/documentation_generator.py
-python validator/instruction_translator_updated_v3.py
-python validator\java_generator_updated_v4_local_io.py
-## To verify synatx errors
+Main modules in the sample modernization flow:
+
+| Module | Purpose |
+|---|---|
+| `MAINDRV` | Main orchestration module |
+| `TXREAD` | Reads transaction records |
+| `CUSTVAL` | Customer validation |
+| `CARDSTAT` | Card status validation |
+| `LIMITCHK` | Limit check |
+| `FRDCHK` | Fraud/risk check |
+| `FEECALC` | Packed decimal-style fee calculation |
+| `AUTHDEC` | Authorization decision |
+| `AUDWRITE` | Audit record output |
+| `VSAMPACK` | Batch record transformation and tax-style packed decimal logic |
+| `BCTCOUNT` | BCT loop behavior validation |
+
+---
+
+## Instruction Translation Layer
+
+The translation layer separates instruction meaning from complete Java generation.
+
+| File | Purpose |
+|---|---|
+| `validator/instruction_semantics.py` | Defines semantic meaning for supported HLASM instructions |
+| `validator/instruction_translator.py` | Converts individual HLASM instructions into Java-friendly translation patterns |
+| `validator/java_generator.py` | Uses those patterns to generate complete Java module files |
+
+Example translation concepts:
+
+- `CLC` / `CLI` → Java comparison logic
+- `MVC` → field/string movement
+- `PACK`, `ZAP`, `MP`, `UNPK`, `SRP` → decimal-style operations
+- `BCT` → loop behavior
+- `GET` / `PUT` / DDNAME → local file input/output behavior
+
+---
+
+## AI / LLM Integration
+
+The project uses the LLM as an explanation and reporting layer. The LLM is **not** the source of truth.
+
+The deterministic source of truth comes from:
+
+- HLASM source modules
+- CFG / PDG analysis
+- Java generation output
+- Behavior comparison results
+- Known source issue documentation
+- Instruction coverage artifacts
+
+The AI engine generates:
+
+- `docs/ai_modernization_report.md`
+- `docs/ai_llm_integration_details.json`
+
+The LLM integration details file records:
+
+- Provider
+- Model name
+- Whether the LLM call was used
+- Prompt SHA256
+- Context SHA256
+- Input artifacts used
+- Timestamp
+
+This makes the AI layer auditable and evidence-based.
+
+---
+
+## Dashboard Features
+
+The Streamlit dashboard provides a production-style modernization review interface.
+
+Dashboard pages:
+
+1. **Executive Summary**  
+   Shows behavior match score, passed/failed tests, HLASM module count, and LLM usage status.
+
+2. **Module Explorer**  
+   Allows selecting a module from a dropdown and viewing risk score, called modules, calling modules, technical factors, and modernization recommendations.
+
+3. **Field Impact Explorer**  
+   Allows searching fields such as `ERRCODE`, `TXAMT`, `AUTHSTAT`, `TXFEE`, and shows writer modules, reader modules, impacted modules, and evidence lines.
+
+4. **AI Chatbot**  
+   Answers grounded questions about modules, fields, behavior failures, risk, and modernization recommendations.
+
+5. **AI Report / LLM Details**  
+   Displays the generated AI modernization report and LLM integration metadata.
+
+Example chatbot questions:
+
+```text
+bctcount
+tax calculation modules
+Which modules use ERRCODE?
+Why did AUTHDEC fail?
+Why is VSAMPACK high risk?
+What tests should I add for LIMITCHK?
+```
+
+---
+
+## Project Structure
+
+```text
+AI-Powered Legacy Software Intelligence & Modernization Platform/
+│
+├── HLASM/                         # Sample HLASM source modules
+├── generated_java/                # Generated Java files
+├── ml_risk_predictor/             # ML risk intelligence component
+├── test_cases/                    # Behavior test inputs and expected paths
+├── tests/                         # Scanner / CFG / PDG / runtime tests
+├── validator/                     # Core modernization pipeline
+│   ├── asm_scanner.py
+│   ├── cfg_builder.py
+│   ├── pdg_builder.py
+│   ├── impact_analyzer.py
+│   ├── instruction_semantics.py
+│   ├── instruction_translator.py
+│   ├── java_generator.py
+│   ├── behavior_comparator.py
+│   ├── ai_modernization_engine.py
+│   └── modernization_dashboard.py
+│
+├── docs/                          # Generated reports and AI documentation
+├── analysis_report.json
+├── instruction_coverage_matrix_v3.md
+├── LOCAL_IO_SETUP.md
+├── PROJECT_RUNBOOK.md
+├── README.md
+└── requirements.txt
+```
+
+---
+
+## Quick Start
+
+### 1. Activate the environment
+
+```powershell
+cd "C:\Users\dhanu\AI-Powered Legacy Software Intelligence & Modernization Platform"
+.\.venv\Scripts\Activate.ps1
+```
+
+### 2. Install dependencies
+
+```powershell
+python -m pip install -r requirements.txt
+```
+
+### 3. Run static-analysis tests
+
+```powershell
+python tests\test_scanner.py
+python tests\test_cfg_builder.py
+python tests\test_pdg_builder.py
+```
+
+### 4. Generate analysis documentation
+
+```powershell
+python validator\documentation_generator.py
+python validator\impact_analyzer.py
+```
+
+### 5. Demonstrate instruction-level translation
+
+```powershell
+python validator\instruction_translator.py
+```
+
+### 6. Generate Java
+
+```powershell
+python validator\java_generator.py
+```
+
+### 7. Compile generated Java
+
+```powershell
 cd generated_java
 javac *.java
-###
 cd ..
-python tests/asm_runtime_tests.py    (only when instruction updates in symantic and translator)
-python validator/behavior_comparator.py
-python validator/modernization_dashboard.py
-streamlit run dashboard/app.py
+```
 
+### 8. Run behavior validation
 
-ai_llm_integration_details.json     -> proves OpenAI/LLM integration details
-ai_modernization_report.md          -> final AI-generated modernization report
-behavior_comparison_report.md       -> behavior validation summary
-behavior_comparison_results.json    -> machine-readable validation result
-generated_behavior_report.md        -> static/generated behavior documentation
-known_hlasm_issues.md               -> documents AUTHDEC source issue
-project_analysis_report.md          -> static analysis / module analysis report
+```powershell
+python validator\behavior_comparator.py
+```
+
+Expected result:
+
+```text
+Total test cases: 17
+Passed cases: 15
+Failed cases: 2
+Average behavior match score: 95.59%
+```
+
+### 9. Generate AI modernization report
+
+To run with LLM enabled, set your key locally in PowerShell. Do not commit the key.
+
+```powershell
+$env:OPENAI_API_KEY = "paste_your_key_here"
+$env:OPENAI_MODEL = "gpt-4.1-mini"
+$env:AI_USE_LLM = "1"
+
+python validator\ai_modernization_engine.py
+```
+
+To run without LLM:
+
+```powershell
+$env:AI_USE_LLM = "0"
+python validator\ai_modernization_engine.py
+```
+
+### 10. Run dashboard
+
+```powershell
+python -m streamlit run validator\modernization_dashboard.py
+```
+
+---
+
+## Behavior Validation Results
+
+Current result:
+
+| Metric | Value |
+|---|---|
+| Total test cases | 17 |
+| Passed cases | 15 |
+| Failed cases | 2 |
+| Behavior match score | 95.59% |
+
+The two accepted failures are related to the documented `AUTHDEC` approval-path behavior.
+
+---
+
+## Known Limitation
+
+The current behavior validation has two accepted failures related to `AUTHDEC` approval behavior.
+
+This is documented as a source-program issue, not a Java generator defect. The generator should not silently change business behavior. The correct modernization approach is to review or fix the original source logic before production migration sign-off.
+
+See:
+
+```text
+docs/known_hlasm_issues.md
+```
+
+---
+
+## Reports and Artifacts
+
+| File | Purpose |
+|---|---|
+| `docs/project_analysis_report.md` | Static analysis and module analysis report |
+| `docs/generated_behavior_report.md` | Generated behavior documentation |
+| `docs/behavior_comparison_report.md` | Behavior validation summary |
+| `docs/behavior_comparison_results.json` | Machine-readable validation result |
+| `docs/ai_modernization_report.md` | Final AI-generated modernization report |
+| `docs/ai_llm_integration_details.json` | LLM integration metadata and audit details |
+| `docs/known_hlasm_issues.md` | Documents known source behavior issues |
+| `instruction_coverage_matrix_v3.md` | Instruction coverage evidence |
+| `LOCAL_IO_SETUP.md` | Local DDNAME/file setup notes |
+| `PROJECT_RUNBOOK.md` | Step-by-step runbook for demo and review |
+
+---
+
+## Adding a New HLASM Module
+
+Basic flow:
+
+```powershell
+Copy-Item "C:\Users\dhanu\Downloads\NEWMOD.asm.txt" HLASM\NEWMOD.asm.txt -Force
+
+python tests\test_scanner.py
+python tests\test_cfg_builder.py
+python tests\test_pdg_builder.py
+
+python validator\documentation_generator.py
+python validator\java_generator.py
+python validator\behavior_comparator.py
+python validator\ai_modernization_engine.py
+python -m streamlit run validator\modernization_dashboard.py
+```
+
+If the new module requires behavior validation, add a test case to:
+
+```text
+test_cases/behavior_test_cases.json
+```
+
+Static analysis and AI reporting can detect the module immediately, but behavior score coverage requires a behavior test case.
+
+---
+
+## CI/CD Readiness
+
+Recommended CI/CD checks:
+
+- Python syntax check
+- Scanner test
+- CFG builder test
+- PDG builder test
+- Java generation
+- Java compilation
+- Behavior comparison
+- AI report generation in offline mode using `AI_USE_LLM=0`
+
+The AI report can run offline in CI so no OpenAI key is required in GitHub Actions.
+
+---
+
+## Future Enhancements
+
+Planned enhancements are documented in:
+
+```text
+docs/future_enhancements.md
+```
+
+Important future improvements include:
+
+- Expanded HLASM instruction coverage
+- Stronger Week 1 ML model integration into the dashboard
+- SHAP explanation per module
+- Automated test case generation from CFG/PDG
+- Module dependency graph visualization
+- Field impact graph visualization
+- Exportable PDF modernization report
+- Human-in-the-loop review workflow
+- Docker or cloud deployment
+
+---
+
+## Usage Notice
+
+This repository is shared as a professional portfolio project to demonstrate skills in mainframe modernization, HLASM analysis, Java generation, behavioral validation, ML-based risk intelligence, and AI-assisted modernization reporting.
+
+The project uses synthetic/sample HLASM programs and test data. It does not contain proprietary client code, production mainframe assets, or confidential business data.
+
+Organizations are welcome to review this repository for hiring, technical evaluation, and discussion purposes. For commercial reuse, production adoption, or integration into enterprise systems, please contact the author.
+
+---
+
+## Final Summary
+
+This project is not just a translator and not just an ML model. It is an integrated modernization platform that predicts risk, analyzes HLASM, generates Java, validates behavior, documents known source issues, and uses AI to provide modernization guidance.
+
+The core value is safe modernization: before changing legacy business logic, the platform explains risk, validates behavior, and gives engineers evidence-based recommendations.
