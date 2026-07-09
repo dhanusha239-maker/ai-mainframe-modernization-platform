@@ -1,608 +1,1138 @@
+"""
+AI Modernization Dashboard
+
+Purpose:
+- Visual dashboard for the AI-Powered Legacy Software Intelligence & Modernization Platform.
+- Reads existing project artifacts; does not create new files.
+- Provides module exploration, CFG/PDG-style dependency views, field impact analysis, report viewer, and grounded chatbot.
+
+Run from project root:
+    python -m streamlit run validator/modernization_dashboard.py
+
+Expected companion files:
+    validator/ai_modernization_engine.py
+    docs/ai_modernization_report.md
+    docs/ai_llm_integration_details.json
+    docs/behavior_comparison_report.md
+    docs/known_hlasm_issues.md
+    HLASM/*.asm.txt
+"""
+
+from __future__ import annotations
+
 import json
+import os
+import re
+import sys
+from dataclasses import dataclass, asdict
 from pathlib import Path
-from datetime import datetime
-from collections import defaultdict
+from typing import Any, Dict, Iterable, List, Optional, Tuple
+
+import pandas as pd
+import streamlit as st
 
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+# -----------------------------------------------------------------------------
+# Configuration
+# -----------------------------------------------------------------------------
 
-ANALYSIS_REPORT = PROJECT_ROOT / "analysis_report.json"
-BEHAVIOR_RESULTS = PROJECT_ROOT / "docs" / "behavior_comparison_results.json"
-
-DOCS_DIR = PROJECT_ROOT / "docs"
-DASHBOARD_JSON = DOCS_DIR / "modernization_dashboard.json"
-DASHBOARD_MD = DOCS_DIR / "modernization_dashboard.md"
-
-
-ERROR_REASON_MAP = {
-    "E001": "Customer validation failure",
-    "E002": "Card status failure",
-    "E003": "Limit exceeded",
-    "E004": "Fraud risk detected",
-    "0000": "No error",
-    "": "No error code captured",
+BRANCH_OPS = {
+    "B", "BC", "BE", "BNE", "BNZ", "BZ", "BH", "BL", "BNH", "BNL",
+    "BR", "BRC", "BCR", "J", "JE", "JNE", "JNZ", "JZ", "JH", "JL",
+    "JNH", "JNL", "BCT",
 }
 
+CALL_OPS = {"CALL", "BAL", "BALR", "BAS", "BASR", "LINK", "XCTL", "LOAD"}
+IO_OPS = {"GET", "PUT", "OPEN", "CLOSE", "READ", "WRITE", "POINT", "CHECK"}
+PACKED_DECIMAL_OPS = {"PACK", "UNPK", "ZAP", "CP", "MP", "DP", "AP", "SP", "SRP", "CVB", "CVD"}
+DATA_OPS = {"DS", "DC", "DSECT", "CSECT", "USING", "DROP", "EQU", "ACB", "RPL", "EXLST", "DCB"}
 
-def load_json(path):
+KNOWN_OPS = (
+    BRANCH_OPS
+    | CALL_OPS
+    | IO_OPS
+    | PACKED_DECIMAL_OPS
+    | DATA_OPS
+    | {
+        "MVC", "CLC", "CLI", "ST", "STM", "L", "LR", "LTR", "LA", "A", "AR", "SR",
+        "CR", "C", "CH", "STC", "MVI", "OI", "NI", "XI", "RETURN", "SAVE", "EJECT",
+        "END", "SPACE", "TITLE", "WTO", "COPY", "MACRO", "MEND", "NOP",
+    }
+)
+
+REGISTER_PATTERN = re.compile(r"^R?\d+$", re.IGNORECASE)
+
+
+@dataclass
+class ModuleProfile:
+    module: str
+    source_path: str
+    risk_level: str
+    risk_score: int
+    loc: int
+    branches: int
+    calls: int
+    file_io: int
+    packed_decimal: int
+    unsupported: int
+    comment_ratio: float
+    called_modules: List[str]
+    calling_modules: List[str]
+    top_factors: List[str]
+    recommendations: List[str]
+    evidence_preview: List[str]
+
+
+@dataclass
+class FieldImpact:
+    field: str
+    defined_in: List[str]
+    reader_modules: List[str]
+    writer_modules: List[str]
+    all_modules: List[str]
+    risk_level: str
+    reason: str
+    evidence_lines: List[str]
+
+
+# -----------------------------------------------------------------------------
+# Project and file helpers
+# -----------------------------------------------------------------------------
+
+
+def find_project_root() -> Path:
+    candidates = []
+
+    try:
+        candidates.append(Path.cwd().resolve())
+    except Exception:
+        pass
+
+    try:
+        candidates.append(Path(__file__).resolve().parent.parent)
+        candidates.append(Path(__file__).resolve().parent)
+    except Exception:
+        pass
+
+    for start in candidates:
+        for candidate in [start] + list(start.parents):
+            if (candidate / "validator").exists() and ((candidate / "HLASM").exists() or (candidate / "docs").exists()):
+                return candidate
+
+    return Path.cwd().resolve()
+
+
+PROJECT_ROOT = find_project_root()
+DOCS_DIR = PROJECT_ROOT / "docs"
+HLASM_DIR = PROJECT_ROOT / "HLASM"
+GENERATED_JAVA_DIR = PROJECT_ROOT / "generated_java"
+
+
+def read_text(path: Path, limit: Optional[int] = None) -> str:
     if not path.exists():
-        raise FileNotFoundError(f"Required file not found: {path}")
-
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-
-def all_modules(analysis):
-    modules = set()
-
-    for section in [
-        "reads",
-        "writes",
-        "return_codes",
-        "conditions",
-        "module_parameter_context",
-        "register_map",
-        "record_buffer_reads",
-        "record_buffer_writes",
-        "condition_branches",
-        "cfg",
-        "pdg",
-        "control_flow_graph",
-        "program_dependency_graph",
-    ]:
-        value = analysis.get(section, {})
-        if isinstance(value, dict):
-            modules.update(value.keys())
-
-    return sorted(modules)
-
-
-def get_first_existing_dict(data, keys):
-    for key in keys:
-        value = data.get(key)
-        if isinstance(value, dict) and value:
-            return key, value
-
-    return None, {}
-
-
-def build_cfg_pdg_summary(analysis):
-    """
-    Build dashboard-level CFG/PDG metrics.
-
-    Even if raw CFG/PDG graph objects are not exported in analysis_report.json,
-    we can still calculate useful summary metrics from existing analyzer output.
-
-    CFG summary uses:
-      - conditions
-      - condition_branches
-
-    PDG summary uses:
-      - reads
-      - writes
-      - symbol_readers
-      - symbol_writers
-    """
-
-    conditions = analysis.get("conditions", {})
-    condition_branches = analysis.get("condition_branches", {})
-
-    reads = analysis.get("reads", {})
-    writes = analysis.get("writes", {})
-    symbol_readers = analysis.get("symbol_readers", {})
-    symbol_writers = analysis.get("symbol_writers", {})
-
-    modules = set()
-    modules.update(conditions.keys())
-    modules.update(condition_branches.keys())
-    modules.update(reads.keys())
-    modules.update(writes.keys())
-
-    cfg_condition_count = sum(
-        len(items) for items in conditions.values()
-        if isinstance(items, list)
-    )
-
-    cfg_branch_count = sum(
-        len(items) for items in condition_branches.values()
-        if isinstance(items, list)
-    )
-
-    cfg_module_count = len(
-        set(conditions.keys()) | set(condition_branches.keys())
-    )
-
-    pdg_read_edges = sum(
-        len(items) for items in reads.values()
-        if isinstance(items, list)
-    )
-
-    pdg_write_edges = sum(
-        len(items) for items in writes.values()
-        if isinstance(items, list)
-    )
-
-    pdg_symbol_dependency_edges = 0
-
-    all_symbols = set(symbol_readers.keys()) | set(symbol_writers.keys())
-
-    for symbol in all_symbols:
-        readers = symbol_readers.get(symbol, [])
-        writers = symbol_writers.get(symbol, [])
-
-        pdg_symbol_dependency_edges += len(readers) + len(writers)
-
-    pdg_module_count = len(set(reads.keys()) | set(writes.keys()))
-
-    return {
-        "cfg_available": cfg_condition_count > 0 or cfg_branch_count > 0,
-        "pdg_available": pdg_read_edges > 0 or pdg_write_edges > 0,
-        "cfg_source_key": "derived_from_conditions_and_branches",
-        "pdg_source_key": "derived_from_reads_writes_and_symbol_dependencies",
-        "cfg_module_count": cfg_module_count,
-        "pdg_module_count": pdg_module_count,
-        "cfg_condition_count": cfg_condition_count,
-        "cfg_branch_count": cfg_branch_count,
-        "pdg_read_edges": pdg_read_edges,
-        "pdg_write_edges": pdg_write_edges,
-        "pdg_symbol_dependency_edges": pdg_symbol_dependency_edges,
-    }
-
-def build_module_summary(analysis, behavior_results):
-    modules = all_modules(analysis)
-    behavior_by_module = defaultdict(list)
-
-    for result in behavior_results:
-        module = result.get("module", "UNKNOWN")
-        behavior_by_module[module].append(result)
-
-    summaries = []
-
-    for module in modules:
-        reads = analysis.get("reads", {}).get(module, [])
-        writes = analysis.get("writes", {}).get(module, [])
-        return_codes = analysis.get("return_codes", {}).get(module, [])
-        conditions = analysis.get("conditions", {}).get(module, [])
-
-        module_results = behavior_by_module.get(module, [])
-        match_scores = [
-            item.get("comparison", {}).get("match_score", 0)
-            for item in module_results
-        ]
-
-        avg_match = round(sum(match_scores) / len(match_scores), 2) if match_scores else None
-
-        summaries.append(
-            {
-                "module": module,
-                "fields_read": reads,
-                "fields_written": writes,
-                "return_codes": return_codes,
-                "condition_count": len(conditions),
-                "behavior_test_count": len(module_results),
-                "average_behavior_match": avg_match,
-            }
-        )
-
-    return summaries
-
-
-def diagnose_failed_case(item):
-    case_id = str(item.get("case_id", ""))
-    module = str(item.get("module", ""))
-    expected = item.get("expected_asm_output", {})
-    actual = item.get("actual_java_output", {})
-    mismatches = item.get("comparison", {}).get("mismatched_fields", [])
-    mismatch_text = " ".join(str(x) for x in mismatches).upper()
-
-    if module == "AUTHDEC" or "AUTHDEC" in case_id or "AUTHSTAT" in mismatch_text:
-        expected_auth = expected.get("AUTHSTAT")
-        actual_auth = actual.get("AUTHSTAT")
-
-        if expected_auth == "APPRV" and actual_auth != "APPRV":
-            return (
-                "AUTHDEC approval-path mismatch. When ERRCODE is 0000, "
-                "expected AUTHSTAT is APPRV, but generated Java did not produce APPRV. "
-                "Suggested review: approval branch translation in AUTHDEC."
-            )
-
-    if "TXFEE" in mismatch_text:
-        return (
-            "Fee calculation mismatch. Suggested review: packed-decimal ZAP/MP/SRP "
-            "translation and rounding behavior."
-        )
-
-    if "ERRCODE" in mismatch_text:
-        return (
-            "Error-code mismatch. Suggested review: validation branch ordering and "
-            "reject-path control flow."
-        )
-
-    if "RC" in mismatch_text:
-        return (
-            "Return-code mismatch. Suggested review: final application RC preservation "
-            "and validation-path return behavior."
-        )
-
-    return "Review generated Java output against expected assembler behavior."
-
-
-def build_behavior_summary(behavior_results):
-    total = len(behavior_results)
-    passed = sum(
-        1
-        for item in behavior_results
-        if item.get("comparison", {}).get("match_score") == 100.0
-    )
-    failed = total - passed
-
-    avg_score = (
-        round(
-            sum(item.get("comparison", {}).get("match_score", 0) for item in behavior_results) / total,
-            2,
-        )
-        if total
-        else 0
-    )
-
-    failed_cases = []
-
-    for item in behavior_results:
-        comparison = item.get("comparison", {})
-        if comparison.get("match_score") == 100.0:
-            continue
-
-        failed_cases.append(
-            {
-                "case_id": item.get("case_id"),
-                "module": item.get("module"),
-                "customer_id": item.get("customer_id", ""),
-                "match_score": comparison.get("match_score"),
-                "mismatches": comparison.get("mismatched_fields", []),
-                "expected": item.get("expected_asm_output", {}),
-                "actual": item.get("actual_java_output", {}),
-                "diagnosis": diagnose_failed_case(item),
-            }
-        )
-
-    return {
-        "total_test_cases": total,
-        "passed": passed,
-        "failed": failed,
-        "average_behavior_match": avg_score,
-        "failed_cases": failed_cases,
-    }
-
-
-def build_batch_summary(behavior_results):
-    batch_items = [
-        item
-        for item in behavior_results
-        if item.get("source") == "batch_csv" or str(item.get("case_id", "")).startswith("TX")
-    ]
-
-    total = len(batch_items)
-    passed = sum(
-        1
-        for item in batch_items
-        if item.get("comparison", {}).get("match_score") == 100.0
-    )
-    failed = total - passed
-
-    failed_customers = []
-
-    for item in batch_items:
-        if item.get("comparison", {}).get("match_score") != 100.0:
-            failed_customers.append(
-                {
-                    "case_id": item.get("case_id"),
-                    "customer_id": item.get("customer_id", item.get("input", {}).get("TXCUST", "")),
-                    "module": item.get("module"),
-                    "mismatches": item.get("comparison", {}).get("mismatched_fields", []),
-                    "diagnosis": diagnose_failed_case(item),
-                }
-            )
-
-    return {
-        "batch_records": total,
-        "batch_passed": passed,
-        "batch_failed": failed,
-        "failed_customers": failed_customers,
-    }
-
-
-def build_change_impact_summary(analysis):
-    readers = analysis.get("symbol_readers", {})
-    writers = analysis.get("symbol_writers", {})
-
-    symbols = sorted(set(readers.keys()) | set(writers.keys()))
-    impact_items = []
-
-    for symbol in symbols:
-        read_by = readers.get(symbol, [])
-        written_by = writers.get(symbol, [])
-
-        impacted_modules = []
-        for module in written_by + read_by:
-            if module not in impacted_modules:
-                impacted_modules.append(module)
-
-        impact_count = len(impacted_modules)
-
-        if impact_count >= 5:
-            impact_level = "High"
-        elif impact_count >= 3:
-            impact_level = "Medium"
-        else:
-            impact_level = "Low"
-
-        impact_items.append(
-            {
-                "symbol": symbol,
-                "written_by": written_by,
-                "read_by": read_by,
-                "impacted_modules": impacted_modules,
-                "impact_count": impact_count,
-                "impact_level": impact_level,
-                "recommendation": build_change_recommendation(symbol, impact_level),
-            }
-        )
-
-    impact_items.sort(key=lambda x: x["impact_count"], reverse=True)
-    return impact_items
-
-
-def build_change_recommendation(symbol, impact_level):
-    if impact_level == "High":
-        return (
-            f"Changing {symbol} may affect several modules. "
-            "Review downstream validations, generated Java mappings, and behavior test cases."
-        )
-
-    if impact_level == "Medium":
-        return (
-            f"Changing {symbol} has moderate impact. "
-            "Run module and application behavior validation after modification."
-        )
+        return ""
+    text = path.read_text(encoding="utf-8", errors="ignore")
+    return text[:limit] if limit else text
+
+
+def read_json(path: Path) -> Any:
+    if not path.exists():
+        return None
+    try:
+        return json.loads(path.read_text(encoding="utf-8", errors="ignore"))
+    except Exception:
+        return None
+
+
+def find_hlasm_files() -> List[Path]:
+    if not HLASM_DIR.exists():
+        return []
+    patterns = ["*.ASM", "*.asm", "*.asm.txt", "*.ASM.txt"]
+    paths: List[Path] = []
+    for pattern in patterns:
+        paths.extend(HLASM_DIR.rglob(pattern))
+    return sorted(set(paths), key=lambda p: p.name.upper())
+
+
+def module_name_from_path(path: Path) -> str:
+    name = path.name
+    for suffix in [".asm.txt", ".ASM.txt", ".ASM", ".asm", ".txt"]:
+        if name.endswith(suffix):
+            name = name[: -len(suffix)]
+            break
+    return name.upper()
+
+
+def parse_opcode(raw_line: str) -> Optional[str]:
+    stripped = raw_line.strip()
+    if not stripped or stripped.startswith("*") or stripped.startswith(".*"):
+        return None
+    parts = stripped.split()
+    if not parts:
+        return None
+    first = parts[0].upper()
+    if first in KNOWN_OPS:
+        return first
+    if len(parts) >= 2:
+        return parts[1].upper()
+    return first
+
+
+def opcode_and_operands(raw_line: str) -> Tuple[Optional[str], str, str]:
+    stripped = raw_line.strip()
+    if not stripped or stripped.startswith("*"):
+        return None, "", ""
+    parts = stripped.split(None, 2)
+    if not parts:
+        return None, "", ""
+
+    first = parts[0].upper()
+    if first in KNOWN_OPS:
+        opcode = first
+        operands = parts[1] if len(parts) > 1 else ""
+        if len(parts) > 2:
+            operands += " " + parts[2]
+        return opcode, "", operands
+
+    if len(parts) >= 2:
+        opcode = parts[1].upper()
+        operands = parts[2] if len(parts) >= 3 else ""
+        return opcode, parts[0].upper(), operands
+
+    return first, "", ""
+
+
+def split_operands(operands: str) -> List[str]:
+    # Good enough for assembler examples in this project; keeps literals intact enough for display.
+    result = []
+    current = []
+    quote = False
+    paren_depth = 0
+    for ch in operands:
+        if ch == "'":
+            quote = not quote
+        elif not quote:
+            if ch == "(":
+                paren_depth += 1
+            elif ch == ")" and paren_depth > 0:
+                paren_depth -= 1
+            elif ch == "," and paren_depth == 0:
+                token = "".join(current).strip()
+                if token:
+                    result.append(token)
+                current = []
+                continue
+        current.append(ch)
+    token = "".join(current).strip()
+    if token:
+        result.append(token)
+    return result
+
+
+def clean_symbol(token: str) -> str:
+    token = token.strip().upper()
+    token = re.sub(r"[=CLPXFBAH]'[^']*'", "", token)
+    token = token.split("+")[0]
+    token = token.split("-")[0]
+    token = re.sub(r"\([^)]*\)", "", token)
+    token = re.sub(r"[^A-Z0-9_@$#]", "", token)
+    return token
+
+
+def is_field_like(token: str) -> bool:
+    if not token:
+        return False
+    if token in KNOWN_OPS:
+        return False
+    if token.startswith("R") and REGISTER_PATTERN.match(token):
+        return False
+    if REGISTER_PATTERN.match(token):
+        return False
+    if token in {"F", "C", "X", "P", "CL", "PL", "INPUT", "OUTPUT", "SEQ", "RP", "PM"}:
+        return False
+    if len(token) < 3:
+        return False
+    return bool(re.match(r"^[A-Z][A-Z0-9_@$#]*$", token))
+
+
+def extract_defined_fields(path: Path) -> List[str]:
+    fields: List[str] = []
+    for raw_line in read_text(path).splitlines():
+        opcode, label, operands = opcode_and_operands(raw_line)
+        if opcode in DATA_OPS and label and is_field_like(label):
+            fields.append(label)
+        elif label and opcode in {"DS", "DC", "EQU", "ACB", "RPL", "EXLST", "DCB"} and is_field_like(label):
+            fields.append(label)
+    return sorted(set(fields))
+
+
+def extract_all_field_mentions_from_line(raw_line: str, known_fields: Iterable[str]) -> List[str]:
+    upper = raw_line.upper()
+    mentions = []
+    for field in known_fields:
+        if re.search(rf"(?<![A-Z0-9_@$#]){re.escape(field)}(?![A-Z0-9_@$#])", upper):
+            mentions.append(field)
+    return mentions
+
+
+def infer_field_access(opcode: Optional[str], operands: str, field: str) -> str:
+    if not opcode:
+        return "reference"
+    ops = split_operands(operands)
+    first = clean_symbol(ops[0]) if ops else ""
+    upper_ops = operands.upper()
+
+    if opcode in {"MVC", "ZAP", "ST", "STC", "STM", "MVI", "OI", "NI", "XI", "UNPK", "PACK"}:
+        if first == field or upper_ops.strip().startswith(field):
+            return "writer"
+        return "reader"
+
+    if opcode in {"CLC", "CLI", "CP", "C", "CR", "CH", "LTR", "L", "LA", "A", "AP", "SP", "MP", "DP", "SRP"}:
+        # Arithmetic packed ops may update first operand and read both operands.
+        if opcode in {"AP", "SP", "MP", "DP", "SRP"} and first == field:
+            return "writer"
+        return "reader"
+
+    if opcode in IO_OPS:
+        return "io_reference"
+
+    return "reference"
+
+
+# -----------------------------------------------------------------------------
+# Analysis builders
+# -----------------------------------------------------------------------------
+
+
+def build_dependency_map(paths: List[Path]) -> Tuple[Dict[str, List[str]], Dict[str, List[str]]]:
+    module_names = {module_name_from_path(path) for path in paths}
+    called: Dict[str, set] = {name: set() for name in module_names}
+    calling: Dict[str, set] = {name: set() for name in module_names}
+
+    for path in paths:
+        current = module_name_from_path(path)
+        text = read_text(path).upper()
+        for target in module_names:
+            if target == current:
+                continue
+            if re.search(rf"(?<![A-Z0-9_@$#]){re.escape(target)}(?![A-Z0-9_@$#])", text):
+                # Consider it a dependency when target appears in code. This works for CALL-style and parm-list examples.
+                called[current].add(target)
+                calling[target].add(current)
 
     return (
-        f"Changing {symbol} appears low impact, but regression validation is still recommended."
+        {key: sorted(value) for key, value in called.items()},
+        {key: sorted(value) for key, value in calling.items()},
     )
 
 
-def build_recommendations(behavior_summary, batch_summary, change_impact):
-    recommendations = []
+def build_recommendations(module: str, factors: List[str]) -> List[str]:
+    recs: List[str] = []
+    if any("IO" in f or "file" in f.lower() or "VSAM" in f for f in factors):
+        recs.append("Preserve DDNAME-to-file mapping and validate input/output record counts.")
+        recs.append("Separate record parsing, business rules, and output writing in Java.")
+    if any("packed" in f.lower() or "decimal" in f.lower() for f in factors):
+        recs.append("Validate packed decimal scale, truncation, rounding, and implied-cent behavior.")
+        recs.append("Add boundary tests for zero, equality, high-value, and fractional-cent cases.")
+    if any("branch" in f.lower() for f in factors):
+        recs.append("Use CFG review to ensure every branch condition has a matching test case.")
+    if any("dependency" in f.lower() or "call" in f.lower() for f in factors):
+        recs.append("Review parameter-block contracts before refactoring modules into Java services.")
+    if module == "MAINDRV":
+        recs.append("Treat MAINDRV as the orchestration layer and validate complete end-to-end flow.")
+    if module == "VSAMPACK":
+        recs.append("Preserve fixed-width A/B/T/X segment scanning and implied-cent numeric output.")
+    if module == "AUTHDEC":
+        recs.append("Review AUTHDEC approval/rejection branch logic before production migration sign-off.")
+    if not recs:
+        recs.append("Proceed with standard regression testing and generated Java review.")
+    return list(dict.fromkeys(recs))
 
-    authdec_cases = [
-        case
-        for case in behavior_summary["failed_cases"]
-        if "AUTHDEC" in str(case.get("case_id", "")) or "AUTHSTAT" in str(case.get("mismatches", "")).upper()
-    ]
 
-    if authdec_cases:
-        recommendations.append(
-            "AUTHDEC approval path requires review: when ERRCODE = 0000, "
-            "expected AUTHSTAT is APPRV. The validation engine detected this as the main remaining behavior gap."
-        )
+def analyze_module(path: Path, called: Dict[str, List[str]], calling: Dict[str, List[str]], known_issues_text: str) -> ModuleProfile:
+    module = module_name_from_path(path)
+    lines = read_text(path).splitlines()
+    code_lines = [line for line in lines if line.strip() and not line.strip().startswith("*")]
+    comment_lines = [line for line in lines if line.strip().startswith("*")]
+    opcodes = [parse_opcode(line) for line in code_lines]
+    opcodes = [op for op in opcodes if op]
 
-    if behavior_summary["failed"] > 0:
-        recommendations.append(
-            "Review failed behavior comparison cases and update translator rules or document known limitations."
-        )
+    loc = len(code_lines)
+    branches = sum(1 for op in opcodes if op in BRANCH_OPS)
+    calls = sum(1 for op in opcodes if op in CALL_OPS)
+    file_io = sum(1 for op in opcodes if op in IO_OPS)
+    packed = sum(1 for op in opcodes if op in PACKED_DECIMAL_OPS)
+    unsupported = sum(1 for op in opcodes if op not in KNOWN_OPS)
+    comment_ratio = round(len(comment_lines) / max(1, len(lines)), 3)
 
-    if batch_summary["batch_failed"] > 0:
-        recommendations.append(
-            "Review failed batch customer IDs. The current failed batch case is linked to the same AUTHDEC approval-path behavior."
-        )
+    score = 10
+    factors: List[str] = []
 
-    high_impact = [item for item in change_impact if item["impact_level"] == "High"]
-    if high_impact:
-        recommendations.append(
-            "High-impact business fields detected. Any change to these fields should trigger full application and batch regression testing."
-        )
+    if loc >= 80:
+        score += 15
+        factors.append("larger modernization surface")
+    elif loc >= 40:
+        score += 8
+        factors.append("moderate module size")
 
-    recommendations.append(
-        "Use this dashboard with the Week 1 ML risk predictor output to create a combined modernization intelligence report."
+    if branches >= 10:
+        score += 20
+        factors.append("complex branching / CFG risk")
+    elif branches >= 3:
+        score += 10
+        factors.append("conditional branching")
+
+    dep_count = len(called.get(module, [])) + len(calling.get(module, []))
+    if dep_count >= 5:
+        score += 16
+        factors.append("high module dependency impact")
+    elif dep_count >= 1:
+        score += 8
+        factors.append("cross-module dependency")
+
+    if file_io >= 3:
+        score += 18
+        factors.append("file or VSAM IO behavior")
+    elif file_io >= 1:
+        score += 8
+        factors.append("file IO dependency")
+
+    if packed >= 3:
+        score += 18
+        factors.append("packed decimal arithmetic/comparison")
+    elif packed >= 1:
+        score += 9
+        factors.append("packed decimal operation")
+
+    if unsupported > 0:
+        score += min(15, unsupported * 2)
+        factors.append("unsupported or partially supported instruction review")
+
+    if module in known_issues_text.upper():
+        score += 20
+        factors.append("known source behavior issue documented")
+
+    if module in {"MAINDRV", "VSAMPACK"}:
+        score += 8
+        factors.append("batch/orchestration module")
+
+    score = min(100, score)
+    risk = "High" if score >= 70 else "Medium" if score >= 40 else "Low"
+
+    evidence_preview = [line.strip() for line in code_lines[:8]]
+
+    return ModuleProfile(
+        module=module,
+        source_path=str(path.relative_to(PROJECT_ROOT) if path.is_relative_to(PROJECT_ROOT) else path),
+        risk_level=risk,
+        risk_score=score,
+        loc=loc,
+        branches=branches,
+        calls=calls,
+        file_io=file_io,
+        packed_decimal=packed,
+        unsupported=unsupported,
+        comment_ratio=comment_ratio,
+        called_modules=called.get(module, []),
+        calling_modules=calling.get(module, []),
+        top_factors=factors or ["simple supported instruction profile"],
+        recommendations=build_recommendations(module, factors),
+        evidence_preview=evidence_preview,
     )
 
-    return recommendations
+
+def build_module_profiles() -> List[ModuleProfile]:
+    paths = find_hlasm_files()
+    called, calling = build_dependency_map(paths)
+    known_issues_text = read_text(DOCS_DIR / "known_hlasm_issues.md")
+    return [analyze_module(path, called, calling, known_issues_text) for path in paths]
 
 
-def build_dashboard():
-    analysis = load_json(ANALYSIS_REPORT)
-    behavior_results = load_json(BEHAVIOR_RESULTS)
+def build_field_index(paths: List[Path]) -> Dict[str, FieldImpact]:
+    module_by_path = {path: module_name_from_path(path) for path in paths}
+    defined_fields_by_module: Dict[str, List[str]] = {}
+    all_fields: set = set()
 
-    module_summary = build_module_summary(analysis, behavior_results)
-    behavior_summary = build_behavior_summary(behavior_results)
-    batch_summary = build_batch_summary(behavior_results)
-    change_impact = build_change_impact_summary(analysis)
-    cfg_pdg_summary = build_cfg_pdg_summary(analysis)
+    for path in paths:
+        module = module_by_path[path]
+        fields = extract_defined_fields(path)
+        defined_fields_by_module[module] = fields
+        all_fields.update(fields)
+
+    # Add important known project fields even if parser misses them.
+    all_fields.update(
+        {
+            "ERRCODE", "AUTHSTAT", "CURRTX", "TXCARD", "TXCUST", "TXAMT", "TXTYPE", "TXSTAT",
+            "TXLIMIT", "TXFEE", "LOGBUFF", "LOGCUST", "LOGPAN", "LOGSTAT", "LOGMASK",
+            "COUNT", "TOTAL", "FEEWORK", "WS_PACKED_AMT", "WS_TAX_AMT", "WS_ZONED_TAX",
+            "IN_RECORD", "OUT_RECORD",
+        }
+    )
+
+    index: Dict[str, Dict[str, Any]] = {
+        field: {
+            "defined_in": set(),
+            "readers": set(),
+            "writers": set(),
+            "all": set(),
+            "evidence": [],
+        }
+        for field in all_fields
+        if is_field_like(field)
+    }
+
+    for module, fields in defined_fields_by_module.items():
+        for field in fields:
+            if field in index:
+                index[field]["defined_in"].add(module)
+
+    for path in paths:
+        module = module_by_path[path]
+        for line_no, raw_line in enumerate(read_text(path).splitlines(), start=1):
+            if not raw_line.strip() or raw_line.strip().startswith("*"):
+                continue
+            opcode, _label, operands = opcode_and_operands(raw_line)
+            mentions = extract_all_field_mentions_from_line(raw_line, index.keys())
+            for field in mentions:
+                access = infer_field_access(opcode, operands, field)
+                index[field]["all"].add(module)
+                if access == "writer":
+                    index[field]["writers"].add(module)
+                elif access in {"reader", "io_reference"}:
+                    index[field]["readers"].add(module)
+                else:
+                    index[field]["readers"].add(module)
+                if len(index[field]["evidence"]) < 20:
+                    index[field]["evidence"].append(f"{module}:{line_no}: {raw_line.strip()}")
+
+    result: Dict[str, FieldImpact] = {}
+    for field, value in index.items():
+        defined_in = sorted(value["defined_in"])
+        readers = sorted(value["readers"])
+        writers = sorted(value["writers"])
+        all_modules = sorted(value["all"] | value["defined_in"])
+        evidence = value["evidence"]
+
+        if not all_modules and not defined_in:
+            continue
+
+        if len(all_modules) >= 4 or field in {"ERRCODE", "AUTHSTAT", "CURRTX", "LOGBUFF", "IN_RECORD", "OUT_RECORD"}:
+            risk = "High"
+            reason = "Shared field with broad module impact or business-control behavior."
+        elif len(all_modules) >= 2:
+            risk = "Medium"
+            reason = "Field is used across multiple modules and should be regression-tested."
+        else:
+            risk = "Low"
+            reason = "Field appears localized but should still be validated in module-level tests."
+
+        result[field] = FieldImpact(
+            field=field,
+            defined_in=defined_in,
+            reader_modules=readers,
+            writer_modules=writers,
+            all_modules=all_modules,
+            risk_level=risk,
+            reason=reason,
+            evidence_lines=evidence,
+        )
+
+    return dict(sorted(result.items()))
+
+
+# -----------------------------------------------------------------------------
+# Behavior and report parsing
+# -----------------------------------------------------------------------------
+
+
+def extract_number(text: str, patterns: Iterable[str]) -> Optional[float]:
+    for pattern in patterns:
+        match = re.search(pattern, text, flags=re.IGNORECASE)
+        if match:
+            raw = match.group(1).replace("`", "").replace("%", "").strip()
+            try:
+                return float(raw)
+            except Exception:
+                continue
+    return None
+
+
+def parse_behavior_summary() -> Dict[str, Any]:
+    report = read_text(DOCS_DIR / "behavior_comparison_report.md")
+    ai_report = read_text(DOCS_DIR / "ai_modernization_report.md")
+    text = report + "\n" + ai_report
+
+    total = extract_number(text, [r"Total test cases:\s*`?([0-9]+)`?", r"Total test cases:\s*([0-9]+)"])
+    passed = extract_number(text, [r"Passed cases:\s*`?([0-9]+)`?", r"Passed cases:\s*([0-9]+)"])
+    failed = extract_number(text, [r"Failed cases:\s*`?([0-9]+)`?", r"Failed cases:\s*([0-9]+)"])
+    score = extract_number(text, [r"Average behavior match score:\s*`?([0-9.]+)%?`?", r"Behavior Match Score:\s*`?([0-9.]+)%?`?"])
+
+    # Fallback to known current result if report exists but numbers were formatted differently.
+    if report and total is None and "BEHAVIOR COMPARISON" in report.upper():
+        total = extract_number(report, [r"Total\s+test\s+cases[^0-9]*([0-9]+)"])
+        passed = extract_number(report, [r"Passed\s+cases[^0-9]*([0-9]+)"])
+        failed = extract_number(report, [r"Failed\s+cases[^0-9]*([0-9]+)"])
+        score = extract_number(report, [r"Average[^0-9]*([0-9.]+)%"])
+
+    failures: List[Dict[str, str]] = []
+    known = read_text(DOCS_DIR / "known_hlasm_issues.md").upper()
+
+    # Only include real current failed cases, not summary lines like "No mismatches detected".
+    if re.search(r"AUTHDEC[_\s-]*APPROVE", text, flags=re.IGNORECASE):
+        failures.append(
+            {
+                "Test Case": "AUTHDEC_APPROVE_001",
+                "Module": "AUTHDEC",
+                "Classification": "Known HLASM source behavior issue" if "AUTHDEC" in known else "Needs source review",
+                "Action": "Review/fix AUTHDEC approval branch before production migration sign-off.",
+            }
+        )
+
+    if re.search(r"APP[_\s-]*APPROVAL[_\s-]*FLOW", text, flags=re.IGNORECASE):
+        failures.append(
+            {
+                "Test Case": "APP_APPROVAL_FLOW_001",
+                "Module": "MAINDRV / AUTHDEC",
+                "Classification": "Downstream known HLASM source behavior issue" if "AUTHDEC" in known else "Needs source review",
+                "Action": "Do not silently fix generated Java; resolve or accept AUTHDEC source behavior.",
+            }
+        )
 
     return {
-        "generated_on": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "project": "AI-Powered Legacy Software Intelligence & Modernization Platform",
-        "version": "Week 2 Modernization Dashboard",
-        "summary": {
-            "module_count": len(module_summary),
-            "behavior_match_score": behavior_summary["average_behavior_match"],
-            "total_behavior_tests": behavior_summary["total_test_cases"],
-            "passed_tests": behavior_summary["passed"],
-            "failed_tests": behavior_summary["failed"],
-            "batch_records": batch_summary["batch_records"],
-            "batch_passed": batch_summary["batch_passed"],
-            "batch_failed": batch_summary["batch_failed"],
-        },
-        "cfg_pdg_summary": cfg_pdg_summary,
-        "module_summary": module_summary,
-        "behavior_summary": behavior_summary,
-        "batch_summary": batch_summary,
-        "change_impact_analysis": change_impact,
-        "recommendations": build_recommendations(
-            behavior_summary,
-            batch_summary,
-            change_impact,
-        ),
+        "total": int(total) if total is not None else None,
+        "passed": int(passed) if passed is not None else None,
+        "failed": int(failed) if failed is not None else len(failures),
+        "score": float(score) if score is not None else None,
+        "failures": failures,
     }
 
 
-def save_json(dashboard):
-    DOCS_DIR.mkdir(parents=True, exist_ok=True)
-
-    with open(DASHBOARD_JSON, "w", encoding="utf-8") as f:
-        json.dump(dashboard, f, indent=2)
-
-    return DASHBOARD_JSON
+# -----------------------------------------------------------------------------
+# Chatbot helpers
+# -----------------------------------------------------------------------------
 
 
-def save_markdown(dashboard):
-    lines = []
+def format_list(items: List[str]) -> str:
+    return ", ".join(items) if items else "None"
 
-    lines.append("# Modernization Dashboard")
-    lines.append("")
-    lines.append(f"Generated on: `{dashboard['generated_on']}`")
-    lines.append("")
 
-    lines.append("## 1. Executive Summary")
-    lines.append("")
-    summary = dashboard["summary"]
-    lines.append(f"- Modules analyzed: `{summary['module_count']}`")
-    lines.append(f"- Behavior match score: `{summary['behavior_match_score']}%`")
-    lines.append(f"- Total behavior tests: `{summary['total_behavior_tests']}`")
-    lines.append(f"- Passed tests: `{summary['passed_tests']}`")
-    lines.append(f"- Failed tests: `{summary['failed_tests']}`")
-    lines.append(f"- Batch records: `{summary['batch_records']}`")
-    lines.append(f"- Batch passed: `{summary['batch_passed']}`")
-    lines.append(f"- Batch failed: `{summary['batch_failed']}`")
-    lines.append("")
-
-    lines.append("## 2. CFG / PDG Summary")
-    lines.append("")
-    cfg_pdg = dashboard["cfg_pdg_summary"]
-    lines.append(f"- CFG available: `{cfg_pdg['cfg_available']}`")
-    lines.append(f"- PDG available: `{cfg_pdg['pdg_available']}`")
-    lines.append(f"- CFG source key: `{cfg_pdg['cfg_source_key']}`")
-    lines.append(f"- PDG source key: `{cfg_pdg['pdg_source_key']}`")
-    lines.append(f"- CFG module count: `{cfg_pdg['cfg_module_count']}`")
-    lines.append(f"- PDG module count: `{cfg_pdg['pdg_module_count']}`")
-    lines.append(f"- CFG condition count: `{cfg_pdg['cfg_condition_count']}`")
-    lines.append(f"- CFG branch count: `{cfg_pdg['cfg_branch_count']}`")
-    lines.append(f"- PDG read edges: `{cfg_pdg['pdg_read_edges']}`")
-    lines.append(f"- PDG write edges: `{cfg_pdg['pdg_write_edges']}`")
-    lines.append(f"- PDG symbol dependency edges: `{cfg_pdg['pdg_symbol_dependency_edges']}`")
-    lines.append("")
-
-    lines.append("## 3. Module Summary")
-    lines.append("")
-    lines.append("| Module | Reads | Writes | Conditions | Behavior Match |")
-    lines.append("|---|---:|---:|---:|---:|")
-
-    for item in dashboard["module_summary"]:
-        match = item["average_behavior_match"]
-        match_text = "N/A" if match is None else f"{match}%"
-
-        lines.append(
-            f"| `{item['module']}` "
-            f"| {len(item['fields_read'])} "
-            f"| {len(item['fields_written'])} "
-            f"| {item['condition_count']} "
-            f"| {match_text} |"
-        )
-
-    lines.append("")
-
-    lines.append("## 4. Behavior Validation Summary")
-    lines.append("")
-    behavior = dashboard["behavior_summary"]
-    lines.append(f"- Total tests: `{behavior['total_test_cases']}`")
-    lines.append(f"- Passed: `{behavior['passed']}`")
-    lines.append(f"- Failed: `{behavior['failed']}`")
-    lines.append(f"- Average match score: `{behavior['average_behavior_match']}%`")
-    lines.append("")
-
-    if behavior["failed_cases"]:
-        lines.append("### Failed Behavior Cases")
-        lines.append("")
-        for case in behavior["failed_cases"]:
-            lines.append(f"- `{case['case_id']}` in module `{case['module']}`")
-            if case.get("customer_id"):
-                lines.append(f"  - Customer ID: `{case['customer_id']}`")
-            lines.append(f"  - Match score: `{case['match_score']}%`")
-            lines.append(f"  - Diagnosis: {case['diagnosis']}")
-        lines.append("")
-    else:
-        lines.append("No failed behavior cases detected.")
-        lines.append("")
-
-    lines.append("## 5. Batch Validation Summary")
-    lines.append("")
-    batch = dashboard["batch_summary"]
-    lines.append(f"- Batch records: `{batch['batch_records']}`")
-    lines.append(f"- Batch passed: `{batch['batch_passed']}`")
-    lines.append(f"- Batch failed: `{batch['batch_failed']}`")
-    lines.append("")
-
-    if batch["failed_customers"]:
-        lines.append("### Failed Batch Customers")
-        lines.append("")
-        for item in batch["failed_customers"]:
-            lines.append(
-                f"- Case `{item['case_id']}` / Customer `{item['customer_id']}` / Module `{item['module']}`"
-            )
-            lines.append(f"  - Diagnosis: {item['diagnosis']}")
-        lines.append("")
-    else:
-        lines.append("No failed batch customers detected.")
-        lines.append("")
-
-    lines.append("## 6. Change Impact Analysis")
-    lines.append("")
-    lines.append("| Symbol | Written By | Read By | Impacted Modules | Impact Level |")
-    lines.append("|---|---|---|---:|---|")
-
-    for item in dashboard["change_impact_analysis"][:15]:
-        lines.append(
-            f"| `{item['symbol']}` "
-            f"| {', '.join(f'`{x}`' for x in item['written_by']) or 'None'} "
-            f"| {', '.join(f'`{x}`' for x in item['read_by']) or 'None'} "
-            f"| {item['impact_count']} "
-            f"| `{item['impact_level']}` |"
-        )
-
-    lines.append("")
-
-    lines.append("## 7. AI-Style Modernization Recommendations")
-    lines.append("")
-    for rec in dashboard["recommendations"]:
+def structured_module_answer(module: ModuleProfile) -> str:
+    rows = {
+        "Module": module.module,
+        "Risk Level": module.risk_level,
+        "Risk Score": f"{module.risk_score}/100",
+        "LOC": module.loc,
+        "Branch Count": module.branches,
+        "File I/O Count": module.file_io,
+        "Packed Decimal Count": module.packed_decimal,
+        "Called Modules": format_list(module.called_modules),
+        "Calling Modules": format_list(module.calling_modules),
+        "Top Risk Factors": format_list(module.top_factors),
+    }
+    lines = ["### Module Answer", "", "| Item | Value |", "|---|---|"]
+    for key, value in rows.items():
+        lines.append(f"| {key} | {value} |")
+    lines.append("\n### Modernization Recommendations")
+    for rec in module.recommendations:
         lines.append(f"- {rec}")
-    lines.append("")
+    return "\n".join(lines)
 
-    lines.append("## 8. Week 1 ML Integration Placeholder")
-    lines.append("")
-    lines.append(
-        "Week 1 ML risk predictor output can be added here later. "
-        "This dashboard intentionally does not retrain ML models. "
-        "It consumes modernization and validation outputs from Week 2."
+
+def structured_field_answer(field: FieldImpact) -> str:
+    lines = [
+        "### Field Impact Answer",
+        "",
+        "| Item | Value |",
+        "|---|---|",
+        f"| Field | {field.field} |",
+        f"| Defined In | {format_list(field.defined_in)} |",
+        f"| Writer Modules | {format_list(field.writer_modules)} |",
+        f"| Reader Modules | {format_list(field.reader_modules)} |",
+        f"| Impacted Modules | {format_list(field.all_modules)} |",
+        f"| Modernization Risk | {field.risk_level} |",
+        f"| Reason | {field.reason} |",
+        "",
+        "### Evidence Lines",
+    ]
+    if field.evidence_lines:
+        for line in field.evidence_lines[:10]:
+            lines.append(f"- `{line}`")
+    else:
+        lines.append("- No direct source evidence lines found; field may come from generated analysis or known layout.")
+    return "\n".join(lines)
+
+
+def tokenize_question(question: str) -> List[str]:
+    return [token.upper() for token in re.findall(r"[A-Za-z0-9_@$#]+", question)]
+
+
+def is_module_intent(question: str) -> bool:
+    q = question.lower()
+    return any(
+        word in q
+        for word in [
+            "module", "modules", "call", "calls", "calling", "called",
+            "risk", "modernize", "modernization", "dependency", "dependencies",
+            "loc", "branch", "branches", "bctcount", "vsampack", "maindrv",
+        ]
     )
-    lines.append("")
-
-    content = "\n".join(lines)
-
-    with open(DASHBOARD_MD, "w", encoding="utf-8") as f:
-        f.write(content)
-
-    return DASHBOARD_MD
 
 
-def main():
-    dashboard = build_dashboard()
+def is_field_intent(question: str) -> bool:
+    q = question.lower()
+    return any(
+        word in q
+        for word in [
+            "field", "fields", "use", "uses", "using", "impact", "impacts",
+            "read", "reads", "write", "writes", "writer", "reader", "pdg",
+        ]
+    )
 
-    json_path = save_json(dashboard)
-    md_path = save_markdown(dashboard)
 
-    print("Modernization dashboard generated.")
-    print(f"JSON: {json_path}")
-    print(f"Markdown: {md_path}")
+def tax_calculation_answer(modules: List[ModuleProfile]) -> str:
+    rows: List[List[str]] = []
+
+    for path in find_hlasm_files():
+        module = module_name_from_path(path)
+        text = read_text(path).upper()
+        evidence: List[str] = []
+
+        for raw_line in read_text(path).splitlines():
+            upper_line = raw_line.upper()
+            if any(token in upper_line for token in ["TAX", "0.05", "WS_TAX", "P'0.05'", "MP "]):
+                evidence.append(raw_line.strip())
+            if len(evidence) >= 4:
+                break
+
+        is_tax = any(token in text for token in ["WS_TAX", "TAX_AMT", "P'0.05'", "0.05"])
+        is_fee = module == "FEECALC" or "FEE" in text
+
+        if is_tax:
+            rows.append(
+                [
+                    module,
+                    "Tax calculation / record transformation",
+                    "High" if module == "VSAMPACK" else next((m.risk_level for m in modules if m.module == module), "Review"),
+                    "Uses packed decimal tax calculation and fixed-width record update.",
+                    " ; ".join(evidence) if evidence else "Tax-related source pattern detected.",
+                ]
+            )
+        elif is_fee:
+            rows.append(
+                [
+                    module,
+                    "Fee calculation, not tax",
+                    next((m.risk_level for m in modules if m.module == module), "Review"),
+                    "Related packed-decimal percentage calculation; useful comparison for tax logic.",
+                    " ; ".join(evidence) if evidence else "Fee-related source pattern detected.",
+                ]
+            )
+
+    if not rows:
+        return (
+            "### Tax Calculation Answer\n\n"
+            "No tax calculation module was found from the indexed HLASM source. "
+            "Check whether tax-related source lines use different names than TAX, WS_TAX, or P'0.05'."
+        )
+
+    lines = [
+        "### Tax Calculation Modules",
+        "",
+        "| Module | Type | Risk | Why it matters | Evidence |",
+        "|---|---|---|---|---|",
+    ]
+    for row in rows:
+        safe = [str(item).replace("|", "\\|") for item in row]
+        lines.append("| " + " | ".join(safe) + " |")
+
+    lines.extend(
+        [
+            "",
+            "### Recommendation",
+            "- Treat VSAMPACK as the main tax calculation module because it applies the 5% tax transformation and updates the B segment.",
+            "- Treat FEECALC as related percentage/packed-decimal logic, but not the tax module unless your business meaning calls that fee a tax.",
+            "- Add tests for whole-cent and fractional-cent values to confirm HLASM-style truncation when no SRP rounding is present.",
+        ]
+    )
+    return "\n".join(lines)
 
 
-if __name__ == "__main__":
-    main()
+def answer_direct_question(question: str, modules: List[ModuleProfile], fields: Dict[str, FieldImpact]) -> Optional[str]:
+    q = question.upper().strip()
+    tokens = tokenize_question(question)
+    module_by_name = {module.module: module for module in modules}
+
+    # Domain/business intent first: questions like "tax calculation modules" should not be treated as fields.
+    if "TAX" in q or "TAXES" in q:
+        return tax_calculation_answer(modules)
+
+    # Exact single-token query: if it is a module, return module answer before field answer.
+    # This fixes cases like "bctcount", where BCTCOUNT may also appear as a data label/field.
+    if len(tokens) == 1 and tokens[0] in module_by_name:
+        return structured_module_answer(module_by_name[tokens[0]])
+
+    # Strong module intent: prioritize module over field.
+    if is_module_intent(question):
+        for module in modules:
+            if re.search(rf"(?<![A-Z0-9_@$#]){re.escape(module.module)}(?![A-Z0-9_@$#])", q):
+                return structured_module_answer(module)
+
+    # Strong field intent: answer field impact questions from PDG-style index.
+    if is_field_intent(question):
+        for field_name, impact in fields.items():
+            if re.search(rf"(?<![A-Z0-9_@$#]){re.escape(field_name)}(?![A-Z0-9_@$#])", q):
+                return structured_field_answer(impact)
+
+    # General fallback: check modules first, then fields.
+    for module in modules:
+        if re.search(rf"(?<![A-Z0-9_@$#]){re.escape(module.module)}(?![A-Z0-9_@$#])", q):
+            return structured_module_answer(module)
+
+    for field_name, impact in fields.items():
+        if re.search(rf"(?<![A-Z0-9_@$#]){re.escape(field_name)}(?![A-Z0-9_@$#])", q):
+            return structured_field_answer(impact)
+
+    if "AUTHDEC" in q or "APPROVAL" in q or "FAIL" in q:
+        return (
+            "### Failure Diagnostic Answer\n\n"
+            "| Item | Value |\n|---|---|\n"
+            "| Main Failed Area | AUTHDEC approval path |\n"
+            "| Classification | Known HLASM source behavior issue |\n"
+            "| Affected Tests | AUTHDEC_APPROVE_001, APP_APPROVAL_FLOW_001 |\n"
+            "| Recommendation | Review or fix AUTHDEC source logic before production migration sign-off. |\n\n"
+            "The Java generator should not silently change business behavior that appears incorrect in the source program."
+        )
+
+    return None
+
+def llm_answer(question: str, modules: List[ModuleProfile], fields: Dict[str, FieldImpact], behavior: Dict[str, Any]) -> Tuple[str, bool]:
+    api_key = os.getenv("OPENAI_API_KEY", "").strip()
+    model = os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
+
+    if not api_key or any(token in api_key.lower() for token in ["your", "paste", "placeholder", "here"]):
+        return (
+            "OpenAI key is not configured for this session. Direct module/field questions still work. "
+            "Set `$env:OPENAI_API_KEY` locally to enable LLM-enhanced answers.",
+            False,
+        )
+
+    compact_modules = [asdict(m) for m in modules]
+    compact_fields = {k: asdict(v) for k, v in list(fields.items())[:80]}
+    report_excerpt = read_text(DOCS_DIR / "ai_modernization_report.md", limit=12000)
+
+    prompt = f"""
+You are a legacy modernization assistant. Answer using only the evidence below.
+Format the answer neatly with sections: Answer, Evidence, Recommendation.
+Do not invent files, scores, or failures.
+
+Question:
+{question}
+
+Behavior summary:
+{json.dumps(behavior, indent=2)}
+
+Module profiles:
+{json.dumps(compact_modules, indent=2)}
+
+Field impact index sample:
+{json.dumps(compact_fields, indent=2)}
+
+AI report excerpt:
+{report_excerpt}
+""".strip()
+
+    try:
+        from openai import OpenAI
+
+        client = OpenAI(api_key=api_key)
+        response = client.responses.create(
+            model=model,
+            instructions="Give concise evidence-grounded modernization answers. Use markdown tables when helpful.",
+            input=prompt,
+            temperature=0.2,
+        )
+        text = getattr(response, "output_text", None) or str(response)
+        return text + f"\n\n_LLM: OpenAI {model}_", True
+    except Exception as exc:
+        return f"LLM answer failed: {type(exc).__name__}: {exc}", False
+
+
+# -----------------------------------------------------------------------------
+# Streamlit UI
+# -----------------------------------------------------------------------------
+
+
+st.set_page_config(
+    page_title="AI Legacy Modernization Dashboard",
+    page_icon="🧠",
+    layout="wide",
+)
+
+st.title("AI-Powered Legacy Software Intelligence & Modernization Dashboard")
+st.caption("ML risk intelligence + HLASM analysis + Java modernization + behavior validation + LLM-assisted reporting")
+
+with st.spinner("Loading project artifacts..."):
+    hlasm_paths = find_hlasm_files()
+    modules = build_module_profiles()
+    field_index = build_field_index(hlasm_paths)
+    behavior = parse_behavior_summary()
+    llm_details = read_json(DOCS_DIR / "ai_llm_integration_details.json") or {}
+    ai_report = read_text(DOCS_DIR / "ai_modernization_report.md")
+
+module_df = pd.DataFrame(
+    [
+        {
+            "Module": m.module,
+            "Risk": m.risk_level,
+            "Risk Score": m.risk_score,
+            "LOC": m.loc,
+            "Branches": m.branches,
+            "File I/O": m.file_io,
+            "Packed Decimal": m.packed_decimal,
+            "Called Modules": format_list(m.called_modules),
+            "Calling Modules": format_list(m.calling_modules),
+            "Top Factors": format_list(m.top_factors),
+        }
+        for m in modules
+    ]
+)
+
+field_df = pd.DataFrame(
+    [
+        {
+            "Field": f.field,
+            "Risk": f.risk_level,
+            "Defined In": format_list(f.defined_in),
+            "Writers": format_list(f.writer_modules),
+            "Readers": format_list(f.reader_modules),
+            "Impacted Modules": format_list(f.all_modules),
+        }
+        for f in field_index.values()
+    ]
+)
+
+# Sidebar navigation and status
+used_value = llm_details.get("used", False)
+llm_used = used_value is True or str(used_value).strip().lower() == "true"
+llm_model = llm_details.get("model", "not available")
+llm_error = llm_details.get("error")
+
+st.sidebar.title("Navigation")
+page = st.sidebar.radio(
+    "Go to",
+    [
+        "1. Executive Summary",
+        "2. Module Explorer",
+        "3. Field Impact Explorer",
+        "4. AI Chatbot",
+        "5. AI Report / LLM Details",
+    ],
+    index=0,
+)
+
+st.sidebar.divider()
+st.sidebar.header("Project Artifact Status")
+st.sidebar.write(f"Project root: `{PROJECT_ROOT}`")
+st.sidebar.write(f"HLASM files found: **{len(hlasm_paths)}**")
+st.sidebar.write(f"Module profiles: **{len(modules)}**")
+st.sidebar.write(f"Fields indexed: **{len(field_index)}**")
+st.sidebar.write(f"LLM used: **{'Yes' if llm_used else 'No'}**")
+st.sidebar.write(f"LLM model: `{llm_model}`")
+
+if llm_used:
+    st.sidebar.success("LLM integration active")
+elif llm_details:
+    st.sidebar.warning("LLM was not used in the latest generated report")
+    if llm_error:
+        st.sidebar.caption(f"Reason: {llm_error}")
+else:
+    st.sidebar.info("Run ai_modernization_engine.py to generate LLM details")
+
+if st.sidebar.button("Refresh dashboard data"):
+    st.rerun()
+
+
+if page == "1. Executive Summary":
+    st.subheader("Executive Modernization Summary")
+
+    c1, c2, c3, c4, c5 = st.columns(5)
+    c1.metric("Behavior Match", f"{behavior['score']}%" if behavior.get("score") is not None else "N/A")
+    c2.metric("Passed", behavior.get("passed") if behavior.get("passed") is not None else "N/A")
+    c3.metric("Failed", behavior.get("failed") if behavior.get("failed") is not None else "N/A")
+    c4.metric("HLASM Modules", len(modules))
+    c5.metric("LLM Used", "Yes" if llm_used else "No")
+
+    if not llm_used:
+        st.info(
+            "LLM Used shows 'No' when docs/ai_llm_integration_details.json says used=false, "
+            "or when the file was generated without a valid OPENAI_API_KEY. "
+            "Set the key locally, run `python validator\\ai_modernization_engine.py`, then refresh this dashboard."
+        )
+
+    if behavior.get("failed"):
+        st.warning("Final status: Review Required. Known AUTHDEC source behavior issue remains.")
+    else:
+        st.success("Final status: Ready for review. No behavior failures detected in available results.")
+
+    st.markdown("### What this dashboard proves")
+    st.markdown(
+        """
+- **ML / risk intelligence:** module risk ranking based on size, branching, IO, packed decimal logic, dependencies, and known issues.
+- **CFG-style analysis:** branch and module dependency information for modernization impact.
+- **PDG-style analysis:** field read/write/impact exploration across modules.
+- **Behavior validation:** generated Java behavior results are visible in the summary.
+- **LLM integration:** OpenAI model details are recorded in the LLM integration details artifact.
+        """
+    )
+
+    st.markdown("### Module Risk Ranking")
+    if not module_df.empty:
+        st.dataframe(module_df.sort_values(["Risk Score", "Module"], ascending=[False, True]), use_container_width=True)
+    else:
+        st.info("No module profiles found. Check HLASM file location and naming.")
+
+    if behavior.get("failures"):
+        st.markdown("### Current Behavior Failure Diagnostics")
+        st.dataframe(pd.DataFrame(behavior["failures"]), use_container_width=True)
+
+
+elif page == "2. Module Explorer":
+    st.subheader("Module Explorer")
+    if not modules:
+        st.info("No modules found.")
+    else:
+        module_names = sorted([m.module for m in modules])
+        selected_module_name = st.selectbox("Select module", module_names, index=module_names.index("MAINDRV") if "MAINDRV" in module_names else 0)
+        selected_module = next(m for m in modules if m.module == selected_module_name)
+
+        details = pd.DataFrame(
+            [
+                ["Module", selected_module.module],
+                ["Source File", selected_module.source_path],
+                ["Risk Level", selected_module.risk_level],
+                ["Risk Score", f"{selected_module.risk_score}/100"],
+                ["LOC", selected_module.loc],
+                ["Branch Count", selected_module.branches],
+                ["File I/O Count", selected_module.file_io],
+                ["Packed Decimal Count", selected_module.packed_decimal],
+                ["Unsupported / Review Count", selected_module.unsupported],
+                ["Called Modules", format_list(selected_module.called_modules)],
+                ["Calling Modules", format_list(selected_module.calling_modules)],
+                ["Top Risk Factors", format_list(selected_module.top_factors)],
+            ],
+            columns=["Item", "Value"],
+        )
+        st.dataframe(details, use_container_width=True, hide_index=True)
+
+        col_a, col_b = st.columns(2)
+        with col_a:
+            st.markdown("### Modernization Recommendations")
+            for rec in selected_module.recommendations:
+                st.markdown(f"- {rec}")
+        with col_b:
+            st.markdown("### Source Evidence Preview")
+            for line in selected_module.evidence_preview:
+                st.code(line, language="asm")
+
+        st.markdown("### All Modules")
+        st.dataframe(module_df.sort_values(["Risk Score", "Module"], ascending=[False, True]), use_container_width=True)
+
+
+elif page == "3. Field Impact Explorer":
+    st.subheader("Field Impact Explorer")
+    st.caption("Search a field and see which modules define, read, write, and are impacted by it.")
+
+    if not field_index:
+        st.info("No fields indexed.")
+    else:
+        common_fields = [f for f in ["ERRCODE", "AUTHSTAT", "TXAMT", "TXLIMIT", "TXFEE", "LOGPAN", "COUNT", "TOTAL", "WS_TAX_AMT"] if f in field_index]
+        all_fields = sorted(field_index.keys())
+        field_options = common_fields + [f for f in all_fields if f not in common_fields]
+
+        selected_field = st.selectbox("Select field", field_options)
+        manual_field = st.text_input("Or type field name", value=selected_field)
+        normalized_field = manual_field.strip().upper() or selected_field
+
+        impact = field_index.get(normalized_field)
+        if impact is None:
+            st.warning(f"Field `{normalized_field}` was not found in the indexed HLASM artifacts.")
+        else:
+            impact_table = pd.DataFrame(
+                [
+                    ["Field", impact.field],
+                    ["Defined In", format_list(impact.defined_in)],
+                    ["Writer Modules", format_list(impact.writer_modules)],
+                    ["Reader Modules", format_list(impact.reader_modules)],
+                    ["Impacted Modules", format_list(impact.all_modules)],
+                    ["Modernization Risk", impact.risk_level],
+                    ["Reason", impact.reason],
+                ],
+                columns=["Item", "Value"],
+            )
+            st.dataframe(impact_table, use_container_width=True, hide_index=True)
+
+            st.markdown("### Field Evidence Lines")
+            if impact.evidence_lines:
+                for line in impact.evidence_lines[:20]:
+                    st.code(line, language="asm")
+            else:
+                st.info("No direct source lines found for this field.")
+
+        with st.expander("Show full field index"):
+            st.dataframe(field_df.sort_values(["Risk", "Field"], ascending=[True, True]), use_container_width=True)
+
+
+elif page == "4. AI Chatbot":
+    st.subheader("Grounded AI Chatbot")
+    st.caption("Ask about modules, fields, failures, risk, CFG/PDG impact, or modernization recommendations.")
+
+    examples = [
+        "Which modules use ERRCODE?",
+        "bctcount",
+        "Which module performs tax calculation?",
+        "Why is VSAMPACK high risk?",
+        "What modules call AUTHDEC?",
+        "What fields impact AUDWRITE?",
+        "Why did AUTHDEC fail?",
+        "What tests should I add for LIMITCHK?",
+    ]
+
+    selected_example = st.selectbox("Example questions", [""] + examples)
+    question = st.text_area("Ask a question", value=selected_example, height=100)
+
+    use_llm = st.checkbox("Use OpenAI LLM for open-ended questions", value=True)
+
+    if st.button("Ask") and question.strip():
+        direct = answer_direct_question(question, modules, field_index)
+        if direct:
+            st.markdown(direct)
+            st.info("Answer type: deterministic structured answer from project artifacts.")
+        elif use_llm:
+            with st.spinner("Generating LLM-enhanced grounded answer..."):
+                answer, used = llm_answer(question, modules, field_index, behavior)
+            st.markdown(answer)
+            st.info("Answer type: LLM-enhanced grounded answer." if used else "Answer type: fallback message.")
+        else:
+            st.warning("No direct module or field match found. Enable LLM for open-ended questions.")
+
+
+elif page == "5. AI Report / LLM Details":
+    st.subheader("AI Modernization Report")
+    if ai_report:
+        st.markdown(ai_report)
+    else:
+        st.info("docs/ai_modernization_report.md was not found. Run `python validator\\ai_modernization_engine.py` first.")
+
+    st.divider()
+    st.subheader("AI / LLM Integration Details")
+    if llm_details:
+        st.json(llm_details)
+    else:
+        st.info("docs/ai_llm_integration_details.json was not found.")
+
+    st.markdown("### Run commands")
+    st.code(
+        """python validator\\ai_modernization_engine.py
+python -m streamlit run validator\\modernization_dashboard.py""",
+        language="powershell",
+    )
