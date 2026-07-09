@@ -310,3 +310,12 @@ python tests/asm_runtime_tests.py    (only when instruction updates in symantic 
 python validator/behavior_comparator.py
 python validator/modernization_dashboard.py
 streamlit run dashboard/app.py
+
+
+ai_llm_integration_details.json     -> proves OpenAI/LLM integration details
+ai_modernization_report.md          -> final AI-generated modernization report
+behavior_comparison_report.md       -> behavior validation summary
+behavior_comparison_results.json    -> machine-readable validation result
+generated_behavior_report.md        -> static/generated behavior documentation
+known_hlasm_issues.md               -> documents AUTHDEC source issue
+project_analysis_report.md          -> static analysis / module analysis report
