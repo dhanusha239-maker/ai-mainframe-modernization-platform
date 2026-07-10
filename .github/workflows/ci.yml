@@ -51,20 +51,25 @@ jobs:
           }
           python -m pip install streamlit pandas openai
 
-      - name: Check for obvious committed API keys
+      -       - name: Check for obvious committed API keys
         shell: pwsh
         run: |
-          $matches = git grep -n -E "sk-proj|sk-[A-Za-z0-9_-]{20,}" -- . ':!*.md' ':!docs/**' ':!.github/**'
-          if ($LASTEXITCODE -eq 0) {
-            Write-Error "Possible API key or secret found in committed source files. Remove it before merging."
+          $secretMatches = git grep -n -E "sk-proj|sk-[A-Za-z0-9_-]{20,}" -- . ':!*.md' ':!docs/**' ':!.github/**'
+          $grepExit = $LASTEXITCODE
+
+          if ($grepExit -eq 0) {
+            Write-Host "Possible API key found:"
+            Write-Host $secretMatches
             exit 1
           }
-          elseif ($LASTEXITCODE -eq 1) {
+
+          if ($grepExit -eq 1) {
             Write-Host "No obvious API keys found in source files."
+            exit 0
           }
-          else {
-            exit $LASTEXITCODE
-          }
+
+          Write-Host "git grep failed unexpectedly."
+          exit $grepExit
 
       - name: Python syntax check for production scripts
         shell: pwsh
