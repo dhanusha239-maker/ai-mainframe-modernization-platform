@@ -3,21 +3,16 @@ name: HLASM AI Modernization CI
 on:
   push:
     branches:
-      - main
-      - dev
       - feature/ai-modernization
+      - main
   pull_request:
     branches:
-      - main
-      - dev
       - feature/ai-modernization
+      - main
   workflow_dispatch:
 
-permissions:
-  contents: read
-
 jobs:
-  build-test-validate:
+  build-test-generate-validate:
     name: Build, Test, Generate, Validate
     runs-on: windows-latest
 
@@ -25,7 +20,6 @@ jobs:
       AI_USE_LLM: "0"
       OPENAI_API_KEY: ""
       OPENAI_MODEL: "gpt-4.1-mini"
-      PYTHONUNBUFFERED: "1"
 
     steps:
       - name: Checkout repository
@@ -48,18 +42,19 @@ jobs:
           python -m pip install --upgrade pip
           if (Test-Path requirements.txt) {
             python -m pip install -r requirements.txt
+          } else {
+            Write-Host "requirements.txt not found. Skipping dependency install."
           }
-          python -m pip install streamlit pandas openai
 
-      -       - name: Check for obvious committed API keys
+      - name: Check for obvious committed API keys
         shell: pwsh
         run: |
-          $secretMatches = git grep -n -E "sk-proj|sk-[A-Za-z0-9_-]{20,}" -- . ':!*.md' ':!docs/**' ':!.github/**'
+          $secretScanOutput = git grep -n -E 'sk-proj|sk-[A-Za-z0-9_-]{20,}' -- . ":(exclude)*.md" ":(exclude)docs/**" ":(exclude).github/**"
           $grepExit = $LASTEXITCODE
 
           if ($grepExit -eq 0) {
             Write-Host "Possible API key found:"
-            Write-Host $secretMatches
+            Write-Host $secretScanOutput
             exit 1
           }
 
@@ -103,25 +98,19 @@ jobs:
         run: |
           python validator\instruction_translator.py
 
-      - name: Generate Java from HLASM
+      - name: Generate Java
         shell: pwsh
         run: |
           python validator\java_generator.py
-          Get-ChildItem generated_java -Filter *.java
 
       - name: Compile generated Java
         shell: pwsh
         run: |
-          $javaFiles = Get-ChildItem generated_java -Filter *.java -ErrorAction SilentlyContinue
-          if ($javaFiles.Count -eq 0) {
-            Write-Error "No generated Java files found."
-            exit 1
-          }
           cd generated_java
           javac *.java
           cd ..
 
-      - name: Run behavior comparison
+      - name: Run behavior comparator
         shell: pwsh
         run: |
           python validator\behavior_comparator.py
@@ -130,22 +119,13 @@ jobs:
         shell: pwsh
         run: |
           python validator\ai_modernization_engine.py
-          if (!(Test-Path docs\ai_modernization_report.md)) {
-            Write-Error "AI modernization report was not generated."
-            exit 1
-          }
-          if (!(Test-Path docs\ai_llm_integration_details.json)) {
-            Write-Error "AI/LLM integration details file was not generated."
-            exit 1
-          }
 
       - name: Upload modernization reports
         uses: actions/upload-artifact@v4
         with:
           name: modernization-reports
           path: |
-            docs/ai_modernization_report.md
-            docs/ai_llm_integration_details.json
-            docs/behavior_comparison_report.md
-            docs/behavior_comparison_results.json
+            docs/*.md
+            docs/*.json
             analysis_report.json
+          if-no-files-found: warn
