@@ -27,12 +27,26 @@ public class Cardstat implements AssemblerModule {
          *   - CLI TXSTAT, C'A'
          */
 
-        // TODO: instruction-level Java translation will be generated here.
-        // Future generated code should call AsmRuntime helpers, for example:
-        // AsmRuntime.Memory.mvc(ctx, "TARGET", 10, "SOURCE");
-        // AsmRuntime.Packed.zap(ctx, "TARGET", "SOURCE", 7, 2, cc);
-        // AsmRuntime.Branch.bct(registers, 5);
+        // Branch-aware translated instruction candidates from HLASM source.
+        // LABEL: CARDSTAT
+        // CSECT directive: CARDSTAT CSECT ,                   Administrative Block Reviewer
+        // TODO manual review required: BAKR  14,0                Save registers on linkage stack
+        // subroutine call via BASR: BASR  12,0
+        // USING directive: USING *,12
+        // TODO LM already handled by analyzer register_map when possible: LM    2,3,0(1)            R2 = Addr of CURRTX, R3 = Addr of ERRCODE
+        AsmRuntime.Memory.cli(ctx, "TXSTAT", 'A', cc);
+        if (AsmRuntime.Branch.isNotEqual(cc)) {
+            AsmRuntime.Memory.mvcLiteral(ctx, "ERRCODE", 4, "E002");
+            return ModuleResult.rc(4, "Rejected by translated branch logic");
+        }
+        // LABEL: STAT_OK
+        // DS declaration: STAT_OK  DS    0H
+        registers.clear(15);
+        // TODO manual review required: PR
+        // TODO manual review required: LTORG ,
+        // TODO manual review required: END   CARDSTAT
 
         return ModuleResult.rc(0, "CARDSTAT executed as generated candidate");
+
     }
 }

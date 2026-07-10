@@ -1,0 +1,131 @@
+name: HLASM AI Modernization CI
+
+on:
+  push:
+    branches:
+      - feature/ai-modernization
+      - main
+  pull_request:
+    branches:
+      - feature/ai-modernization
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-test-generate-validate:
+    name: Build, Test, Generate, Validate
+    runs-on: windows-latest
+
+    env:
+      AI_USE_LLM: "0"
+      OPENAI_API_KEY: ""
+      OPENAI_MODEL: "gpt-4.1-mini"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Install Python dependencies
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          if (Test-Path requirements.txt) {
+            python -m pip install -r requirements.txt
+          } else {
+            Write-Host "requirements.txt not found. Skipping dependency install."
+          }
+
+      - name: Check for obvious committed API keys
+        shell: pwsh
+        run: |
+          $secretScanOutput = git grep -n -E 'sk-proj|sk-[A-Za-z0-9_-]{20,}' -- . ":(exclude)*.md" ":(exclude)docs/**" ":(exclude).github/**"
+          $grepExit = $LASTEXITCODE
+
+          if ($grepExit -eq 0) {
+            Write-Host "Possible API key found:"
+            Write-Host $secretScanOutput
+            exit 1
+          }
+
+          if ($grepExit -eq 1) {
+            Write-Host "No obvious API keys found in source files."
+            exit 0
+          }
+
+          Write-Host "git grep failed unexpectedly."
+          exit $grepExit
+
+      - name: Python syntax check for production scripts
+        shell: pwsh
+        run: |
+          python -m py_compile validator\asm_scanner.py
+          python -m py_compile validator\cfg_builder.py
+          python -m py_compile validator\pdg_builder.py
+          python -m py_compile validator\impact_analyzer.py
+          python -m py_compile validator\instruction_semantics.py
+          python -m py_compile validator\instruction_translator.py
+          python -m py_compile validator\java_generator.py
+          python -m py_compile validator\behavior_comparator.py
+          python -m py_compile validator\ai_modernization_engine.py
+          python -m py_compile validator\modernization_dashboard.py
+
+      - name: Run scanner, CFG, and PDG tests
+        shell: pwsh
+        run: |
+          python tests\test_scanner.py
+          python tests\test_cfg_builder.py
+          python tests\test_pdg_builder.py
+
+      - name: Generate analysis documentation
+        shell: pwsh
+        run: |
+          python validator\documentation_generator.py
+          python validator\impact_analyzer.py
+
+      - name: Run instruction translator demo
+        shell: pwsh
+        run: |
+          python validator\instruction_translator.py
+
+      - name: Generate Java
+        shell: pwsh
+        run: |
+          python validator\java_generator.py
+
+      - name: Compile generated Java
+        shell: pwsh
+        run: |
+          cd generated_java
+          javac *.java
+          cd ..
+
+      - name: Run behavior comparator
+        shell: pwsh
+        run: |
+          python validator\behavior_comparator.py
+
+      - name: Generate AI modernization report in offline CI mode
+        shell: pwsh
+        run: |
+          python validator\ai_modernization_engine.py
+
+      - name: Upload modernization reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: modernization-reports
+          path: |
+            docs/*.md
+            docs/*.json
+            analysis_report.json
+          if-no-files-found: warn

@@ -27,12 +27,31 @@ public class Authdec implements AssemblerModule {
          *   - CLC AUTHSTAT, =C'0000'
          */
 
-        // TODO: instruction-level Java translation will be generated here.
-        // Future generated code should call AsmRuntime helpers, for example:
-        // AsmRuntime.Memory.mvc(ctx, "TARGET", 10, "SOURCE");
-        // AsmRuntime.Packed.zap(ctx, "TARGET", "SOURCE", 7, 2, cc);
-        // AsmRuntime.Branch.bct(registers, 5);
+        // Branch-aware translated instruction candidates from HLASM source.
+        // LABEL: AUTHDEC
+        // CSECT directive: AUTHDEC  CSECT ,                   Transactional State Evaluator
+        // TODO manual review required: BAKR  14,0                Save state
+        // subroutine call via BASR: BASR  12,0
+        // USING directive: USING *,12
+        // TODO LM already handled by analyzer register_map when possible: LM    2,3,4(1)            R2 = Addr of CURRTX, R3 = Addr of ERRCODE
+        // TODO L requires memory/address resolution before exact helper call: L     4,8(,1)             R4 = Addr of TARGET AUTHSTAT BUFFER
+        AsmRuntime.Memory.clcLiteral(ctx, "AUTHSTAT", 4, "0000", cc);
+        if (AsmRuntime.Branch.isEqual(cc)) {
+            AsmRuntime.Memory.mvcLiteral(ctx, "AUTHSTAT", 5, "APPRV");
+            // branch target: DEC_DONE
+            return ModuleResult.rc(registers.get(15), "Completed translated branch path");
+        }
+        // LABEL: SET_REJECT
+        // DS declaration: SET_REJECT DS  0H
+        AsmRuntime.Memory.mvcLiteral(ctx, "AUTHSTAT", 5, "REJCT");
+        // LABEL: DEC_DONE
+        // DS declaration: DEC_DONE DS    0H
+        registers.clear(15);
+        // TODO manual review required: PR
+        // TODO manual review required: LTORG ,
+        // TODO manual review required: END   AUTHDEC
 
         return ModuleResult.rc(0, "AUTHDEC executed as generated candidate");
+
     }
 }

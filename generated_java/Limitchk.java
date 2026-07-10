@@ -28,12 +28,26 @@ public class Limitchk implements AssemblerModule {
          *   - CP TXAMT, TXLIMIT
          */
 
-        // TODO: instruction-level Java translation will be generated here.
-        // Future generated code should call AsmRuntime helpers, for example:
-        // AsmRuntime.Memory.mvc(ctx, "TARGET", 10, "SOURCE");
-        // AsmRuntime.Packed.zap(ctx, "TARGET", "SOURCE", 7, 2, cc);
-        // AsmRuntime.Branch.bct(registers, 5);
+        // Branch-aware translated instruction candidates from HLASM source.
+        // LABEL: LIMITCHK
+        // CSECT directive: LIMITCHK CSECT ,                   Packed Math Margin Assessor
+        // TODO manual review required: BAKR  14,0                Save context
+        // subroutine call via BASR: BASR  12,0
+        // USING directive: USING *,12
+        // TODO LM already handled by analyzer register_map when possible: LM    2,3,0(1)            R2 = Addr of CURRTX, R3 = Addr of ERRCODE
+        AsmRuntime.Packed.cp(ctx, "TXAMT", "TXLIMIT", cc);
+        if (AsmRuntime.Branch.isHigh(cc)) {
+            AsmRuntime.Memory.mvcLiteral(ctx, "ERRCODE", 4, "E003");
+            return ModuleResult.rc(4, "Rejected by translated branch logic");
+        }
+        // LABEL: LIMIT_OK
+        // DS declaration: LIMIT_OK DS    0H
+        registers.clear(15);
+        // TODO manual review required: PR
+        // TODO manual review required: LTORG ,
+        // TODO manual review required: END   LIMITCHK
 
         return ModuleResult.rc(0, "LIMITCHK executed as generated candidate");
+
     }
 }

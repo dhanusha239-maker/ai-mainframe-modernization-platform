@@ -1,0 +1,4 @@
+CUST000001XXXXXXXX        REJCT                                                                     
+CUST000002XXXXXXXX        REJCT                                                                     
+CUST000003XXXXXXXX        REJCT                                                                     
+CUST000004XXXXXXXX        REJCT                                                                     

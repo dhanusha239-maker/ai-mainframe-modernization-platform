@@ -326,5 +326,13 @@ public class AsmRuntime {
             registers.decrement(register);
             return registers.get(register) != 0;
         }
+
+        public static boolean isNotHigh(ConditionCode cc) {
+            return cc.get() != ConditionCode.HIGH;
+       }
+
+        public static boolean isNotLow(ConditionCode cc) {
+            return cc.get() != ConditionCode.LOW;
+        }
     }
 }

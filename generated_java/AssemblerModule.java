@@ -3,9 +3,26 @@
  * Artifact: AssemblerModule
  */
 
-public interface AssemblerModule {
+    public interface AssemblerModule {
 
-    String name();
+        int R0 = 0;
+        int R1 = 1;
+        int R2 = 2;
+        int R3 = 3;
+        int R4 = 4;
+        int R5 = 5;
+        int R6 = 6;
+        int R7 = 7;
+        int R8 = 8;
+        int R9 = 9;
+        int R10 = 10;
+        int R11 = 11;
+        int R12 = 12;
+        int R13 = 13;
+        int R14 = 14;
+        int R15 = 15;
 
-    ModuleResult execute(ExecutionContext ctx);
-}
+        String name();
+
+        ModuleResult execute(ExecutionContext ctx);
+    }

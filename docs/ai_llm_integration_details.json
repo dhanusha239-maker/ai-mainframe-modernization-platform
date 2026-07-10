@@ -1,0 +1,25 @@
+{
+  "provider": "openai",
+  "purpose": "ai_modernization_report_generation",
+  "model": "gpt-4.1-mini",
+  "enabled": true,
+  "used": true,
+  "error": null,
+  "prompt_sha256": "b666af4c5eae080304b1e861feb3eb629b44105174df30ced07bf0164e2f03ca",
+  "context_sha256": "3d1ea1e8bb5d32b92f0ef477c4333a0609b345116fcc511fe74268726030b0cb",
+  "timestamp": "2026-07-08T23:40:21",
+  "generated_files": [
+    "docs/ai_modernization_report.md",
+    "docs/ai_llm_integration_details.json"
+  ],
+  "input_artifacts": {
+    "HLASM assembler files": 11,
+    "docs/behavior_comparison_report.md": true,
+    "docs/behavior_comparison_results.json": true,
+    "docs/known_hlasm_issues.md": true,
+    "analysis_report.json": true,
+    "instruction_coverage_matrix_v3.md": true,
+    "generated_java/*.java": true
+  },
+  "important_note": "The deterministic evidence collector is the source of truth; LLM is an explanation layer."
+}

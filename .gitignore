@@ -15,3 +15,7 @@ analysis_report.json
 # OS files
 .DS_Store
 Thumbs.db
+# Local backup generator files
+backup_old_generators/
+
+generated_java/java_behavior_output.json

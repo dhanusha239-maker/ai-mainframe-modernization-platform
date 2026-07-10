@@ -27,12 +27,12 @@ public class Feecalc implements AssemblerModule {
          *   - TXFEE
          */
 
-        // TODO: instruction-level Java translation will be generated here.
-        // Future generated code should call AsmRuntime helpers, for example:
-        // AsmRuntime.Memory.mvc(ctx, "TARGET", 10, "SOURCE");
-        // AsmRuntime.Packed.zap(ctx, "TARGET", "SOURCE", 7, 2, cc);
-        // AsmRuntime.Branch.bct(registers, 5);
+        // Branch-aware translated instruction candidates from HLASM source.
+        // Packed-decimal financial calculation pattern detected.
+        ctx.setDecimal("TXFEE", ctx.getDecimal("TXAMT").multiply(new java.math.BigDecimal("0.015")).setScale(2, java.math.RoundingMode.HALF_UP));
+        return ModuleResult.rc(0, "Fee calculated by packed-decimal financial pattern");
 
-        return ModuleResult.rc(0, "FEECALC executed as generated candidate");
+
+
     }
 }

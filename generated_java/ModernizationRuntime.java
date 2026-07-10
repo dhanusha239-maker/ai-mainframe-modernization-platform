@@ -13,6 +13,7 @@ public class ModernizationRuntime {
     public ModernizationRuntime() {
         modules.add(new Audwrite());
         modules.add(new Authdec());
+        modules.add(new Bctcount());
         modules.add(new Cardstat());
         modules.add(new Custval());
         modules.add(new Feecalc());
@@ -20,6 +21,7 @@ public class ModernizationRuntime {
         modules.add(new Limitchk());
         modules.add(new Maindrv());
         modules.add(new Txread());
+        modules.add(new Vsampack());
     }
 
     public List<ModuleResult> execute(ExecutionContext ctx) {
