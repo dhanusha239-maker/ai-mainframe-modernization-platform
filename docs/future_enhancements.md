@@ -1,65 +1,31 @@
 # Future Enhancements
 
-This project is production-ready as a modernization proof-of-concept. The following items can be added in future iterations.
+This project is currently stable as a modernization proof-of-concept. Future improvements can make it more scalable, enterprise-ready, and easier to integrate into real modernization programs.
 
-## 1. Expanded HLASM Instruction Coverage
+## 1. Expand HLASM Coverage
 
-Add support for more HLASM instructions, macros, addressing modes, packed decimal variants, and VSAM patterns.
+Extend support for additional HLASM instructions, macros, addressing modes, packed decimal variations, and VSAM/file-processing patterns.
 
-## 2. Stronger Week 1 ML Integration
+## 2. Strengthen ML Risk Integration
 
-Integrate the saved Week 1 ML model directly into the Week 2 dashboard.
+Integrate the saved Week 1 ML model more deeply into the Week 2 dashboard by showing model confidence, top risk factors, and SHAP-based explanations for each module.
 
-Planned improvements:
-- Load trained ML model artifact
-- Show risk prediction confidence
-- Show SHAP explanation per module
-- Compare static risk score with ML-predicted risk
+## 3. Improve Test Automation
 
-## 3. Automated Test Generation
+Use CFG, PDG, and AI recommendations to generate stronger test coverage, including branch tests, packed decimal boundary tests, file I/O tests, and field-impact regression tests.
 
-Use CFG, PDG, and AI recommendations to generate test case templates.
+## 4. Extend CI/CD Validation
 
-Planned improvements:
-- Branch coverage tests
-- Packed decimal boundary tests
-- File I/O batch tests
-- Field impact regression tests
+The project already includes a GitHub Actions CI pipeline. Future work can extend it with code quality checks, test coverage reporting, deployment checks, and release artifacts.
 
-## 4. CI/CD Pipeline
+## 5. Enhance Dashboard Experience
 
-Add automated checks for every commit.
+Improve the dashboard with dependency graphs, field-impact visualizations, risk trend charts, report export, and reviewer approval notes.
 
-Expected CI steps:
-- Python syntax check
-- Scanner / CFG / PDG tests
-- Java generation
-- Java compilation
-- Behavior comparison
-- AI report generation in offline mode
+## 6. Prepare for Enterprise Deployment
 
-## 5. Dashboard Enhancements
-
-Improve dashboard visualization.
-
-Planned improvements:
-- Module dependency graph
-- Field impact graph
-- Risk trend charts
-- Export AI report as PDF
-- Reviewer notes and approval workflow
-
-## 6. Enterprise Deployment
-
-Package the platform for demo or internal review.
-
-Possible options:
-- Docker container
-- Internal Streamlit server
-- Azure App Service
-- AWS EC2 / ECS
-- GitHub Actions deployment
+Package the platform for easier enterprise review using Docker, internal Streamlit hosting, cloud deployment, or a FastAPI service layer.
 
 ## Known Current Limitation
 
-AUTHDEC approval behavior is documented as a source-program issue. The Java generator should not silently change business behavior. The correct modernization process is to review or fix the source logic before production migration sign-off.
+The AUTHDEC approval behavior is documented as a source-program issue. The Java generator should not silently change business behavior. The correct modernization approach is to review or fix the source logic before production migration sign-off.
