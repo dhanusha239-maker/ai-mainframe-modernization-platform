@@ -313,7 +313,10 @@ python validator\impact_analyzer.py
 
 ```powershell
 python validator\instruction_translator.py
+
 ```
+Clear-Content test_cases\ps\OUTVSAM.txt
+Clear-Content test_cases\ps\VSAMOUT.txt  -- clear o/p files
 
 ### 6. Generate Java
 
