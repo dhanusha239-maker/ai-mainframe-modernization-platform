@@ -31,6 +31,11 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 import pandas as pd
 import streamlit as st
 
+try:
+    from new_module_assessment_dashboard_section import render_new_module_assessment
+except ImportError:
+    from validator.new_module_assessment_dashboard_section import render_new_module_assessment
+
 
 # -----------------------------------------------------------------------------
 # Configuration
@@ -924,8 +929,9 @@ page = st.sidebar.radio(
         "1. Executive Summary",
         "2. Module Explorer",
         "3. Field Impact Explorer",
-        "4. AI Chatbot",
-        "5. AI Report / LLM Details",
+        "4. New Module Assessment",
+        "5. AI Chatbot",
+        "6. AI Report / LLM Details",
     ],
     index=0,
 )
@@ -1082,7 +1088,10 @@ elif page == "3. Field Impact Explorer":
             st.dataframe(field_df.sort_values(["Risk", "Field"], ascending=[True, True]), use_container_width=True)
 
 
-elif page == "4. AI Chatbot":
+elif page == "4. New Module Assessment":
+    render_new_module_assessment()
+
+elif page == "5. AI Chatbot":
     st.subheader("Grounded AI Chatbot")
     st.caption("Ask about modules, fields, failures, risk, CFG/PDG impact, or modernization recommendations.")
 
@@ -1116,7 +1125,7 @@ elif page == "4. AI Chatbot":
             st.warning("No direct module or field match found. Enable LLM for open-ended questions.")
 
 
-elif page == "5. AI Report / LLM Details":
+elif page == "6. AI Report / LLM Details":
     st.subheader("AI Modernization Report")
     if ai_report:
         st.markdown(ai_report)
