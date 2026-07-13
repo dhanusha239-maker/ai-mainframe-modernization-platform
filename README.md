@@ -78,6 +78,8 @@ HLASM/*.asm.txt
         ↓
 Scanner / CFG / PDG Analysis
         ↓
+documentation_generator.py
+        ↓
 analysis_report.json
         ↓
 Instruction Semantics + Instruction Translator

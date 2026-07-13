@@ -1,6 +1,6 @@
 # AI Modernization Intelligence Report
 
-Generated: 2026-07-08T23:40:21
+Generated: 2026-07-12T23:37:28
 
 ## AI / LLM Integration Details
 
@@ -12,7 +12,7 @@ The deterministic evidence collector is the source of truth. OpenAI is used only
 - LLM model: gpt-4.1-mini
 - LLM used: True
 - Prompt SHA256: `b666af4c5eae080304b1e861feb3eb629b44105174df30ced07bf0164e2f03ca`
-- Context SHA256: `3d1ea1e8bb5d32b92f0ef477c4333a0609b345116fcc511fe74268726030b0cb`
+- Context SHA256: `333387f56c58260cef58ae5ec63572837a90e10ec870518a1133b9b542ed4805`
 
 ## Behavior Validation Summary
 
@@ -312,26 +312,24 @@ Reason: Most translated behavior is validated, but known source behavior issues 
 # LLM-Enhanced Modernization Narrative
 
 1. Executive summary  
-The modernization effort converted 11 HLASM assembler modules into Java code with high behavioral fidelity, evidenced by 15 out of 17 test cases passing and an average match score of 95.59. Two test failures occur in approval-path cases within the AUTHDEC and MAINDRV modules due to a documented source code defect where AUTHDEC returns `REJCT` instead of `APPRV` on zero error code. Most modules carry low to medium risk with moderate unsupported instructions and control dependencies; VSAMPACK and MAINDRV modules are high-risk due to size, complex branching, I/O, and packed decimal usage. Comprehensive modernization recommendations and regression tests have been outlined per module, focusing on preserving data mapping, validating numeric behavior, and ensuring control flow coverage.  
+The modernization effort translated 11 HLASM assembler modules into Java, achieving high behavioral fidelity with 15 of 17 automated tests passing and an average match score of 95.59%. Two failures were traced to a documented, known source behavior issue in the AUTHDEC module's approval-path logic where approval results (ERRCODE=0000) incorrectly produce a REJCT status. The codebase exhibits a range of risk levels from Low to High, with key modules MAINDRV and VSAMPACK scoring highest on risk due to complexity, extensive branching, I/O, packed decimal arithmetic, and orchestration responsibilities. The modernization leveraged AI-powered analysis to generate detailed module profiles, behavior validation, and tailored engineering recommendations, including testing and remediation guidance for source logic issues.
 
 2. Why this is AI-powered  
-The modernization process leveraged an AI-powered legacy software intelligence and modernization platform that analyzed HLASM source files, identified behavioral risks and unsupported instructions, and generated corresponding Java source code. The platform produced detailed behavioral comparisons, highlighting source-specific issues, and provided tailored modernization recommendations and test cases automatically. This integrated AI-driven approach enables deep semantic analysis and behavioral validation beyond standard code translation.  
+AI-powered legacy modernization enabled comprehensive analysis and translation of complex HLASM assembler source code into Java. The platform automatically extracted detailed module metrics (branch count, call count, unsupported instructions), identified risk factors, and generated modernization recommendations. AI facilitated cross-module control dependency detection, packed decimal operation validation, and behavior comparison across 17 test scenarios identifying both regression and known source defects. The approach supported high automation in producing generated Java artifacts, behavioral alignment reports, and source-to-target mapping with actionable insights for engineers driving modernization.
 
 3. Risk interpretation  
-Risk levels range from low to high based on factors including control-transfer dependencies, I/O operations, unsupported or partially supported instructions, complex branching, module size, and packed decimal arithmetic/comparisons. High-risk modules like VSAMPACK (score 92) and MAINDRV (score 75) require careful orchestration validation and special attention to record processing and numeric conversions. Medium-risk modules such as AUTHDEC and FEECALC include documented source issues and packed decimal complexities necessitating targeted fixes and validation. Lower-risk modules possess fewer branches and dependencies, allowing standard regression testing and straightforward translation validation.  
+The risk across modules varies from Low to High, primarily driven by size, branching complexity, external calls, interactive file I/O, and packed decimal instruction usage. High-risk modules (MAINDRV risk score 75, VSAMPACK 92) orchestrate batch processing and complex transformation flows, amplifying the impact of unsupported instructions and control dependencies. Medium-risk modules (AUTHDEC, FEECALC) contain known source behavior issues or arithmetic complexities needing special attention. Lower-risk modules exhibit simpler control flows and limited I/O but still require validation of unsupported instruction handling. These risk scores guide prioritization of detailed testing, code review, and logic validation before production migration.
 
 4. Behavior validation interpretation  
-Out of 17 automated behavior test cases, 15 pass cleanly demonstrating close functional equivalence. The two failed tests—AUTHDEC_APPROVE_001 and APP_APPROVAL_FLOW_001—stem from a known source issue where the AUTHDEC module incorrectly outputs `REJCT` when it should approve (ERRCODE 0000). The failures are classified as authentic HLASM source defects, not translation errors, indicating the Java translation faithfully replicated original logic. Overall, behavior validation confirms high confidence in translation fidelity aside from known source-level approval path anomalies.  
+Out of 17 validation cases, 15 passed, confirming overall high fidelity in translated behavior. The two failed tests (AUTHDEC_APPROVE_001 and APP_APPROVAL_FLOW_001) share a failure pattern where expected approval status ‘APPRV’ was replaced by ‘REJCT’ in Java output, mirroring a documented HLASM source defect. This confirms that behavioral mismatches are inherited from legacy source logic rather than translation errors, underscoring the importance of addressing source fixes before migration. The validation also reinforces that the Java translation maintains behavioral correctness elsewhere, supporting confidence in the modernization baseline.
 
 5. Failure diagnostics  
-The failed cases show mismatched authorization status output: expected `APPRV` but translated Java produced `REJCT`. This aligns with the documented AUTHDEC approval-path defect whereby zero error codes do not correctly yield approval. Both failures occur in the AUTHDEC and MAINDRV modules, which coordinate approval logic. The failure diagnosis confirms these are source-level logic errors replicated by the translator rather than deficiencies in translation or runtime environment. Addressing this requires source correction or formal acceptance before production migration.  
+Failures are classified as “Known HLASM source behavior issue” related to the AUTHDEC approval path producing REJCT even on ERRCODE=0000 (successful approval code). Both failed tests fail on the same mismatch indicating the translated Java faithfully replicated the legacy logical defect. The recommended action is to comprehensively review and fix AUTHDEC source approval/rejection branch logic. This prevents propagating a business-critical error into production. Failure diagnostics differentiate source-level defects from translator faults, demonstrating the maturity of AI-generated outputs and focusing engineering effort on legacy functional correctness.
 
 6. Recommended next engineering actions  
-- Review and correct the AUTHDEC module’s approval and rejection branch logic to resolve the documented behavior issue prior to production sign-off.  
-- For AUTHDEC and dependent modules like MAINDRV, add rigorous tests for true/false branch outcomes, boundary conditions, and success/failure approval scenarios ensuring approval logic correctness.  
-- For high-risk modules (VSAMPACK, MAINDRV), implement CFG reviews ensuring all branch paths have matching regression tests covering record parsing, business transformation, and file writing.  
-- Validate all packed decimal handling (FEECALC, FRDCHK, LIMITCHK, VSAMPACK) against original HLASM decimal scale, truncation, and rounding rules with boundary test cases covering zero, fractional, high-value, and edge cases.  
-- Preserve DDNAME/file mappings and verify input/output record counts in modules with IO dependencies (AUDWRITE, TXREAD, MAINDRV, VSAMPACK).  
-- Proceed with standard regression testing for low-risk modules (BCTCOUNT, CARDSTAT, CUSTVAL).  
-- Formally accept or remediate known source behavior issues before final migration.  
-- Continuously update test cases to include boundary and edge scenarios, confirming functional equivalence before production deployment.
+- Review and remediate AUTHDEC module approval-path logic to correct incorrect REJCT outcomes on approval conditions (ERRCODE=0000), resolving the known source defect before production migration sign-off.  
+- For high-risk modules MAINDRV and VSAMPACK: conduct detailed control flow graph (CFG) reviews, ensure regression test coverage on all branch paths, validate DDNAME/file mappings, and verify packed decimal scales, rounding, and truncation semantics aligned with HLASM behavior.  
+- For medium- and low-risk modules: perform boundary and branch outcome testing as recommended, especially on packed decimal arithmetic modules (FEECALC, FRDCHK, LIMITCHK).  
+- Separate concerns in modernized Java code by isolating record parsing, business transformations, and file writing, increasing maintainability and testability.  
+- Execute recommended tests including empty and multiple-record input files, output record count verification, EOF behavior checks, and packed decimal value edge cases.  
+- Formally accept or resolve all documented source behavior anomalies prior to full production deployment to ensure business correctness.
