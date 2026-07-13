@@ -20,7 +20,9 @@ Current implementation status:
 | Behavior match score | 95.59% |
 | Known issue | AUTHDEC approval-path behavior documented as source issue |
 | AI reporting | OpenAI LLM integration supported |
-| Dashboard | Streamlit dashboard available |
+| Dashboard | Streamlit dashboard available with New Module Assessment |
+| New module prediction | Upload/paste a module or select from HLASM folder and predict modernization risk |
+| ML artifact | Saved risk model supported from `ml_risk_predictor/artifacts/risk_model.pkl` |
 | Production generator | `validator/java_generator.py` |
 | AI files | `validator/ai_modernization_engine.py`, `validator/modernization_dashboard.py` |
 
@@ -52,7 +54,7 @@ This project addresses those questions using ML-style risk intelligence, static 
 
 ## What This Platform Does
 
-The platform performs five major functions:
+The platform performs six major functions:
 
 1. **ML-Based Risk Intelligence**  
    Evaluates modernization risk using engineering features such as LOC, branching, dependencies, file I/O, packed decimal usage, unsupported instructions, defect/change indicators, and documentation quality.
@@ -66,7 +68,10 @@ The platform performs five major functions:
 4. **Behavioral Validation**  
    Runs test cases against generated Java output and compares behavior with expected legacy outcomes.
 
-5. **AI Modernization Intelligence**  
+5. **New Module Pre-Modernization Assessment**  
+   Allows a user to upload a new HLASM module or select an existing module from the `HLASM/` folder. The system extracts modernization features, uses the saved ML risk model when available, predicts Low / Medium / High risk, and generates evidence-backed recommendations before translation.
+
+6. **AI Modernization Intelligence**  
    Uses project artifacts and an optional OpenAI LLM integration to produce modernization reports, failure diagnostics, field impact explanations, and dashboard-based recommendations.
 
 ---
@@ -100,6 +105,29 @@ docs/ai_llm_integration_details.json
         ↓
 Streamlit Modernization Dashboard
 ```
+
+
+### New Module Assessment Flow
+
+```text
+New HLASM module
+        ↓
+Upload in dashboard OR select from HLASM folder
+        ↓
+validator/new_module_assessor.py
+        ↓
+Feature extraction
+LOC + branches + file I/O + packed decimal + unsupported instructions + symbols
+        ↓
+Saved ML model artifact when available
+ml_risk_predictor/artifacts/risk_model.pkl
+        ↓
+Risk level + confidence + evidence-backed recommendations
+        ↓
+Dashboard: New Module Assessment
+```
+
+This feature is useful before translation because modernization teams can review risk and testing needs before Java generation begins.
 
 ---
 
@@ -227,10 +255,13 @@ Dashboard pages:
 3. **Field Impact Explorer**  
    Allows searching fields such as `ERRCODE`, `TXAMT`, `AUTHSTAT`, `TXFEE`, and shows writer modules, reader modules, impacted modules, and evidence lines.
 
-4. **AI Chatbot**  
+4. **New Module Assessment**  
+   Allows uploading/pasting a new HLASM module or selecting an existing module from the `HLASM/` folder. It uses the saved ML model artifact when available and shows risk level, confidence, extracted features, evidence, and modernization recommendations.
+
+5. **AI Chatbot**  
    Answers grounded questions about modules, fields, behavior failures, risk, and modernization recommendations.
 
-5. **AI Report / LLM Details**  
+6. **AI Report / LLM Details**  
    Displays the generated AI modernization report and LLM integration metadata.
 
 Example chatbot questions:
@@ -266,6 +297,8 @@ AI-Powered Legacy Software Intelligence & Modernization Platform/
 │   ├── java_generator.py
 │   ├── behavior_comparator.py
 │   ├── ai_modernization_engine.py
+│   ├── new_module_assessor.py
+│   ├── new_module_assessment_dashboard_section.py
 │   └── modernization_dashboard.py
 │
 ├── docs/                          # Generated reports and AI documentation
@@ -313,18 +346,22 @@ python validator\impact_analyzer.py
 
 ```powershell
 python validator\instruction_translator.py
-
 ```
-Clear-Content test_cases\ps\OUTVSAM.txt
-Clear-Content test_cases\ps\VSAMOUT.txt  -- clear o/p files
 
-### 6. Generate Java
+### 6. Optional: clear generated output files before behavior test
+
+```powershell
+Clear-Content test_cases\ps\OUTVSAM.txt
+Clear-Content test_cases\ps\VSAMOUT.txt
+```
+
+### 7. Generate Java
 
 ```powershell
 python validator\java_generator.py
 ```
 
-### 7. Compile generated Java
+### 8. Compile generated Java
 
 ```powershell
 cd generated_java
@@ -332,7 +369,7 @@ javac *.java
 cd ..
 ```
 
-### 8. Run behavior validation
+### 9. Run behavior validation
 
 ```powershell
 python validator\behavior_comparator.py
@@ -347,7 +384,7 @@ Failed cases: 2
 Average behavior match score: 95.59%
 ```
 
-### 9. Generate AI modernization report
+### 10. Generate AI modernization report
 
 To run with LLM enabled, set your key locally in PowerShell. Do not commit the key.
 
@@ -366,11 +403,47 @@ $env:AI_USE_LLM = "0"
 python validator\ai_modernization_engine.py
 ```
 
-### 10. Run dashboard
+### 11. Run dashboard
 
 ```powershell
 python -m streamlit run validator\modernization_dashboard.py
 ```
+
+### 12. Run new module assessment from PowerShell
+
+```powershell
+python validator\new_module_assessor.py HLASM\BCTCOUNT.asm.txt
+```
+
+Expected output includes `risk_level`, `risk_score`, `risk_source`, `confidence`, `ml_prediction`, `features`, `recommendations`, and `evidence`.
+
+If a saved ML artifact is available, the output shows:
+
+```text
+risk_source: ML artifact + static evidence
+model_path: ml_risk_predictor/artifacts/risk_model.pkl
+```
+
+### 13. Use New Module Assessment in the dashboard
+
+```powershell
+python -m streamlit run validator\modernization_dashboard.py
+```
+
+In the sidebar, open:
+
+```text
+4. New Module Assessment
+```
+
+Then choose one of the two input options:
+
+```text
+Option 1: Upload or paste a new HLASM module
+Option 2: Select a module from the HLASM folder
+```
+
+The dashboard displays the ML/static risk result, extracted features, evidence proof, and modernization recommendations before translation.
 
 ---
 
@@ -420,9 +493,36 @@ docs/known_hlasm_issues.md
 
 ---
 
-## Adding a New HLASM Module
+## Adding or Assessing a New HLASM Module
 
-Basic flow:
+There are two supported ways to review a new module.
+
+### Option 1: Pre-modernization risk assessment
+
+Use this before translation when you want to understand risk first.
+
+```powershell
+python validator\new_module_assessor.py HLASM\BCTCOUNT.asm.txt
+python -m streamlit run validator\modernization_dashboard.py
+```
+
+Dashboard path:
+
+```text
+New Module Assessment → Select module from HLASM folder
+```
+
+or:
+
+```text
+New Module Assessment → Upload or paste new HLASM module
+```
+
+This predicts modernization risk using the saved Week 1 ML model artifact when available. It also extracts evidence such as branch count, file I/O, packed decimal usage, unsupported instructions, and symbol/data impact.
+
+### Option 2: Full modernization pipeline
+
+Use this when you want to add the module into the project and regenerate reports.
 
 ```powershell
 Copy-Item "C:\Users\dhanu\Downloads\NEWMOD.asm.txt" HLASM\NEWMOD.asm.txt -Force
@@ -444,13 +544,15 @@ If the new module requires behavior validation, add a test case to:
 test_cases/behavior_test_cases.json
 ```
 
-Static analysis and AI reporting can detect the module immediately, but behavior score coverage requires a behavior test case.
+Static analysis and AI reporting can detect the module after the pipeline is rerun, but behavior score coverage requires a behavior test case.
 
 ---
 
 ## CI/CD Readiness
 
-Recommended CI/CD checks:
+This project includes a GitHub Actions CI workflow. The workflow validates the modernization pipeline on push and pull request.
+
+Current CI/CD checks:
 
 - Python syntax check
 - Scanner test
@@ -476,8 +578,8 @@ docs/future_enhancements.md
 Important future improvements include:
 
 - Expanded HLASM instruction coverage
-- Stronger Week 1 ML model integration into the dashboard
 - SHAP explanation per module
+- Live model comparison visualization
 - Automated test case generation from CFG/PDG
 - Module dependency graph visualization
 - Field impact graph visualization
